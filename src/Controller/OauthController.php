@@ -12,14 +12,16 @@ declare(strict_types=1);
 
 namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller;
 
+use Contao\Config;
 use Contao\Controller;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\FrontendUser;
 use Contao\BackendUser;
 use Contao\PageModel;
+use Contao\System;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
-use Markocupic\SacEventToolBundle\OpenIdConnect\Authentication\Authentication;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Authentication\Authentication;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
@@ -59,8 +61,6 @@ class OauthController extends AbstractController
      */
     public function frontendUserAuthenticationAction(): Response
     {
-
-
         //return new Response('This extension is under construction.', 200);
 
         // Retrieve the username from openid connect
@@ -70,16 +70,19 @@ class OauthController extends AbstractController
 
         $providerKey = Authentication::SECURED_AREA_FRONTEND;
 
+        $this->framework = System::getContainer()->get('contao.framework');
+        $this->framework->initialize();
+
         ////
         ///
 
         $provider = new \League\OAuth2\Client\Provider\GenericProvider([
-            'clientId'                => 'bnnF_kqBlczg3BZQjLg_DsfUtB4a',    // The client ID assigned to you by the provider
-            'clientSecret'            => '0olD57oV_PXtTMCpByEldBguQEka',   // The client password assigned to you by the provider
-            'redirectUri'             => 'https://sac-pilatus.ch/ssoauth/frontend', // Absolute Callbackurl to your system(must be registered by service provider.)
-            'urlAuthorize'            => 'https://ids02.sac-cas.ch:443/oauth2/authorize',
-            'urlAccessToken'          => 'https://ids02.sac-cas.ch:443/oauth2/token',
-            'urlResourceOwnerDetails' => 'https://ids02.sac-cas.ch:443/oauth2/userinfo',
+            'clientId'                => Config::get('SAC_SSO_LOGIN_CLIENT_ID'),    // The client ID assigned to you by the provider
+            'clientSecret'            => Config::get('SAC_SSO_LOGIN_CLIENT_SECRET'),   // The client password assigned to you by the provider
+            'redirectUri'             => Config::get('SAC_SSO_LOGIN_REDIRECT_URI'), // Absolute Callbackurl to your system(must be registered by service provider.)
+            'urlAuthorize'            => Config::get('SAC_SSO_LOGIN_URL_AUTHORIZE'),
+            'urlAccessToken'          => Config::get('SAC_SSO_LOGIN_URL_ACCESS_TOKEN'),
+            'urlResourceOwnerDetails' => Config::get('SAC_SSO_LOGIN_URL_RESOURCE_OWNER_DETAILS'),
             'response_type'           => 'code',
             'scopes'                  => ['openid'],
         ]);
@@ -126,7 +129,7 @@ class OauthController extends AbstractController
                 // resource owner.
                 $resourceOwner = $provider->getResourceOwner($accessToken);
                 $arrData = $resourceOwner->toArray();
-                mail('m.cupic@gmx.ch', 'var_export ', print_r($arrData,true));
+                mail('m.cupic@gmx.ch', 'var_export ', print_r($arrData, true));
                 $username = $arrData['contact_number'];
 
                 //echo "kostenpflichtig REST Stuff";
@@ -136,7 +139,7 @@ class OauthController extends AbstractController
                 // to Psr\Http\Message\RequestInterface.
                 $request = $provider->getAuthenticatedRequest(
                     'GET',
-                    'https://ids02.sac-cas.ch/oauth2/userinfo',
+                    $provider['urlResourceOwnerDetails'],
                     $accessToken
                 );
 
@@ -159,8 +162,6 @@ class OauthController extends AbstractController
                     'Successfully logged in.',
                     Response::HTTP_UNAUTHORIZED
                 );
-
-
             } catch (\League\OAuth2\Client\Provider\Exception\IdentityProviderException $e)
             {
                 // Failed to get the access token or user details.
@@ -172,7 +173,6 @@ class OauthController extends AbstractController
             }
         }
 
-
         return new Response(
             'Login Error.',
             Response::HTTP_UNAUTHORIZED
@@ -182,7 +182,7 @@ class OauthController extends AbstractController
     /**
      * @return Response
      * @throws \Exception
-     * @Route("/ssoauth/backend", name="sac_ch_sso_auth_frontend", defaults={"_scope" = "backend", "_token_check" = false})
+     * @Route("/ssoauth/backend", name="sac_ch_sso_auth_backend", defaults={"_scope" = "backend", "_token_check" = false})
      */
     public function backendUserAuthenticationAction(): Response
     {

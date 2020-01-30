@@ -11,16 +11,12 @@
  */
 
 if (TL_MODE === 'BE') {
-	$GLOBALS['TL_CSS'][] = \Contao\Environment::get('path').'/bundles/markocupicswissalpineclubloginclient/css/backend.css';
+	$GLOBALS['TL_CSS'][] = \Contao\Environment::get('path').'/bundles/markocupicswissalpineclubcontaologinclient/css/backend.css';
 }
-
+/**
 $GLOBALS['TL_HOOKS']['parseBackendTemplate'][] = [
-    \Markocupic\SwissAlpineClubContaoLoginClientBundle\BackendModule\DisplayAuthProviders::class, 'addServersToLoginPage'
+    /\Markocupic\SwissAlpineClubContaoLoginClientBundle\BackendModule\DisplayAuthProviders::class, 'addServersToLoginPage'
 ];
-
-$GLOBALS['BE_MOD']['oidc_login']['oidc_login_auth_servers'] = [
-    'tables'       => ['tl_oidc_server'],
-];
+**/
 
 
-$GLOBALS['TL_MODELS']['tl_oidc_server'] = \Markocupic\SwissAlpineClubContaoLoginClientBundle\Model\OidcServerModel::class;

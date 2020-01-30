@@ -1,25 +1,22 @@
 services:
-    Markocupic\SwissAlpineClubContaoLoginClientBundle\Server\ServerManager:
-        public: true
-        autowire: true
 
-    Markocupic\SwissAlpineClubContaoLoginClientBundle\User\RemoteUserManager:
-        public: true
-        autowire: true
+  Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\OauthController:
+    arguments:
+    - '@contao.framework'
+    - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\Authentication\Authentication'
+    public: true
 
-    Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\ContaoBackendLogin:
-        public: true
-        autowire: true
-        arguments:
-            $contaoUserProvider: '@contao.security.backend_user_provider'
-            $authenticationManager: '@security.authentication.manager'
-            $tokenStorage: '@security.token_storage'
+  Markocupic\SwissAlpineClubContaoLoginClientBundle\Authentication\Authentication:
+    arguments:
+    - '@contao.framework'
+    - '@contao.security.user_checker'
+    - '@session'
+    - '@security.token_storage'
+    - '@event_dispatcher'
+    - '@request_stack'
+    - '@monolog.logger.contao'
+    public: true
 
-    Markocupic\SwissAlpineClubContaoLoginClientBundle\User\RemoteContaoOAuth2User:
-        public: true
-        autowire: true
 
-    Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\AuthorizationController:
-        public: true
-        autowire: true
-        tags: ['controller.service_arguments']
+
+
