@@ -1,2 +1,3 @@
-# swiss-alpine-club-contao-login-client-bundle
- Swiss Alpine Club SSO Login Client for Contao  
+# OpenId Connect Login client for SAC Pilatus
+
+Do not use this extension! It is under construction!

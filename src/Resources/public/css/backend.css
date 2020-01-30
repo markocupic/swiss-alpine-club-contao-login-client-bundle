@@ -1,0 +1,4 @@
+#tl_navigation .tl_level_1_group a.group-oidc_login {
+	background: url("../img/oidc-login-icon.svg") 0px 0px no-repeat;
+	background-size: 18px;
+}
