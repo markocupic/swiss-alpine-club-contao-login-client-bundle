@@ -15,10 +15,10 @@ namespace Markocupic\SwissAlpineClubContaoLoginClientBundle;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
 /**
- * Class MarkocupicSwissAlpineClubLoginClientBundle
+ * Class MarkocupicSwissAlpineClubContaoLoginClientBundle
  * @package Markocupic\SwissAlpineClubContaoLoginClientBundle
  */
-class MarkocupicSwissAlpineClubLoginClientBundle extends Bundle
+class MarkocupicSwissAlpineClubContaoLoginClientBundle extends Bundle
 {
 
 }
