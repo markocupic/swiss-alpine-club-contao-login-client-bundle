@@ -16,6 +16,7 @@
       "role": "Developer"
     }
   ],
+  "version": "1.0",
   "require": {
     "php": "^7.1",
     "league/oauth2-client": "^2.4",
