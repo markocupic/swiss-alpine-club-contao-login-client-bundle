@@ -1,6 +1,6 @@
 {
   "name": "markocupic/swiss-alpine-club-contao-login-client-bundle",
-  "description": "OpenId Connect Login Client for Contao CMS",
+  "description": "Contao SSO Login Client for OIDC Server at Swiss Alpine Club",
   "keywords": [
     "contao",
     "openid connect",
@@ -20,17 +20,17 @@
     "php": "^7.1",
     "league/oauth2-client": "^2.4",
     "contao/core-bundle": "^4.8,<5.0",
-    "markocupic/sac-event-tool-bundle": ">1.0"
+    "markocupic/sac-event-tool-bundle": "*"
   },
   "require-dev": {
     "contao/manager-plugin": "^2.0"
   },
   "autoload": {
     "psr-4": {
-      "Markocupic\\SwissAlpineClubLoginClientBundle\\": "src/"
+      "Markocupic\\SwissAlpineClubContaoLoginClientBundle\\": "src/"
     }
   },
   "extra": {
-    "contao-manager-plugin": "Markocupic\\SwissAlpineClubLoginClientBundle\\ContaoManager\\Plugin"
+    "contao-manager-plugin": "Markocupic\\SwissAlpineClubContaoLoginClientBundle\\ContaoManager\\Plugin"
   }
 }
