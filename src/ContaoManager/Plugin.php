@@ -31,7 +31,7 @@ class Plugin implements BundlePluginInterface, RoutingPluginInterface
     public function getBundles(ParserInterface $parser)
     {
         return [
-            BundleConfig::create('Markocupic\SwissAlpineClubContaoLoginClientBundle')
+            BundleConfig::create('Markocupic\SwissAlpineClubContaoLoginClientBundle\MarkocupicSwissAlpineClubContaoLoginClientBundle')
                 ->setLoadAfter(['Contao\CoreBundle\ContaoCoreBundle'])
                 ->setLoadAfter(['Markocupic\SacEventToolBundle\MarkocupicSacEventToolBundle'])
         ];
