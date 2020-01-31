@@ -1,0 +1,14 @@
+{% trans_default_domain 'contao_exception' %}
+{% extends "@ContaoCore/Error/layout.html.twig" %}
+{% block title %}
+    {{ 'XPT.sac_sso_app_error'|trans }}
+{% endblock %}
+{% block matter %}
+    <p>Das Sicherheitstoken ist abgelaufen oder nicht vorhanden.</p>
+{% endblock %}
+{% block howToFix %}
+    <p>Bitte navigieren Sie zurück und laden Sie die Seite neu (Browser aktualisieren). Probieren Sie danach noch einmal den Login-Prozess zu starten.</p>
+{% endblock %}
+{% block explain %}
+
+{% endblock %}

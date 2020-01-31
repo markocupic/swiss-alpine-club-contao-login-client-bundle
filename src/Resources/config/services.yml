@@ -1,9 +1,13 @@
 services:
 
-  Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\OauthController:
+  Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\Oauth\OauthController:
     arguments:
     - '@contao.framework'
+    - '@request_stack'
+    - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\User\User'
     - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\Authentication\Authentication'
+    - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\AppChecker\AppChecker'
+    - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\PrintErrorMessage'
     public: true
 
   Markocupic\SwissAlpineClubContaoLoginClientBundle\Authentication\Authentication:
@@ -17,6 +21,30 @@ services:
     - '@monolog.logger.contao'
     public: true
 
+  Markocupic\SwissAlpineClubContaoLoginClientBundle\User\User:
+    arguments:
+    - '@contao.framework'
+    - '@contao.security.user_checker'
+    - '@session'
+    - '@security.token_storage'
+    - '@event_dispatcher'
+    - '@request_stack'
+    - '@monolog.logger.contao'
+    public: true
 
+  Markocupic\SwissAlpineClubContaoLoginClientBundle\AppChecker\AppChecker:
+    arguments:
+    - '@contao.framework'
+    public: true
+
+  Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\PrintErrorMessage:
+    arguments:
+    - '%contao.pretty_error_screens%'
+    - '@twig'
+    - '@contao.framework'
+    - '@request_stack'
+    - '@security.helper'
+    - '@?logger'
+    public: true
 
 

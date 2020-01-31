@@ -1,0 +1,11 @@
+services:
+
+  Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\FrontendModule\SwissAlpineSsoFrontendLogin:
+    calls:
+    - ['setContainer', ['@Psr\Container\ContainerInterface']]
+    tags:
+    - { name: contao.frontend_module, category: user }
+    - { name: container.service_subscriber }
+    public: true
+
+

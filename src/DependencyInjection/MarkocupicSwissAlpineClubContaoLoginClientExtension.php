@@ -23,9 +23,11 @@ class MarkocupicSwissAlpineClubContaoLoginClientExtension extends Extension
     {
         $loader = new YamlFileLoader(
             $container,
-            new FileLocator(__DIR__.'/../Resources/config')
+            new FileLocator(__DIR__ . '/../Resources/config')
         );
+        $loader->load('parameters.yml');
+        $loader->load('listener.yml');
         $loader->load('services.yml');
-
+        $loader->load('controller-contao-frontend-module.yml');
     }
 }

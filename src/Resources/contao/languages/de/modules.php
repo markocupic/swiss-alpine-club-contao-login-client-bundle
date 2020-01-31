@@ -12,7 +12,6 @@
 
 
 /**
- * Back end modules
+ * Front end modules
  */
-$GLOBALS['TL_LANG']['MOD']['oidc_login'] = 'OpenId Connect Logins';
-$GLOBALS['TL_LANG']['MOD']['oidc_login_auth_servers'] = array('Oidc-Server', 'Oids-Login-Server verwalten');
+$GLOBALS['TL_LANG']['FMD']['swiss_alpine_sso_frontend_login'] = ['SAC SSO Frontend Login', 'Single Sign On OpenId Connect SAC Login'];

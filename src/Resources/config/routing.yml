@@ -1,1 +1,4 @@
+sac_ch_sso_auth:
+  resource: "@MarkocupicSwissAlpineClubContaoLoginClientBundle/Controller"
+  type: annotation
 
