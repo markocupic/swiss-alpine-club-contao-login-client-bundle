@@ -223,7 +223,7 @@ class OauthController extends AbstractController
                 }
 
                 // Check if user exists
-                if (!$hasError && !$this->user->userExists($arrData['contact_number'], $userClass))
+                if (!$this->user->userExists($arrData['contact_number'], $userClass))
                 {
                     $arrError = [
                         'matter'   => sprintf('Die Überprüfung der Daten vom Identity Provider ist fehlgeschlagen. Der Benutzername "%s" wurde in der Datenbank nicht gefunden.', $arrData['contact_number']),
