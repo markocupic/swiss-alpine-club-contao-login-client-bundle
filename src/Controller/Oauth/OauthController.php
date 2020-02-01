@@ -195,6 +195,7 @@ class OauthController extends AbstractController
                 $resourceOwner = $provider->getResourceOwner($accessToken);
                 $arrData = $resourceOwner->toArray();
 
+                // Check if user is SAC member
                 if (!isset($arrData) || empty($arrData['contact_number']) || empty($arrData['Roles']) || empty($arrData['contact_number']) || empty($arrData['sub']))
                 {
                     $arrError = [
@@ -206,6 +207,7 @@ class OauthController extends AbstractController
                     Controller::redirect($_SESSION['SAC_SSO_OIDC_LOGIN']['errorPath']);
                 }
 
+                // Check if user is member of an allowed section
                 if (!isset($arrData) || empty($arrData['email']) || !Validator::isEmail($arrData['email']))
                 {
                     $arrError = [

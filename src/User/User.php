@@ -103,7 +103,6 @@ class User
         $arrMembership = $this->getGroupMembership($arrData);
         if (count($arrMembership) > 0)
         {
-            die(print_r($arrMembership));
             return true;
         }
 
