@@ -103,6 +103,7 @@ class User
         $arrMembership = $this->getGroupMembership($arrData);
         if (count($arrMembership) > 0)
         {
+            die(print_r($arrMembership));
             return true;
         }
 
@@ -218,9 +219,9 @@ class User
             foreach ($arrRoles as $role)
             {
                 //[Roles] => NAV_BULLETIN,NAV_EINZEL_00185155,NAV_D,NAV_STAMMSEKTION_S00004250,NAV_EINZEL_S00004250,NAV_S00004250,NAV_F1540,NAV_BULLETIN_S00004250,Internal/everyone,NAV_NAVISION,NAV_EINZEL,NAV_MITGLIED_S00004250,NAV_HERR,NAV_F1004V,NAV_F1004V_S00004250,NAV_BULLETIN_S00004250_PAPIER
-                if (strpos($role, 'NAV_EINZEL_S') === 0)
+                if (strpos($role, 'NAV_STAMMSEKTION_S') === 0)
                 {
-                    $strRole = str_replace('NAV_EINZEL_S', '', $role);
+                    $strRole = str_replace('NAV_STAMMSEKTION_S', '', $role);
                     $strRole = preg_replace('/^0+/', '', $strRole);
                     if (!empty($strRole))
                     {
@@ -280,7 +281,7 @@ class User
                 $objMember->login = '1';
                 $objMember->locked = 0;
                 $objMember->save();
-                $user = $userProvider->refreshUser($user);
+                $userProvider->refreshUser($user);
                 return true;
             }
         }
@@ -291,7 +292,7 @@ class User
             {
                 $objUser->locked = 0;
                 $objUser->save();
-                $user = $userProvider->refreshUser($user);
+                $userProvider->refreshUser($user);
                 return true;
             }
         }
@@ -300,28 +301,53 @@ class User
     }
 
     /**
+     * @param bool $isMember
      * @return array
      */
-    public function getMockUserData(): array
+    public function getMockUserData($isMember = true): array
     {
+        if ($isMember)
+        {
+            return [
+                'telefonmobil'         => '079 999 99 99',
+                'sub'                  => '0e592343a-2122-11e8-91a0-00505684a4ad',
+                'telefong'             => '041 984 13 50',
+                'familienname'         => 'Messner',
+                'strasse'              => 'Schloss Juval',
+                'vorname'              => 'Reinhold',
+                'Roles'                => 'NAV_BULLETIN,NAV_EINZEL_00185155,NAV_D,NAV_STAMMSEKTION_S00004250,NAV_EINZEL_S00004250,NAV_EINZEL_S00004251,NAV_S00004250,NAV_F1540,NAV_BULLETIN_S00004250,Internal/everyone,NAV_NAVISION,NAV_EINZEL,NAV_MITGLIED_S00004250,NAV_HERR,NAV_F1004V,NAV_F1004V_S00004250,NAV_BULLETIN_S00004250_PAPIER',
+                'contact_number'       => '999999',
+                'ort'                  => 'Vinschgau IT',
+                'geburtsdatum'         => '25.05.1976',
+                'anredecode'           => 'HERR',
+                'name'                 => 'Messner Reinhold',
+                'land'                 => 'IT',
+                'kanton'               => 'ST',
+                'korrespondenzsprache' => 'D',
+                'telefonp'             => '099 999 99 99',
+                'email'                => 'r.messner@matterhorn-kiosk.ch',
+                'plz'                  => '6208',
+            ];
+        }
+        // Non member
         return [
             'telefonmobil'         => '079 999 99 99',
-            'sub'                  => '0e592343a-2122-11e8-91a0-00505684a4ad',
+            'sub'                  => '0e59877743a-2122-11e8-91a0-00505684a4ad',
             'telefong'             => '041 984 13 50',
-            'familienname'         => 'Messner',
+            'familienname'         => 'Rébuffat',
             'strasse'              => 'Schloss Juval',
-            'vorname'              => 'Reinhold',
-            'Roles'                => 'NAV_BULLETIN,NAV_EINZEL_00185155,NAV_D,NAV_STAMMSEKTION_S00004250,NAV_EINZEL_S00004250,NAV_EINZEL_S00004251,NAV_S00004250,NAV_F1540,NAV_BULLETIN_S00004250,Internal/everyone,NAV_NAVISION,NAV_EINZEL,NAV_MITGLIED_S00004250,NAV_HERR,NAV_F1004V,NAV_F1004V_S00004250,NAV_BULLETIN_S00004250_PAPIER',
+            'vorname'              => 'Gaston',
+            'Roles'                => 'NAV_BULLETIN,NAV_EINZEL_00185155,NAV_D,NAV_STAMMSEKTION_S00009999,NAV_EINZEL_S00009999,NAV_EINZEL_S00009999,NAV_S00009999,NAV_F1540,NAV_BULLETIN_S00004250,Internal/everyone,NAV_NAVISION,NAV_EINZEL,NAV_MITGLIED_S00004250,NAV_HERR,NAV_F1004V,NAV_F1004V_S00004250,NAV_BULLETIN_S00004250_PAPIER',
             'contact_number'       => '999999',
-            'ort'                  => 'Vinschgau IT',
+            'ort'                  => 'Chamonix FR',
             'geburtsdatum'         => '25.05.1976',
             'anredecode'           => 'HERR',
-            'name'                 => 'Messner Reinhold',
+            'name'                 => 'Gaston Rébuffat',
             'land'                 => 'IT',
             'kanton'               => 'ST',
             'korrespondenzsprache' => 'D',
             'telefonp'             => '099 999 99 99',
-            'email'                => 'r.messner@matterhorn-kiosk.ch',
+            'email'                => 'g.rebuffat@matterhorn-kiosk.ch',
             'plz'                  => '6208',
         ];
     }

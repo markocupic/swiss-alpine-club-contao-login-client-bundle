@@ -336,17 +336,4 @@ class OauthController extends AbstractController
         );
     }
 
-    private function addFlashBagMessage($arrMsg)
-    {
-        /** @var  Session $session */
-        $session = System::getContainer()->get('session');
-
-        // Confirmation message
-        if ($session->isStarted())
-        {
-            $flashBag = $session->getFlashBag();
-            $flashBag->add('oauthError', $arrMsg);
-        }
-    }
-
 }
