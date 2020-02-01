@@ -18,18 +18,21 @@ use Contao\Controller;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\FrontendUser;
 use Contao\System;
+use Contao\Validator;
 use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use League\OAuth2\Client\Provider\GenericProvider;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\AppChecker\AppChecker;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Authentication\Authentication;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\PrintErrorMessage;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Exception\InvalidRequestTokenException;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Oauth\Oauth;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\User\User;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Csrf\CsrfToken;
 use Symfony\Component\Security\Csrf\CsrfTokenManager;
+use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
@@ -67,6 +70,9 @@ class OauthController extends AbstractController
      */
     private $appChecker;
 
+    /** @var Oauth */
+    private $oauth;
+
     /**
      * @var PrintErrorMessage
      */
@@ -77,7 +83,7 @@ class OauthController extends AbstractController
      * @param ContaoFramework $framework
      * @param Authentication $authentication
      */
-    public function __construct(ContaoFramework $framework, RequestStack $requestStack, CsrfTokenManager $csrfTokenManager, User $user, Authentication $authentication, AppChecker $appChecker, PrintErrorMessage $printErrorMessage)
+    public function __construct(ContaoFramework $framework, RequestStack $requestStack, CsrfTokenManager $csrfTokenManager, User $user, Authentication $authentication, AppChecker $appChecker, Oauth $oauth, PrintErrorMessage $printErrorMessage)
     {
         $this->framework = $framework;
         $this->requestStack = $requestStack;
@@ -86,6 +92,7 @@ class OauthController extends AbstractController
         $this->authentication = $authentication;
         $this->framework->initialize();
         $this->appChecker = $appChecker;
+        $this->oauth = $oauth;
         $this->printErrorMessage = $printErrorMessage;
 
         // Check app configuration in the contao backend settings (tl_settings)
@@ -138,6 +145,12 @@ class OauthController extends AbstractController
                 throw new AppCheckFailedException('Login Error: URI parameter "targetPath" not found.');
             }
 
+            if (!$request->query->has('errorPath'))
+            {
+                // Target path not found in the query string
+                throw new AppCheckFailedException('Login Error: URI parameter "errorPath" not found.');
+            }
+
             $tokenName = System::getContainer()->getParameter('contao.csrf_token_name');
             if (!$request->query->has('rt') || !$this->csrfTokenManager->isTokenValid(new CsrfToken($tokenName, $request->query->get('rt'))))
             {
@@ -145,6 +158,7 @@ class OauthController extends AbstractController
             }
 
             $_SESSION['SAC_SSO_OIDC_LOGIN']['targetPath'] = $request->query->get('targetPath');
+            $_SESSION['SAC_SSO_OIDC_LOGIN']['errorPath'] = $request->query->get('errorPath');
             $_SESSION['SAC_SSO_OIDC_LOGIN']['moduleId'] = $request->query->get('moduleId');
 
             // Fetch the authorization URL from the provider; this returns the urlAuthorize option and generates and applies any necessary parameters
@@ -181,26 +195,38 @@ class OauthController extends AbstractController
                 $resourceOwner = $provider->getResourceOwner($accessToken);
                 $arrData = $resourceOwner->toArray();
 
-                if (!isset($arrData) || empty($arrData['contact_number']) || empty($arrData['email']) || empty($arrData['Roles']) || empty($arrData['contact_number']) || empty($arrData['sub']))
+                if (!isset($arrData) || empty($arrData['contact_number']) || empty($arrData['Roles']) || empty($arrData['contact_number']) || empty($arrData['sub']))
                 {
                     $arrError = [
-                        'matter'   => 'Die Überprüfung der Daten vom Identity Provider ist fehlgeschlagen.',
+                        'matter'   => 'Die Überprüfung der Daten vom Identity Provider hat fehlgeschlagen.',
                         'howToFix' => 'Sie müssen Mitglied des SAC sein, um sich auf diesem Portal einloggen zu können.',
                         'explain'  => 'Der geschütze Bereich ist nur Mitgliedern des SAC (Schweizerischer Alpen Club) zugänglich.',
                     ];
-                    $this->printErrorMessage->printErrorMessage($arrError);
+                    $this->oauth->addFlashBagMessage($arrError);
+                    Controller::redirect($_SESSION['SAC_SSO_OIDC_LOGIN']['errorPath']);
+                }
+
+                if (!isset($arrData) || empty($arrData['email']) || !Validator::isEmail($arrData['email']))
+                {
+                    $arrError = [
+                        'matter'   => 'Die Überprüfung der Daten vom Identity Provider hat fehlgeschlagen.',
+                        'howToFix' => 'Sie haben noch keine/keine gültige E-Mail-Adresse hinterlegt. Bitte loggen Sie sich auf https:://www.sac-cas.ch auf Ihrem Account ein und hinterlegen Sie Ihre E-Mail-Adresse.',
+                        'explain'  => 'Einige Anwendungen (z.B. Event-Tool) auf diesem Portal setzen eine gültige E-Mail-Adresse voraus.',
+                    ];
+                    $this->oauth->addFlashBagMessage($arrError);
+                    Controller::redirect($_SESSION['SAC_SSO_OIDC_LOGIN']['errorPath']);
                 }
 
                 // Check if user is club member
-                $arrClubIds = explode(',', Config::get('SAC_EVT_SAC_SECTION_IDS'));
                 if (!$this->user->isClubMember($arrData))
                 {
                     $arrError = [
-                        'matter'   => 'Die Überprüfung der Daten vom Identity Provider ist fehlgeschlagen.',
+                        'matter'   => 'Die Überprüfung der Daten vom Identity Provider hat fehlgeschlagen.',
                         'howToFix' => 'Sie müssen Mitglied dieser SAC Sektion sein, um sich auf diesem Portal einloggen zu können.',
                         'explain'  => 'Der geschütze Bereich ist nur Mitgliedern dieser SAC Sektion zugänglich.',
                     ];
-                    $this->printErrorMessage->printErrorMessage($arrError);
+                    $this->oauth->addFlashBagMessage($arrError);
+                    Controller::redirect($_SESSION['SAC_SSO_OIDC_LOGIN']['errorPath']);
                 }
 
                 /**
@@ -219,17 +245,17 @@ class OauthController extends AbstractController
                 if (!$this->user->isValidUsername($arrData['contact_number']))
                 {
                     $arrError = [
-                        'matter'   => sprintf('Die Überprüfung der Daten vom Identity Provider ist fehlgeschlagen. Der Benutzername "%s" ist ungültig.', $arrData['contact_number']),
-                        'howToFix' => 'Bitte überprüfen Sie die Schreibweise des Benutzernamens.',
+                        'matter'   => sprintf('Die Überprüfung der Daten vom Identity Provider hat fehlgeschlagen. Der Benutzername "%s" ist ungültig.', $arrData['contact_number']),
+                        'howToFix' => 'Bitte überprüfen Sie die Schreibweise Ihrer Eingaben.',
                         'explain'  => '',
                     ];
-                    $this->printErrorMessage->printErrorMessage($arrError);
+                    $this->oauth->addFlashBagMessage($arrError);
+                    Controller::redirect($_SESSION['SAC_SSO_OIDC_LOGIN']['errorPath']);
                 }
 
                 // Create User if it not exists (Mock test user!!!!)
                 $this->user->createIfNotExists($this->user->getMockUserData(), $userClass);
                 $this->user->createIfNotExists($arrData, $userClass);
-
 
                 // Update user (Mock test user!!!!)
                 $this->user->updateUser($this->user->getMockUserData(), $userClass);
@@ -243,7 +269,8 @@ class OauthController extends AbstractController
                         'howToFix' => 'Falls Sie soeben eine Neumitgliedschaft beantragt haben, warten Sie bitten einen Tag und versuchen Sie sich danach noch einmal einzuloggen.',
                         'explain'  => '',
                     ];
-                    $this->printErrorMessage->printErrorMessage($arrError);
+                    $this->oauth->addFlashBagMessage($arrError);
+                    Controller::redirect($_SESSION['SAC_SSO_OIDC_LOGIN']['errorPath']);
                 }
 
                 // Authenticate user
@@ -266,7 +293,8 @@ class OauthController extends AbstractController
                     'howToFix' => 'Bitte überprüfen Sie die Schreibweise Ihrer Benutzereingaben.',
                     'explain'  => '',
                 ];
-                $this->printErrorMessage->printErrorMessage($arrError);
+                $this->oauth->addFlashBagMessage($arrError);
+                Controller::redirect($_SESSION['SAC_SSO_OIDC_LOGIN']['errorPath']);
             }
         }
 
@@ -275,7 +303,8 @@ class OauthController extends AbstractController
             'howToFix' => 'Bitte überprüfen Sie die Schreibweise Ihrer Benutzereingaben.',
             'explain'  => '',
         ];
-        $this->printErrorMessage->printErrorMessage($arrError);
+        $this->oauth->addFlashBagMessage($arrError);
+        Controller::redirect($_SESSION['SAC_SSO_OIDC_LOGIN']['errorPath']);
     }
 
     /**
@@ -307,5 +336,17 @@ class OauthController extends AbstractController
         );
     }
 
+    private function addFlashBagMessage($arrMsg)
+    {
+        /** @var  Session $session */
+        $session = System::getContainer()->get('session');
+
+        // Confirmation message
+        if ($session->isStarted())
+        {
+            $flashBag = $session->getFlashBag();
+            $flashBag->add('oauthError', $arrMsg);
+        }
+    }
 
 }

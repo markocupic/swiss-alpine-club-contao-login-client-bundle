@@ -7,9 +7,36 @@
 
 
 <?php if($this->login): ?>
-<a href="<?= $this->route('sac_ch_sso_auth_frontend') ?>?moduleId=<?= $this->id ?>&rt={{request_token}}&targetPath=<?= $this->targetPath ?>" class="btn btn-lg btn-danger">
+<a href="<?= $this->route('sac_ch_sso_auth_frontend') ?>?moduleId=<?= $this->id ?>&amp;rt={{request_token}}&amp;targetPath=<?= $this->targetPath ?>&amp;errorPath=<?= $this->errorPath ?>" class="btn btn-lg btn-danger">
     <i class="fas fa-sign-in-alt"></i> <?= $this->loginWithSacSso ?>
 </a>
+<?php if($this->error): ?>
+<div class="error alert alert-dark mt-4">
+
+    <?php if($this->error['matter'] != ''): ?>
+    <div class="errorMatterBox">
+        <h5><?= $this->trans('MSC.errorMatter', [], 'contao_default') ?></h5>
+        <p class="errorMatter"><?= $this->error['matter'] ?></p>
+    </div>
+    <?php endif; ?>
+
+    <?php if($this->error['howToFix'] != ''): ?>
+    <div class="errorHowToFixBox">
+        <h5><?= $this->trans('MSC.errorHowToFix', [], 'contao_default') ?></h5>
+        <p class="errorHowToFix"><?= $this->error['howToFix'] ?></p>
+    </div>
+    <?php endif; ?>
+
+    <?php if($this->error['explain'] != ''): ?>
+    <div class="errorExplainBox">
+        <h5><?= $this->trans('MSC.errorExplain', [], 'contao_default') ?></h5>
+        <p class="errorExplain"><?= $this->error['explain'] ?></p>
+    </div>
+    <?php endif; ?>
+
+</div>
+<?php endif; ?>
+
 <?php else: ?>
 <p class="login_info"><?= $this->loggedInAs ?><br><?= $this->lastLogin ?></p>
 <?php endif; ?>

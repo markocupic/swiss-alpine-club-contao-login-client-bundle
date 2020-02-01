@@ -12,3 +12,8 @@
  * Miscellaneous
  */
 $GLOBALS['TL_LANG']['MSC']['loginWithSacSso'] = 'SAC-CAS Single Sign-On Login';
+
+// Error management
+$GLOBALS['TL_LANG']['MSC']['errorMatter'] = 'Fehlermeldung';
+$GLOBALS['TL_LANG']['MSC']['errorHowToFix'] = 'Was kann ich tun?';
+$GLOBALS['TL_LANG']['MSC']['errorExplain'] = 'Erklärung';

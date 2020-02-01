@@ -8,6 +8,7 @@ services:
     - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\User\User'
     - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\Authentication\Authentication'
     - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\AppChecker\AppChecker'
+    - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\Oauth\Oauth'
     - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\PrintErrorMessage'
     public: true
 
@@ -46,6 +47,17 @@ services:
     - '@request_stack'
     - '@security.helper'
     - '@?logger'
+    public: true
+
+  Markocupic\SwissAlpineClubContaoLoginClientBundle\Oauth\Oauth:
+    arguments:
+    - '@contao.framework'
+    - '@contao.security.user_checker'
+    - '@session'
+    - '@security.token_storage'
+    - '@event_dispatcher'
+    - '@request_stack'
+    - '@monolog.logger.contao'
     public: true
 
 

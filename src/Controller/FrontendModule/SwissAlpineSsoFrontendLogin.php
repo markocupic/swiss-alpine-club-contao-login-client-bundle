@@ -15,8 +15,10 @@ namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\FrontendM
 use Contao\CoreBundle\Controller\FrontendModule\AbstractFrontendModuleController;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\ModuleModel;
+use Contao\System;
 use Contao\Template;
 use Contao\FrontendUser;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Oauth\Oauth;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Contao\PageModel;
@@ -30,8 +32,16 @@ use Contao\CoreBundle\ServiceAnnotation\FrontendModule;
  */
 class SwissAlpineSsoFrontendLogin extends AbstractFrontendModuleController
 {
+    /** @var Oauth */
+    private $oauth;
+
     /** @var PageModel */
     private $page;
+
+    public function __construct(Oauth $oauth)
+    {
+        $this->oauth = $oauth;
+    }
 
     /**
      * @param Request $request
@@ -82,8 +92,21 @@ class SwissAlpineSsoFrontendLogin extends AbstractFrontendModuleController
             $redirectPage = $model->jumpTo > 0 ? PageModel::findByPk($model->jumpTo) : null;
             $targetPath = $redirectPage instanceof PageModel ? $redirectPage->getAbsoluteUrl() : $this->page->getAbsoluteUrl();
             $template->targetPath = urlencode($targetPath);
+            $template->errorPath = urlencode($this->page->getAbsoluteUrl());
             $template->loginWithSacSso = $translator->trans('MSC.loginWithSacSso', [], 'contao_default');
             $template->login = true;
+
+            // Check for error messages
+            if ($this->oauth->hasFlashBagMessage())
+            {
+                $arrError = [];
+                $flashBag = $this->oauth->getFlashBagMessage(0);
+                foreach ($flashBag as $k => $v)
+                {
+                    $arrError[$k] = $v;
+                }
+                $template->error = $arrError;
+            }
         }
 
         return $template->getResponse();
