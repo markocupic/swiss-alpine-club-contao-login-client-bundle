@@ -146,6 +146,7 @@ class Authentication
         {
             if (null !== ($objMember = MemberModel::findByUsername($user->username)))
             {
+                $objMember->disable = '';
                 $objMember->login = '1';
                 $objMember->locked = 0;
                 $objMember->save();

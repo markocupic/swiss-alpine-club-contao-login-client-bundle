@@ -19,4 +19,7 @@ $GLOBALS['TL_HOOKS']['parseBackendTemplate'][] = [
 ];
 **/
 
-
+/**
+ * Hooks
+ */
+$GLOBALS['TL_HOOKS']['postLogout'][] = array('Markocupic\SwissAlpineClubContaoLoginClientBundle\EventListener\Contao\PostLogoutListener', 'killSession');

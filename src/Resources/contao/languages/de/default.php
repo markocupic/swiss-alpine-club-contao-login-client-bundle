@@ -11,4 +11,4 @@
 /**
  * Miscellaneous
  */
-$GLOBALS['TL_LANG']['MSC'][''] = '';
+$GLOBALS['TL_LANG']['MSC']['loginWithSacSso'] = 'SAC-CAS Single Sign-On Login';

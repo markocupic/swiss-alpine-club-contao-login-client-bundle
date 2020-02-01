@@ -7,9 +7,8 @@
 
 
 <?php if($this->login): ?>
-<a href="<?= $this->route('sac_ch_sso_auth_frontend') ?>?moduleId=<?= $this->id ?>&rt={{request_token}}&targetPath=<?= $this->targetPath ?>" class="btn btn-danger">
-    <i class="fas fa-sign-in-alt"></i>
-    SSO Login SAC Schweiz
+<a href="<?= $this->route('sac_ch_sso_auth_frontend') ?>?moduleId=<?= $this->id ?>&rt={{request_token}}&targetPath=<?= $this->targetPath ?>" class="btn btn-lg btn-danger">
+    <i class="fas fa-sign-in-alt"></i> <?= $this->loginWithSacSso ?>
 </a>
 <?php else: ?>
 <p class="login_info"><?= $this->loggedInAs ?><br><?= $this->lastLogin ?></p>

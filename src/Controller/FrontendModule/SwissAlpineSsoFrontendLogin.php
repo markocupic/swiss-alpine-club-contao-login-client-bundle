@@ -68,10 +68,12 @@ class SwissAlpineSsoFrontendLogin extends AbstractFrontendModuleController
      */
     protected function getResponse(Template $template, ModuleModel $model, Request $request): ?Response
     {
+        $translator = $this->get('translator');
+
         // Get logged in member object
         if (($user = $this->get('security.helper')->getUser()) instanceof FrontendUser)
         {
-            $template->loggedInAs = sprintf($GLOBALS['TL_LANG']['MSC']['loggedInAs'], $user->username);
+            $template->loggedInAs = $translator->trans('MSC.loggedInAs', [$user->username], 'contao_default');
             $template->username = $user->username;
             $template->logout = true;
         }
@@ -80,6 +82,7 @@ class SwissAlpineSsoFrontendLogin extends AbstractFrontendModuleController
             $redirectPage = $model->jumpTo > 0 ? PageModel::findByPk($model->jumpTo) : null;
             $targetPath = $redirectPage instanceof PageModel ? $redirectPage->getAbsoluteUrl() : $this->page->getAbsoluteUrl();
             $template->targetPath = urlencode($targetPath);
+            $template->loginWithSacSso = $translator->trans('MSC.loginWithSacSso', [], 'contao_default');
             $template->login = true;
         }
 

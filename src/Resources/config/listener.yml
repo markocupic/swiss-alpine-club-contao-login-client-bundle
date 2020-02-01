@@ -1,13 +1,20 @@
 services:
 
-    Markocupic\SwissAlpineClubContaoLoginClientBundle\EventListener\PrettyErrorScreenListener:
-        arguments:
-            - '%contao.pretty_error_screens%'
-            - '@twig'
-            - '@contao.framework'
-            - '@security.helper'
-            - '@?logger'
-        tags:
-            # The priority must be higher than the one of the Twig exception listener (defaults to -128)
-            - { name: kernel.event_listener, event: kernel.exception, method: onKernelException, priority: -94 }
+  Markocupic\SwissAlpineClubContaoLoginClientBundle\EventListener\PrettyErrorScreenListener:
+    arguments:
+    - '%contao.pretty_error_screens%'
+    - '@twig'
+    - '@contao.framework'
+    - '@security.helper'
+    - '@?logger'
+    tags:
+    # The priority must be higher than the one of the Twig exception listener (defaults to -128)
+    - { name: kernel.event_listener, event: kernel.exception, method: onKernelException, priority: -94 }
 
+  # Contao post logout hook
+  Markocupic\SwissAlpineClubContaoLoginClientBundle\EventListener\Contao\PostLogoutListener:
+    public: true
+    arguments:
+    - "@contao.framework"
+    tags:
+    - { name: kernel.event_listener, event: contao.postLogout, method: killSession }
