@@ -3,11 +3,11 @@
 declare(strict_types=1);
 
 /**
- * SAC Event Tool Web Plugin for Contao
+ * Swiss Alpine Club (SAC) Contao Login Client Bundle
  * Copyright (c) 2008-2020 Marko Cupic
- * @package sac-event-tool-bundle
+ * @package swiss-alpine-club-contao-login-client-bundle
  * @author Marko Cupic m.cupic@gmx.ch, 2017-2020
- * @link https://github.com/markocupic/sac-event-tool-bundle
+ * @link https://github.com/markocupic/swiss-alpine-club-contao-login-client-bundle
  */
 
 namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\FrontendModule;
@@ -17,8 +17,6 @@ use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\ModuleModel;
 use Contao\Template;
 use Contao\FrontendUser;
-use Contao\TourDifficultyCategoryModel;
-use Contao\TourDifficultyModel;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Contao\PageModel;
@@ -32,6 +30,8 @@ use Contao\CoreBundle\ServiceAnnotation\FrontendModule;
  */
 class SwissAlpineSsoFrontendLogin extends AbstractFrontendModuleController
 {
+    /** @var PageModel */
+    private $page;
 
     /**
      * @param Request $request
@@ -43,6 +43,7 @@ class SwissAlpineSsoFrontendLogin extends AbstractFrontendModuleController
      */
     public function __invoke(Request $request, ModuleModel $model, string $section, array $classes = null, PageModel $page = null): Response
     {
+        $this->page = $page;
         return parent::__invoke($request, $model, $section, $classes);
     }
 
@@ -73,13 +74,14 @@ class SwissAlpineSsoFrontendLogin extends AbstractFrontendModuleController
             $template->loggedInAs = sprintf($GLOBALS['TL_LANG']['MSC']['loggedInAs'], $user->username);
             $template->username = $user->username;
             $template->logout = true;
-        }else{
+        }
+        else
+        {
             $redirectPage = $model->jumpTo > 0 ? PageModel::findByPk($model->jumpTo) : null;
-            $targetPath = $redirectPage instanceof PageModel ? $redirectPage->getAbsoluteUrl() : $objPage->getAbsoluteUrl();
+            $targetPath = $redirectPage instanceof PageModel ? $redirectPage->getAbsoluteUrl() : $this->page->getAbsoluteUrl();
             $template->targetPath = urlencode($targetPath);
             $template->login = true;
         }
-
 
         return $template->getResponse();
     }

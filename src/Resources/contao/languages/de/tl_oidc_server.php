@@ -1,15 +1,12 @@
 <?php
 
 /**
- * Swiss Alpine Club Login Client Bundle
- * OpenId Connect Login via https://sac-cas.ch for Contao Frontend and Backend
- *
- * @package Markocupic\SwissAlpineClubContaoLoginClientBundle
- * @author    Marko Cupic, Oberkirch
- * @license   MIT
- * @copyright 2020 Marko Cupic
+ * Swiss Alpine Club (SAC) Contao Login Client Bundle
+ * Copyright (c) 2008-2020 Marko Cupic
+ * @package swiss-alpine-club-contao-login-client-bundle
+ * @author Marko Cupic m.cupic@gmx.ch, 2017-2020
+ * @link https://github.com/markocupic/swiss-alpine-club-contao-login-client-bundle
  */
-
 
 /**
  * Fields
@@ -27,13 +24,12 @@ $GLOBALS['TL_LANG']['tl_oidc_server']['login_scope'] = ['Contao-Login-Zone', 'WÃ
  */
 $GLOBALS['TL_LANG']['tl_oidc_server']['server_auth_legend'] = 'Authentifizierung';
 
-
 /**
  * Buttons
  */
-$GLOBALS['TL_LANG']['tl_oidc_server']['new']    = array('Login-Server anlegen', 'Einen neuen Superlogin Server anlegen ');
-$GLOBALS['TL_LANG']['tl_oidc_server']['show']   = array('Details', 'Zeige die Details zu Server %s');
-$GLOBALS['TL_LANG']['tl_oidc_server']['edit']   = array('Bearbeiten ', 'Bearbeite Server ID %s');
-$GLOBALS['TL_LANG']['tl_oidc_server']['cut']    = array('Verschieben ', 'Verschiebe Server ID %s');
-$GLOBALS['TL_LANG']['tl_oidc_server']['copy']   = array('Duplizieren ', 'Dupliziere Server ID %s');
-$GLOBALS['TL_LANG']['tl_oidc_server']['delete'] = array('L&ouml;schen ', 'L&ouml;sche Server ID %s');
+$GLOBALS['TL_LANG']['tl_oidc_server']['new'] = ['Login-Server anlegen', 'Einen neuen Superlogin Server anlegen '];
+$GLOBALS['TL_LANG']['tl_oidc_server']['show'] = ['Details', 'Zeige die Details zu Server %s'];
+$GLOBALS['TL_LANG']['tl_oidc_server']['edit'] = ['Bearbeiten ', 'Bearbeite Server ID %s'];
+$GLOBALS['TL_LANG']['tl_oidc_server']['cut'] = ['Verschieben ', 'Verschiebe Server ID %s'];
+$GLOBALS['TL_LANG']['tl_oidc_server']['copy'] = ['Duplizieren ', 'Dupliziere Server ID %s'];
+$GLOBALS['TL_LANG']['tl_oidc_server']['delete'] = ['L&ouml;schen ', 'L&ouml;sche Server ID %s'];

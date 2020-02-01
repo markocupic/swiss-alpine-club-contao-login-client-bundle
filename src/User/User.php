@@ -3,34 +3,30 @@
 declare(strict_types=1);
 
 /**
- * SAC Event Tool Web Plugin for Contao
+ * Swiss Alpine Club (SAC) Contao Login Client Bundle
  * Copyright (c) 2008-2020 Marko Cupic
- * @package sac-event-tool-bundle
+ * @package swiss-alpine-club-contao-login-client-bundle
  * @author Marko Cupic m.cupic@gmx.ch, 2017-2020
- * @link https://github.com/markocupic/sac-event-tool-bundle
+ * @link https://github.com/markocupic/swiss-alpine-club-contao-login-client-bundle
  */
 
 namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\User;
 
 use Contao\BackendUser;
+use Contao\Config;
 use Contao\CoreBundle\Framework\ContaoFramework;
-use Contao\CoreBundle\Monolog\ContaoContext;
 use Contao\CoreBundle\Security\User\ContaoUserProvider;
 use Contao\CoreBundle\Security\User\UserChecker;
 use Contao\FrontendUser;
-use Contao\Config;
 use Contao\MemberModel;
+use Contao\StringUtil;
 use Contao\UserModel;
-use Psr\Log\LogLevel;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
-use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 use Symfony\Component\Security\Core\Security;
-use Symfony\Component\Security\Http\Event\InteractiveLoginEvent;
 
 /**
  * Class User
@@ -94,17 +90,128 @@ class User
         $this->requestStack = $requestStack;
         $this->logger = $logger;
 
+        // Initialize Contao framework
         $this->framework->initialize();
     }
 
     /**
      * @param array $arrData
-     * @param array $arrClubIds
      * @return bool
      */
-    public function isClubMember(array $arrData, array $arrClubIds): bool
+    public function isClubMember(array $arrData): bool
+    {
+        $arrMembership = $this->getGroupMembership($arrData);
+        if (count($arrMembership) > 0)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param array $arrData
+     * @param string $userClass
+     */
+    public function createIfNotExists(array $arrData, string $userClass): void
+    {
+        if ($userClass === FrontendUser::class)
+        {
+            $this->createFrontendUserIfNotExists($arrData);
+        }
+
+        if ($userClass === BackendUser::class)
+        {
+            $this->createBackendUserIfNotExists($arrData);
+        }
+    }
+
+    /**
+     * @param $arrData
+     */
+    private function createFrontendUserIfNotExists($arrData)
+    {
+        $username = preg_replace('/^0+/', '', $arrData['contact_number']);
+        if (!$this->isValidUsername($username))
+        {
+            return;
+        }
+
+        $objUser = MemberModel::findByUsername($username);
+        if ($objUser === null)
+        {
+            $objNew = new MemberModel();
+            $objNew->username = $username;
+            $objNew->sacMemberId = $username;
+            $objNew->dateAdded = time();
+            $objNew->tstamp = time();
+            $objNew->save();
+            $this->updateFrontendUser($arrData);
+        }
+    }
+
+    /**
+     * @param array $arrData
+     * @param string $userClass
+     */
+    public function updateUser(array $arrData, string $userClass): void
+    {
+        if ($userClass === FrontendUser::class)
+        {
+            $this->updateFrontendUser($arrData);
+        }
+
+        if ($userClass === BackendUser::class)
+        {
+            $this->updateBackendUser($arrData);
+        }
+    }
+
+    /**
+     * @param array $arrData
+     */
+    public function updateFrontendUser(array $arrData)
+    {
+        $objUser = MemberModel::findByUsername($arrData['contact_number']);
+        if ($objUser !== null)
+        {
+            $objUser->login = '1';
+            $objUser->disable = '';
+            $objUser->sacMemberId = $arrData['contact_number'];
+            $objUser->mobile = $arrData['telefonmobil'];
+            $objUser->phone = $arrData['telefonp'];
+            $objUser->uuid = $arrData['sub'];
+            $objUser->lastname = $arrData['familienname'];
+            $objUser->firstname = $arrData['vorname'];
+            $objUser->street = $arrData['strasse'];
+            $objUser->city = $arrData['ort'];
+            $objUser->postal = $arrData['plz'];
+            $objUser->dateOfBirth = strtotime($arrData['geburtsdatum']) !== false ? strtotime($arrData['geburtsdatum']) : 0;
+            $objUser->gender = $arrData['anredecode'] === 'HERR' ? 'male' : 'female';
+            $objUser->country = strtolower($arrData['land']);
+            $objUser->email = $arrData['email'];
+            $objUser->sectionId = serialize($this->getGroupMembership($arrData));
+            // Member has to be member of a valid sac section
+            $objUser->isSacMember = count($this->getGroupMembership($arrData)) > 0 ? '1' : '';
+            $objUser->tstamp = time();
+            // Groups
+            $arrGroups = StringUtil::deserialize($objUser->groups, true);
+            $arrAutoGroups = StringUtil::deserialize(Config::get('SAC_SSO_LOGIN_ADD_TO_MEMBER_GROUPS'), true);
+            $objUser->groups = serialize(array_merge($arrGroups, $arrAutoGroups));
+            // Save
+            $objUser->save();
+            $objUser->refresh();
+        }
+    }
+
+    /**
+     * @param array $arrData
+     * @return array
+     */
+    private function getGroupMembership(array $arrData): array
     {
         $arrMembership = [];
+        $arrClubIds = explode(',', Config::get('SAC_EVT_SAC_SECTION_IDS'));
         if (isset($arrData['Roles']) && !empty($arrData['Roles']))
         {
             $arrRoles = explode(',', $arrData['Roles']);
@@ -119,13 +226,13 @@ class User
                     {
                         if (in_array($strRole, $arrClubIds))
                         {
-                            return true;
+                            $arrMembership[] = $strRole;
                         }
                     }
                 }
             }
         }
-        return false;
+        return $arrMembership;
     }
 
     /**
@@ -190,5 +297,32 @@ class User
         }
 
         return false;
+    }
+
+    /**
+     * @return array
+     */
+    public function getMockUserData(): array
+    {
+        return [
+            'telefonmobil'         => '079 999 99 99',
+            'sub'                  => '0e592343a-2122-11e8-91a0-00505684a4ad',
+            'telefong'             => '041 984 13 50',
+            'familienname'         => 'Messner',
+            'strasse'              => 'Schloss Juval',
+            'vorname'              => 'Reinhold',
+            'Roles'                => 'NAV_BULLETIN,NAV_EINZEL_00185155,NAV_D,NAV_STAMMSEKTION_S00004250,NAV_EINZEL_S00004250,NAV_EINZEL_S00004251,NAV_S00004250,NAV_F1540,NAV_BULLETIN_S00004250,Internal/everyone,NAV_NAVISION,NAV_EINZEL,NAV_MITGLIED_S00004250,NAV_HERR,NAV_F1004V,NAV_F1004V_S00004250,NAV_BULLETIN_S00004250_PAPIER',
+            'contact_number'       => '999999',
+            'ort'                  => 'Vinschgau IT',
+            'geburtsdatum'         => '25.05.1976',
+            'anredecode'           => 'HERR',
+            'name'                 => 'Messner Reinhold',
+            'land'                 => 'IT',
+            'kanton'               => 'ST',
+            'korrespondenzsprache' => 'D',
+            'telefonp'             => '099 999 99 99',
+            'email'                => 'r.messner@matterhorn-kiosk.ch',
+            'plz'                  => '6208',
+        ];
     }
 }

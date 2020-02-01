@@ -3,35 +3,34 @@
 declare(strict_types=1);
 
 /**
- * Swiss Alpine Club Contao Login Client Bundle
+ * Swiss Alpine Club (SAC) Contao Login Client Bundle
  * Copyright (c) 2008-2020 Marko Cupic
  * @package swiss-alpine-club-contao-login-client-bundle
- * @author Marko Cupic m.cupic@gmx.ch, 2020
+ * @author Marko Cupic m.cupic@gmx.ch, 2017-2020
  * @link https://github.com/markocupic/swiss-alpine-club-contao-login-client-bundle
  */
 
 namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\Oauth;
 
+use Contao\BackendUser;
 use Contao\Config;
 use Contao\Controller;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\PrintErrorMessage;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\Exception\InvalidRequestTokenException;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\FrontendUser;
-use Contao\BackendUser;
-use Contao\PageModel;
-use Contao\RequestToken;
 use Contao\System;
-use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Response;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\Authentication\Authentication;
 use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use League\OAuth2\Client\Provider\GenericProvider;
-use Symfony\Component\Routing\Annotation\Route;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\User\User;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\AppChecker\AppChecker;
-use GuzzleHttp\Psr7\Request;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Authentication\Authentication;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\PrintErrorMessage;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Exception\InvalidRequestTokenException;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\User\User;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Security\Csrf\CsrfToken;
+use Symfony\Component\Security\Csrf\CsrfTokenManager;
+use Symfony\Component\Routing\Annotation\Route;
 
 /**
  * Class OauthController
@@ -49,6 +48,9 @@ class OauthController extends AbstractController
      * @var RequestStack
      */
     private $requestStack;
+
+    /** @var CsrfTokenManager */
+    private $csrfTokenManager;
 
     /**
      * @var User
@@ -75,17 +77,18 @@ class OauthController extends AbstractController
      * @param ContaoFramework $framework
      * @param Authentication $authentication
      */
-    public function __construct(ContaoFramework $framework, RequestStack $requestStack, User $user, Authentication $authentication, AppChecker $appChecker, PrintErrorMessage $printErrorMessage)
+    public function __construct(ContaoFramework $framework, RequestStack $requestStack, CsrfTokenManager $csrfTokenManager, User $user, Authentication $authentication, AppChecker $appChecker, PrintErrorMessage $printErrorMessage)
     {
         $this->framework = $framework;
         $this->requestStack = $requestStack;
+        $this->csrfTokenManager = $csrfTokenManager;
         $this->user = $user;
         $this->authentication = $authentication;
         $this->framework->initialize();
         $this->appChecker = $appChecker;
         $this->printErrorMessage = $printErrorMessage;
 
-        // Check app config (tl_settings)
+        // Check app configuration in the contao backend settings (tl_settings)
         $this->appChecker->checkConfiguration();
     }
 
@@ -135,7 +138,8 @@ class OauthController extends AbstractController
                 throw new AppCheckFailedException('Login Error: URI parameter "targetPath" not found.');
             }
 
-            if (!$request->query->has('rt') || !RequestToken::validate($request->query->get('rt')))
+            $tokenName = System::getContainer()->getParameter('contao.csrf_token_name');
+            if (!$request->query->has('rt') || !$this->csrfTokenManager->isTokenValid(new CsrfToken($tokenName, $request->query->get('rt'))))
             {
                 throw new InvalidRequestTokenException('Invalid CSRF token. Please reload the page and try again.');
             }
@@ -189,7 +193,7 @@ class OauthController extends AbstractController
 
                 // Check if user is club member
                 $arrClubIds = explode(',', Config::get('SAC_EVT_SAC_SECTION_IDS'));
-                if (!$this->user->isClubMember($arrData, $arrClubIds))
+                if (!$this->user->isClubMember($arrData))
                 {
                     $arrError = [
                         'matter'   => 'Die Überprüfung der Daten vom Identity Provider ist fehlgeschlagen.',
@@ -222,11 +226,20 @@ class OauthController extends AbstractController
                     $this->printErrorMessage->printErrorMessage($arrError);
                 }
 
+                // Create User if it not exists (Mock test user!!!!)
+                $this->user->createIfNotExists($this->user->getMockUserData(), $userClass);
+                $this->user->createIfNotExists($arrData, $userClass);
+
+
+                // Update user (Mock test user!!!!)
+                $this->user->updateUser($this->user->getMockUserData(), $userClass);
+                $this->user->updateUser($arrData, $userClass);
+
                 // Check if user exists
                 if (!$this->user->userExists($arrData['contact_number'], $userClass))
                 {
                     $arrError = [
-                        'matter'   => sprintf('Die Überprüfung der Daten vom Identity Provider ist fehlgeschlagen. Der Benutzername "%s" wurde in der Datenbank nicht gefunden.', $arrData['contact_number']),
+                        'matter'   => sprintf('Die Überprüfung der Daten vom Identity Provider hat fehlgeschlagen. Der Benutzername "%s" wurde in der Datenbank nicht gefunden.', $arrData['contact_number']),
                         'howToFix' => 'Falls Sie soeben eine Neumitgliedschaft beantragt haben, warten Sie bitten einen Tag und versuchen Sie sich danach noch einmal einzuloggen.',
                         'explain'  => '',
                     ];
@@ -242,7 +255,6 @@ class OauthController extends AbstractController
                 /** @var  Controller $controllerAdapter */
                 $controllerAdapter = $this->framework->getAdapter(Controller::class);
                 $controllerAdapter->redirect($jumpToPath);
-
                 // All ok. User is logged in!!!
 
             } catch (IdentityProviderException $e)
@@ -250,8 +262,8 @@ class OauthController extends AbstractController
                 // Failed to get the access token or user details.
                 //exit($e->getMessage());
                 $arrError = [
-                    'matter'   => 'Die Überprüfung Ihrer Daten vom Identity Provider ist fehlgeschlagen.',
-                    'howToFix' => 'Bitte überprüfen Sie die Schreibweise ihrer Benutzereingaben.',
+                    'matter'   => 'Die Überprüfung Ihrer Daten vom Identity Provider hat fehlgeschlagen.',
+                    'howToFix' => 'Bitte überprüfen Sie die Schreibweise Ihrer Benutzereingaben.',
                     'explain'  => '',
                 ];
                 $this->printErrorMessage->printErrorMessage($arrError);
@@ -259,8 +271,8 @@ class OauthController extends AbstractController
         }
 
         $arrError = [
-            'matter'   => 'Die Überprüfung Ihrer Daten vom Identity Provider ist fehlgeschlagen.',
-            'howToFix' => 'Bitte überprüfen Sie die Schreibweise ihrer Benutzereingaben.',
+            'matter'   => 'Die Überprüfung Ihrer Daten vom Identity Provider hat fehlgeschlagen.',
+            'howToFix' => 'Bitte überprüfen Sie die Schreibweise Ihrer Benutzereingaben.',
             'explain'  => '',
         ];
         $this->printErrorMessage->printErrorMessage($arrError);
@@ -294,4 +306,6 @@ class OauthController extends AbstractController
             Response::HTTP_UNAUTHORIZED
         );
     }
+
+
 }
