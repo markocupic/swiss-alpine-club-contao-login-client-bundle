@@ -4,7 +4,6 @@ services:
     arguments:
     - '@contao.framework'
     - '@request_stack'
-    - '@contao.csrf.token_manager'
     - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\User\User'
     - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\Authentication\Authentication'
     - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\AppChecker\AppChecker'
@@ -52,6 +51,8 @@ services:
   Markocupic\SwissAlpineClubContaoLoginClientBundle\Oauth\Oauth:
     arguments:
     - '@contao.framework'
+    - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\User\User'
+    - '@contao.csrf.token_manager'
     - '@contao.security.user_checker'
     - '@session'
     - '@security.token_storage'

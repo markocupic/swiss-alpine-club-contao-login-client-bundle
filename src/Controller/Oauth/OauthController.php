@@ -17,22 +17,16 @@ use Contao\Config;
 use Contao\Controller;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\FrontendUser;
-use Contao\System;
-use Contao\Validator;
 use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use League\OAuth2\Client\Provider\GenericProvider;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\AppChecker\AppChecker;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Authentication\Authentication;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\PrintErrorMessage;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\Exception\InvalidRequestTokenException;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Oauth\Oauth;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\User\User;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Security\Csrf\CsrfToken;
-use Symfony\Component\Security\Csrf\CsrfTokenManager;
-use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
@@ -52,9 +46,6 @@ class OauthController extends AbstractController
      */
     private $requestStack;
 
-    /** @var CsrfTokenManager */
-    private $csrfTokenManager;
-
     /**
      * @var User
      */
@@ -70,7 +61,9 @@ class OauthController extends AbstractController
      */
     private $appChecker;
 
-    /** @var Oauth */
+    /**
+     * @var Oauth
+     */
     private $oauth;
 
     /**
@@ -81,13 +74,18 @@ class OauthController extends AbstractController
     /**
      * OauthController constructor.
      * @param ContaoFramework $framework
+     * @param RequestStack $requestStack
+     * @param User $user
      * @param Authentication $authentication
+     * @param AppChecker $appChecker
+     * @param Oauth $oauth
+     * @param PrintErrorMessage $printErrorMessage
+     * @throws \Markocupic\SwissAlpineClubContaoLoginClientBundle\Exception\AppCheckFailedException
      */
-    public function __construct(ContaoFramework $framework, RequestStack $requestStack, CsrfTokenManager $csrfTokenManager, User $user, Authentication $authentication, AppChecker $appChecker, Oauth $oauth, PrintErrorMessage $printErrorMessage)
+    public function __construct(ContaoFramework $framework, RequestStack $requestStack, User $user, Authentication $authentication, AppChecker $appChecker, Oauth $oauth, PrintErrorMessage $printErrorMessage)
     {
         $this->framework = $framework;
         $this->requestStack = $requestStack;
-        $this->csrfTokenManager = $csrfTokenManager;
         $this->user = $user;
         $this->authentication = $authentication;
         $this->framework->initialize();
@@ -107,75 +105,41 @@ class OauthController extends AbstractController
     public function frontendUserAuthenticationAction(): Response
     {
         // Ruwic&Aviyu926
-
         // Kill session https://ids02.sac-cas.ch/AvintisSSO/index.jsp
 
         $userClass = FrontendUser::class;
 
-        $providerKey = Authentication::SECURED_AREA_FRONTEND;
-
-        $provider = new GenericProvider([
-            // The client ID assigned to you by the provider
-            'clientId'                => Config::get('SAC_SSO_LOGIN_CLIENT_ID'),
-            // The client password assigned to you by the provider
-            'clientSecret'            => Config::get('SAC_SSO_LOGIN_CLIENT_SECRET'),
-            // Absolute Callbackurl to your system(must be registered by service provider.)
-            'redirectUri'             => Config::get('SAC_SSO_LOGIN_REDIRECT_URI'),
-            'urlAuthorize'            => Config::get('SAC_SSO_LOGIN_URL_AUTHORIZE'),
-            'urlAccessToken'          => Config::get('SAC_SSO_LOGIN_URL_ACCESS_TOKEN'),
-            'urlResourceOwnerDetails' => Config::get('SAC_SSO_LOGIN_URL_RESOURCE_OWNER_DETAILS'),
-            'response_type'           => 'code',
-            'scopes'                  => ['openid'],
-        ]);
+        $provider = new GenericProvider($this->oauth->getProviderData());
 
         $request = $this->requestStack->getCurrentRequest();
 
         // If we don't have an authorization code then get one
         if (!$request->query->has('code'))
         {
-            if (!$request->query->has('moduleId'))
-            {
-                // Module id not found in the query string
-                throw new AppCheckFailedException('Login Error: URI parameter "moduleId" not found.');
-            }
+            // Validate query params
+            $this->oauth->checkQueryParams();
 
-            if (!$request->query->has('targetPath'))
-            {
-                // Target path not found in the query string
-                throw new AppCheckFailedException('Login Error: URI parameter "targetPath" not found.');
-            }
-
-            if (!$request->query->has('errorPath'))
-            {
-                // Target path not found in the query string
-                throw new AppCheckFailedException('Login Error: URI parameter "errorPath" not found.');
-            }
-
-            $tokenName = System::getContainer()->getParameter('contao.csrf_token_name');
-            if (!$request->query->has('rt') || !$this->csrfTokenManager->isTokenValid(new CsrfToken($tokenName, $request->query->get('rt'))))
-            {
-                throw new InvalidRequestTokenException('Invalid CSRF token. Please reload the page and try again.');
-            }
-
-            $_SESSION['SAC_SSO_OIDC_LOGIN']['targetPath'] = $request->query->get('targetPath');
-            $_SESSION['SAC_SSO_OIDC_LOGIN']['errorPath'] = $request->query->get('errorPath');
-            $_SESSION['SAC_SSO_OIDC_LOGIN']['moduleId'] = $request->query->get('moduleId');
+            $this->oauth->sessionSet('targetPath', $request->query->get('targetPath'));
+            $this->oauth->sessionSet('errorPath', $request->query->get('errorPath'));
+            $this->oauth->sessionSet('moduleId', $request->query->get('moduleId'));
 
             // Fetch the authorization URL from the provider; this returns the urlAuthorize option and generates and applies any necessary parameters
             // (e.g. state).
             $authorizationUrl = $provider->getAuthorizationUrl();
 
             // Get the state and store it to the session.
-            $_SESSION['oauth2state'] = $provider->getState();
+            $this->oauth->sessionSet('oauth2state', $provider->getState());
 
             // Redirect the user to the authorization URL.
             header('Location: ' . $authorizationUrl);
             exit;
-            // Check given state against previously stored one to mitigate CSRF attack
+
         }
-        elseif (empty($request->query->get('state')) || ($request->query->get('state') !== $_SESSION['oauth2state']))
+        elseif (empty($request->query->get('state')) || ($request->query->get('state') !== $this->oauth->sessionGet('oauth2state')))
         {
-            unset($_SESSION['oauth2state']);
+            // Check given state against previously stored one to mitigate CSRF attack
+            $this->oauth->sessionRemove('oauth2state');
+
             // Invalid username or user does not exists
             return new Response(
                 'Login Error: Invalid state.',
@@ -196,40 +160,11 @@ class OauthController extends AbstractController
                 $arrData = $resourceOwner->toArray();
 
                 // Check if user is SAC member
-                if (!isset($arrData) || empty($arrData['contact_number']) || empty($arrData['Roles']) || empty($arrData['contact_number']) || empty($arrData['sub']))
-                {
-                    $arrError = [
-                        'matter'   => 'Die Überprüfung der Daten vom Identity Provider hat fehlgeschlagen.',
-                        'howToFix' => 'Sie müssen Mitglied des SAC sein, um sich auf diesem Portal einloggen zu können.',
-                        'explain'  => 'Der geschütze Bereich ist nur Mitgliedern des SAC (Schweizerischer Alpen Club) zugänglich.',
-                    ];
-                    $this->oauth->addFlashBagMessage($arrError);
-                    Controller::redirect($_SESSION['SAC_SSO_OIDC_LOGIN']['errorPath']);
-                }
+                $this->oauth->checkIsSacMember($arrData);
 
                 // Check if user is member of an allowed section
-                if (!isset($arrData) || empty($arrData['email']) || !Validator::isEmail($arrData['email']))
-                {
-                    $arrError = [
-                        'matter'   => 'Die Überprüfung der Daten vom Identity Provider hat fehlgeschlagen.',
-                        'howToFix' => 'Sie haben noch keine/keine gültige E-Mail-Adresse hinterlegt. Bitte loggen Sie sich auf https:://www.sac-cas.ch auf Ihrem Account ein und hinterlegen Sie Ihre E-Mail-Adresse.',
-                        'explain'  => 'Einige Anwendungen (z.B. Event-Tool) auf diesem Portal setzen eine gültige E-Mail-Adresse voraus.',
-                    ];
-                    $this->oauth->addFlashBagMessage($arrError);
-                    Controller::redirect($_SESSION['SAC_SSO_OIDC_LOGIN']['errorPath']);
-                }
-
-                // Check if user is club member
-                if (!$this->user->isClubMember($arrData))
-                {
-                    $arrError = [
-                        'matter'   => 'Die Überprüfung der Daten vom Identity Provider hat fehlgeschlagen.',
-                        'howToFix' => 'Sie müssen Mitglied dieser SAC Sektion sein, um sich auf diesem Portal einloggen zu können.',
-                        'explain'  => 'Der geschütze Bereich ist nur Mitgliedern dieser SAC Sektion zugänglich.',
-                    ];
-                    $this->oauth->addFlashBagMessage($arrError);
-                    Controller::redirect($_SESSION['SAC_SSO_OIDC_LOGIN']['errorPath']);
-                }
+                //$this->oauth->checkIsMemberInAllowedSection($this->user->getMockUserData(false), $userClass); // Should end in an error message
+                $this->oauth->checkIsMemberInAllowedSection($arrData);
 
                 /**
                  * The provider provides a way to get an authenticated API request for
@@ -244,48 +179,39 @@ class OauthController extends AbstractController
                 );
 
                 // Check if username is valid
-                if (!$this->user->isValidUsername($arrData['contact_number']))
-                {
-                    $arrError = [
-                        'matter'   => sprintf('Die Überprüfung der Daten vom Identity Provider hat fehlgeschlagen. Der Benutzername "%s" ist ungültig.', $arrData['contact_number']),
-                        'howToFix' => 'Bitte überprüfen Sie die Schreibweise Ihrer Eingaben.',
-                        'explain'  => '',
-                    ];
-                    $this->oauth->addFlashBagMessage($arrError);
-                    Controller::redirect($_SESSION['SAC_SSO_OIDC_LOGIN']['errorPath']);
-                }
+                $this->oauth->checkHasValidUsername($arrData);
+
+                // Check has valid email address
+                $this->oauth->checkHasValidEmail($arrData);
 
                 // Create User if it not exists (Mock test user!!!!)
                 $this->user->createIfNotExists($this->user->getMockUserData(), $userClass);
                 $this->user->createIfNotExists($arrData, $userClass);
 
                 // Update user (Mock test user!!!!)
-                $this->user->updateUser($this->user->getMockUserData(), $userClass);
+                $this->user->updateUser($this->user->getMockUserData(false), $userClass);
                 $this->user->updateUser($arrData, $userClass);
 
                 // Check if user exists
-                if (!$this->user->userExists($arrData['contact_number'], $userClass))
-                {
-                    $arrError = [
-                        'matter'   => sprintf('Die Überprüfung der Daten vom Identity Provider hat fehlgeschlagen. Der Benutzername "%s" wurde in der Datenbank nicht gefunden.', $arrData['contact_number']),
-                        'howToFix' => 'Falls Sie soeben eine Neumitgliedschaft beantragt haben, warten Sie bitten einen Tag und versuchen Sie sich danach noch einmal einzuloggen.',
-                        'explain'  => '',
-                    ];
-                    $this->oauth->addFlashBagMessage($arrError);
-                    Controller::redirect($_SESSION['SAC_SSO_OIDC_LOGIN']['errorPath']);
-                }
+                $this->oauth->checkUserExists($arrData, $userClass);
+
+                // Set tl_member.login='1'
+                $this->user->activateLogin($arrData['contact_number'], $userClass);
+
+                // Set tl_member.locked=0 or tl_user.locked=0
+                $this->user->unlock($arrData['contact_number'], $userClass);
 
                 // Authenticate user
-                $this->authentication->authenticate($arrData['contact_number'], $userClass, $providerKey, $request);
+                $this->authentication->authenticate($arrData['contact_number'], $userClass, Authentication::SECURED_AREA_FRONTEND, $request);
 
-                $jumpToPath = $_SESSION['SAC_SSO_OIDC_LOGIN']['targetPath'];
-                unset($_SESSION['SAC_SSO_OIDC_LOGIN']);
+                $jumpToPath = $this->oauth->sessionGet('targetPath');
+                $this->oauth->sessionDestroy();
+
+                // All ok. User is logged in redirect to target page!!!
 
                 /** @var  Controller $controllerAdapter */
                 $controllerAdapter = $this->framework->getAdapter(Controller::class);
                 $controllerAdapter->redirect($jumpToPath);
-                // All ok. User is logged in!!!
-
             } catch (IdentityProviderException $e)
             {
                 // Failed to get the access token or user details.
@@ -296,7 +222,7 @@ class OauthController extends AbstractController
                     'explain'  => '',
                 ];
                 $this->oauth->addFlashBagMessage($arrError);
-                Controller::redirect($_SESSION['SAC_SSO_OIDC_LOGIN']['errorPath']);
+                Controller::redirect($this->oauth->sessionGet('errorPath'));
             }
         }
 
@@ -306,7 +232,7 @@ class OauthController extends AbstractController
             'explain'  => '',
         ];
         $this->oauth->addFlashBagMessage($arrError);
-        Controller::redirect($_SESSION['SAC_SSO_OIDC_LOGIN']['errorPath']);
+        Controller::redirect($this->oauth->sessionGet('errorPath'));
     }
 
     /**
@@ -323,10 +249,8 @@ class OauthController extends AbstractController
 
         $userClass = BackendUser::class;
 
-        $providerKey = Authentication::SECURED_AREA_BACKEND;
-
         // Authenticate user
-        $this->authentication->authenticate($username, $userClass, $providerKey);
+        $this->authentication->authenticate($username, $userClass, Authentication::SECURED_AREA_BACKEND);
 
         /** @var  Controller $controllerAdapter */
         $controllerAdapter = $this->framework->getAdapter(Controller::class);

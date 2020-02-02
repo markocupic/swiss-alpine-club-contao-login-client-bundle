@@ -21,6 +21,8 @@ use Contao\FrontendUser;
 use Contao\MemberModel;
 use Contao\StringUtil;
 use Contao\UserModel;
+use Contao\System;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Oauth\Oauth;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -92,21 +94,6 @@ class User
 
         // Initialize Contao framework
         $this->framework->initialize();
-    }
-
-    /**
-     * @param array $arrData
-     * @return bool
-     */
-    public function isClubMember(array $arrData): bool
-    {
-        $arrMembership = $this->getGroupMembership($arrData);
-        if (count($arrMembership) > 0)
-        {
-            return true;
-        }
-
-        return false;
     }
 
     /**
@@ -190,49 +177,27 @@ class User
             $objUser->gender = $arrData['anredecode'] === 'HERR' ? 'male' : 'female';
             $objUser->country = strtolower($arrData['land']);
             $objUser->email = $arrData['email'];
-            $objUser->sectionId = serialize($this->getGroupMembership($arrData));
+            $objUser->sectionId = serialize(Oauth::getGroupMembership($arrData));
             // Member has to be member of a valid sac section
-            $objUser->isSacMember = count($this->getGroupMembership($arrData)) > 0 ? '1' : '';
+            $objUser->isSacMember = count(Oauth::getGroupMembership($arrData)) > 0 ? '1' : '';
             $objUser->tstamp = time();
             // Groups
             $arrGroups = StringUtil::deserialize($objUser->groups, true);
             $arrAutoGroups = StringUtil::deserialize(Config::get('SAC_SSO_LOGIN_ADD_TO_MEMBER_GROUPS'), true);
             $objUser->groups = serialize(array_merge($arrGroups, $arrAutoGroups));
+
+            // Set random password
+            if (empty($objUser->password))
+            {
+                $encoder = System::getContainer()->get('security.encoder_factory')->getEncoder(BackendUser::class);
+                $objUser->password = $encoder->encodePassword(substr(md5((string) rand(900009, 111111111111)), 0, 8), null);
+            }
+
             // Save
             $objUser->save();
+
             $objUser->refresh();
         }
-    }
-
-    /**
-     * @param array $arrData
-     * @return array
-     */
-    private function getGroupMembership(array $arrData): array
-    {
-        $arrMembership = [];
-        $arrClubIds = explode(',', Config::get('SAC_EVT_SAC_SECTION_IDS'));
-        if (isset($arrData['Roles']) && !empty($arrData['Roles']))
-        {
-            $arrRoles = explode(',', $arrData['Roles']);
-            foreach ($arrRoles as $role)
-            {
-                //[Roles] => NAV_BULLETIN,NAV_EINZEL_00185155,NAV_D,NAV_STAMMSEKTION_S00004250,NAV_EINZEL_S00004250,NAV_S00004250,NAV_F1540,NAV_BULLETIN_S00004250,Internal/everyone,NAV_NAVISION,NAV_EINZEL,NAV_MITGLIED_S00004250,NAV_HERR,NAV_F1004V,NAV_F1004V_S00004250,NAV_BULLETIN_S00004250_PAPIER
-                if (strpos($role, 'NAV_STAMMSEKTION_S') === 0)
-                {
-                    $strRole = str_replace('NAV_STAMMSEKTION_S', '', $role);
-                    $strRole = preg_replace('/^0+/', '', $strRole);
-                    if (!empty($strRole))
-                    {
-                        if (in_array($strRole, $arrClubIds))
-                        {
-                            $arrMembership[] = $strRole;
-                        }
-                    }
-                }
-            }
-        }
-        return $arrMembership;
     }
 
     /**
@@ -258,6 +223,67 @@ class User
     }
 
     /**
+     * @param string $username
+     * @param string $userClass
+     */
+    public function activateLogin(string $username, string $userClass)
+    {
+        if ($userClass !== FrontendUser::class)
+        {
+            return;
+        }
+        // Retrieve user by its username
+        $userProvider = new ContaoUserProvider($this->framework, $this->session, $userClass, $this->logger);
+
+        $user = $userProvider->loadUserByUsername($username);
+        if (!$user instanceof FrontendUser)
+        {
+            return;
+        }
+
+        if (null !== ($objMember = MemberModel::findByUsername($user->username)))
+        {
+            $objMember->login = '1';
+            $objMember->save();
+            $userProvider->refreshUser($user);
+        }
+    }
+
+    public function unlock($username, $userClass)
+    {
+        // Retrieve user by its username
+        $userProvider = new ContaoUserProvider($this->framework, $this->session, $userClass, $this->logger);
+
+        $user = $userProvider->loadUserByUsername($username);
+        if (!$user instanceof $userClass)
+        {
+            return;
+        }
+
+        if ($user instanceof FrontendUser)
+        {
+            if (null !== ($objMember = MemberModel::findByUsername($user->username)))
+            {
+                $objMember->locked = 0;
+                $objMember->save();
+                $userProvider->refreshUser($user);
+            }
+            return;
+        }
+
+        if ($user instanceof BackendUser)
+        {
+            if (null !== ($objUser = UserModel::findByUsername($user->username)))
+            {
+                $objUser->locked = 0;
+                $objUser->save();
+                $userProvider->refreshUser($user);
+            }
+            return;
+        }
+    }
+
+    /**
      * @param $username
      * @param string $userClass
      * @return bool
@@ -268,32 +294,9 @@ class User
         $userProvider = new ContaoUserProvider($this->framework, $this->session, $userClass, $this->logger);
 
         $user = $userProvider->loadUserByUsername($username);
-        if (!$user instanceof $userClass)
+        if ($user instanceof $userClass)
         {
-            return false;
-        }
-
-        if ($user instanceof FrontendUser)
-        {
-            if (null !== ($objMember = MemberModel::findByUsername($user->username)))
-            {
-                $objMember->login = '1';
-                $objMember->locked = 0;
-                $objMember->save();
-                $userProvider->refreshUser($user);
-                return true;
-            }
-        }
-
-        if ($user instanceof BackendUser)
-        {
-            if (null !== ($objUser = UserModel::findByUsername($user->username)))
-            {
-                $objUser->locked = 0;
-                $objUser->save();
-                $userProvider->refreshUser($user);
-                return true;
-            }
+            return true;
         }
 
         return false;
@@ -305,7 +308,7 @@ class User
      */
     public function getMockUserData($isMember = true): array
     {
-        if ($isMember)
+        if ($isMember === true)
         {
             return [
                 'telefonmobil'         => '079 999 99 99',
@@ -328,6 +331,7 @@ class User
                 'plz'                  => '6208',
             ];
         }
+
         // Non member
         return [
             'telefonmobil'         => '079 999 99 99',
@@ -346,7 +350,7 @@ class User
             'kanton'               => 'ST',
             'korrespondenzsprache' => 'D',
             'telefonp'             => '099 999 99 99',
-            'email'                => 'g.rebuffat@matterhorn-kiosk.ch',
+            'email'                => 'm.cupic@gmx.ch',
             'plz'                  => '6208',
         ];
     }
