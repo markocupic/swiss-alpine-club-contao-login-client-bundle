@@ -123,15 +123,11 @@ class OauthController extends AbstractController
             $this->oauth->sessionSet('errorPath', $request->query->get('errorPath'));
             $this->oauth->sessionSet('moduleId', $request->query->get('moduleId'));
 
-            // Fetch the authorization URL from the provider; this returns the urlAuthorize option and generates and applies any necessary parameters
-            // (e.g. state).
-            $authorizationUrl = $provider->getAuthorizationUrl();
-
             // Get the state and store it to the session.
             $this->oauth->sessionSet('oauth2state', $provider->getState());
 
             // Redirect the user to the authorization URL.
-            header('Location: ' . $authorizationUrl);
+            Controller::redirect($provider->getAuthorizationUrl());
             exit;
 
         }
