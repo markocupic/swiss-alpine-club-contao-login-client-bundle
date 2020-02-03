@@ -13,7 +13,6 @@ declare(strict_types=1);
 namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\Oauth;
 
 use Contao\BackendUser;
-use Contao\Config;
 use Contao\Controller;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\FrontendUser;
@@ -166,18 +165,6 @@ class OauthController extends AbstractController
                 //$this->oauth->checkIsMemberInAllowedSection($this->user->getMockUserData(false), $userClass); // Should end up in an error message
                 $this->oauth->checkIsMemberInAllowedSection($arrData);
 
-                /**
-                 * The provider provides a way to get an authenticated API request for
-                 * the service, using the access token; it returns an object conforming
-                 * to \GuzzleHttp\Psr7\Request.
-                 * @var  \GuzzleHttp\Psr7\Request $request
-                 */
-                $request = $provider->getAuthenticatedRequest(
-                    'GET',
-                    Config::get('SAC_SSO_LOGIN_URL_RESOURCE_OWNER_DETAILS'),
-                    $accessToken
-                );
-
                 // Check if username is valid
                 $this->oauth->checkHasValidUsername($arrData);
 
@@ -202,7 +189,7 @@ class OauthController extends AbstractController
                 $this->user->unlock($arrData['contact_number'], $userClass);
 
                 // Authenticate user
-                $this->authentication->authenticate($arrData['contact_number'], $userClass, Authentication::SECURED_AREA_FRONTEND, $request);
+                $this->authentication->authenticate($arrData['contact_number'], $userClass, Authentication::SECURED_AREA_FRONTEND);
 
                 $jumpToPath = $this->oauth->sessionGet('targetPath');
                 $this->oauth->sessionDestroy();

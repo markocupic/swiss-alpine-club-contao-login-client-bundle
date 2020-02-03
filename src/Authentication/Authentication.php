@@ -108,10 +108,9 @@ class Authentication
      * @param string $username
      * @param string $userClass
      * @param string $providerKey
-     * @param \GuzzleHttp\Psr7\Request $request
      * @throws \Exception
      */
-    public function authenticate(string $username, string $userClass, string $providerKey, \GuzzleHttp\Psr7\Request $request): void
+    public function authenticate(string $username, string $userClass, string $providerKey): void
     {
         if (!\is_string($username) && (!\is_object($username) || !method_exists($username, '__toString')))
         {
@@ -188,7 +187,7 @@ class Authentication
             $this->logger->log(
                 LogLevel::INFO,
                 sprintf('User "%s" has logged in with openid connect.', $username),
-                array('contao' => new ContaoContext(__METHOD__, ContaoContext::ACCESS))
+                ['contao' => new ContaoContext(__METHOD__, ContaoContext::ACCESS)]
             );
         }
     }
