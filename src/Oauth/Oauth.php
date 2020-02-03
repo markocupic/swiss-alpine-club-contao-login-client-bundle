@@ -35,10 +35,10 @@ use Symfony\Component\Security\Csrf\CsrfTokenManager;
  */
 class Oauth
 {
-    public const SESSION_KEY = 'swiss_alpine_club_contao_login_client_session';
+    public const SESSION_KEY = '_swiss_alpine_club_contao_login_client_session';
 
     /** @var string provider key for contao frontend secured area */
-    public const ERROR_SESSION_FLASHBAG_KEY = 'swiss_alpine_club_contao_login_client_err_session_flashbag';
+    public const ERROR_SESSION_FLASHBAG_KEY = '_swiss_alpine_club_contao_login_client_err_session_flashbag';
 
     /**
      * @var ContaoFramework
@@ -127,6 +127,10 @@ class Oauth
         ];
     }
 
+    /**
+     * @throws AppCheckFailedException
+     * @throws InvalidRequestTokenException
+     */
     public function checkQueryParams()
     {
         $request = $this->requestStack->getCurrentRequest();
@@ -221,9 +225,9 @@ class Oauth
         }
 
         $arrError = [
-            'matter'   => 'Die Überprüfung der Daten vom Identity Provider hat fehlgeschlagen.',
-            'howToFix' => sprintf('%s, Sie müssen Mitglied dieser SAC Sektion sein, um sich auf diesem Portal einloggen zu können.', $arrData['name']),
-            'explain'  => 'Der geschütze Bereich ist nur Mitgliedern dieser SAC Sektion zugänglich.',
+            'matter'   => sprintf('Hallo %s<br>Schön bist du hier. Leider hat die Überprüfung deiner vom Identity Provider an uns übermittelten Daten fehlgeschlagen.', $arrData['vorname']),
+            'howToFix' => sprintf('Du musst Mitglied unserer SAC Sektion sein, um dich auf diesem Portal einloggen zu können. Wenn du eine Zusatzmitgliedschaft beantragen möchtest, dann darfst du dich sehr gerne bei unserer Geschäftsstelle melden.', $arrData['name']),
+            //'explain'  => 'Der geschütze Bereich ist nur Mitgliedern dieser SAC Sektion zugänglich.',
         ];
         $this->addFlashBagMessage($arrError);
         Controller::redirect($this->sessionGet('errorPath'));
@@ -238,8 +242,8 @@ class Oauth
         if (empty($arrData['email']) || !Validator::isEmail($arrData['email']))
         {
             $arrError = [
-                'matter'   => 'Die Überprüfung der Daten vom Identity Provider hat fehlgeschlagen.',
-                'howToFix' => 'Sie haben noch keine/keine gültige E-Mail-Adresse hinterlegt. Bitte loggen Sie sich auf https:://www.sac-cas.ch auf Ihrem Account ein und hinterlegen Sie Ihre E-Mail-Adresse.',
+                'matter'   => sprintf('Hallo %s<br>Schön bist du hier. Leider hat die Überprüfung deiner vom Identity Provider an uns übermittelten Daten fehlgeschlagen.', $arrData['vorname']),
+                'howToFix' => 'Du hast noch keine gültige E-Mail-Adresse hinterlegt. Bitte logge dich auf https:://www.sac-cas.ch mit deinem Account ein und hinterlege deine E-Mail-Adresse.',
                 'explain'  => 'Einige Anwendungen (z.B. Event-Tool) auf diesem Portal setzen eine gültige E-Mail-Adresse voraus.',
             ];
             $this->addFlashBagMessage($arrError);
@@ -255,9 +259,9 @@ class Oauth
         if (!isset($arrData) || empty($arrData['contact_number']) || empty($arrData['Roles']) || empty($arrData['contact_number']) || empty($arrData['sub']))
         {
             $arrError = [
-                'matter'   => 'Die Überprüfung der Daten vom Identity Provider hat fehlgeschlagen.',
-                'howToFix' => sprintf('%s, Sie müssen Mitglied des SAC sein, um sich auf diesem Portal einloggen zu können.', $arrData['name']),
-                'explain'  => 'Der geschütze Bereich ist nur Mitgliedern des SAC (Schweizerischer Alpen Club) zugänglich.',
+                'matter'   => sprintf('Hallo %s<br>Schön bist du hier. Leider hat die Überprüfung deiner vom Identity Provider an uns übermittelten Daten fehlgeschlagen.', $arrData['vorname']),
+                'howToFix' => 'Du musst Mitglied dieser Sektion sein, um dich auf diesem Portal einloggen zu können. Wenn du eine Mitgliedschaft beantragen möchtest, darfst du dich sehr gerne bei userer Geschäftsstelle melden.',
+                //'explain'  => 'Der geschütze Bereich ist nur Mitgliedern des SAC (Schweizerischer Alpen Club) zugänglich.',
             ];
             $this->addFlashBagMessage($arrError);
             Controller::redirect($this->sessionGet('errorPath'));
@@ -272,8 +276,8 @@ class Oauth
         if (!isset($arrData) || empty($arrData['contact_number']) || !$this->user->isValidUsername($arrData['contact_number']))
         {
             $arrError = [
-                'matter'   => sprintf('Die Überprüfung der Daten vom Identity Provider hat fehlgeschlagen. Der Benutzername "%s" ist ungültig.', $arrData['contact_number']),
-                'howToFix' => 'Bitte überprüfen Sie die Schreibweise Ihrer Eingaben.',
+                'matter'   => 'Schön bist du hier. Leider hat die Überprüfung deiner vom Identity Provider an uns übermittelten Daten fehlgeschlagen.',
+                'howToFix' => 'Bitte überprüfe die Schreibweise deiner Eingaben.',
                 'explain'  => '',
             ];
             $this->addFlashBagMessage($arrError);
@@ -290,9 +294,9 @@ class Oauth
         if (!isset($arrData) || empty($arrData['contact_number']) || !$this->user->userExists($arrData['contact_number'], $userClass))
         {
             $arrError = [
-                'matter'   => sprintf('Die Überprüfung der Daten vom Identity Provider hat fehlgeschlagen. Der Benutzername "%s" wurde in der Datenbank nicht gefunden.', $arrData['contact_number']),
-                'howToFix' => 'Falls Sie soeben eine Neumitgliedschaft beantragt haben, warten Sie bitten einen Tag und versuchen Sie sich danach noch einmal einzuloggen.',
-                'explain'  => '',
+                'matter'   => sprintf('Hallo %s<br>Schön bist du hier. Leider hat die Überprüfung deiner vom Identity Provider an uns übermittelten Daten fehlgeschlagen.', $arrData['vorname']),
+                'howToFix' => 'Falls du soeben/erst kürzlich eine Neumitgliedschaft beantragt hast, dann warte bitten einen Tag und versuche dich danach noch einmal hier einzuloggen.',
+                'explain'  => 'Leider dauert es mindestens einen Tag bis uns von der Zentralstelle deine Mitgliedschaft bestätigt wird.',
             ];
             $this->addFlashBagMessage($arrError);
             Controller::redirect($this->sessionGet('errorPath'));
@@ -370,21 +374,13 @@ class Oauth
         $arrClubIds = explode(',', Config::get('SAC_EVT_SAC_SECTION_IDS'));
         if (isset($arrData['Roles']) && !empty($arrData['Roles']))
         {
-            $arrRoles = explode(',', $arrData['Roles']);
-            foreach ($arrRoles as $role)
+            foreach ($arrClubIds as $arrClubId)
             {
-                //[Roles] => NAV_BULLETIN,NAV_EINZEL_00185155,NAV_D,NAV_STAMMSEKTION_S00004250,NAV_EINZEL_S00004250,NAV_S00004250,NAV_F1540,NAV_BULLETIN_S00004250,Internal/everyone,NAV_NAVISION,NAV_EINZEL,NAV_MITGLIED_S00004250,NAV_HERR,NAV_F1004V,NAV_F1004V_S00004250,NAV_BULLETIN_S00004250_PAPIER
-                if (strpos($role, 'NAV_STAMMSEKTION_S') === 0)
+                // Search for NAV_MITGLIED_S00004250 or NAV_MITGLIED_S00004251, etc.
+                $pattern = '/NAV_MITGLIED_S([0])+' . $arrClubId . '/';
+                if (preg_match($pattern, $arrData['Roles']))
                 {
-                    $strRole = str_replace('NAV_STAMMSEKTION_S', '', $role);
-                    $strRole = preg_replace('/^0+/', '', $strRole);
-                    if (!empty($strRole))
-                    {
-                        if (in_array($strRole, $arrClubIds))
-                        {
-                            $arrMembership[] = $strRole;
-                        }
-                    }
+                    $arrMembership[] = $arrClubId;
                 }
             }
         }

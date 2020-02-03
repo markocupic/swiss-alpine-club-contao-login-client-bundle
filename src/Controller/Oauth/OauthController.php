@@ -163,7 +163,7 @@ class OauthController extends AbstractController
                 $this->oauth->checkIsSacMember($arrData);
 
                 // Check if user is member of an allowed section
-                //$this->oauth->checkIsMemberInAllowedSection($this->user->getMockUserData(false), $userClass); // Should end in an error message
+                //$this->oauth->checkIsMemberInAllowedSection($this->user->getMockUserData(false), $userClass); // Should end up in an error message
                 $this->oauth->checkIsMemberInAllowedSection($arrData);
 
                 /**

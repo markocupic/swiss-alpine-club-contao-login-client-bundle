@@ -14,22 +14,22 @@
 <div class="error alert alert-dark mt-4">
 
     <?php if($this->error['matter'] != ''): ?>
-    <div class="errorMatterBox">
-        <h5><?= $this->trans('MSC.errorMatter', [], 'contao_default') ?></h5>
+    <div class="errorMatterBox mb-3">
+        <h5 class="mt-0"><?= $this->trans('MSC.errorMatter', [], 'contao_default') ?></h5>
         <p class="errorMatter"><?= $this->error['matter'] ?></p>
     </div>
     <?php endif; ?>
 
     <?php if($this->error['howToFix'] != ''): ?>
-    <div class="errorHowToFixBox">
-        <h5><?= $this->trans('MSC.errorHowToFix', [], 'contao_default') ?></h5>
+    <div class="errorHowToFixBox mb-3">
+        <h5 class="mt-0"><?= $this->trans('MSC.errorHowToFix', [], 'contao_default') ?></h5>
         <p class="errorHowToFix"><?= $this->error['howToFix'] ?></p>
     </div>
     <?php endif; ?>
 
     <?php if($this->error['explain'] != ''): ?>
-    <div class="errorExplainBox">
-        <h5><?= $this->trans('MSC.errorExplain', [], 'contao_default') ?></h5>
+    <div class="errorExplainBox mb-3">
+        <h5 class="mt-0"><?= $this->trans('MSC.errorExplain', [], 'contao_default') ?></h5>
         <p class="errorExplain"><?= $this->error['explain'] ?></p>
     </div>
     <?php endif; ?>
