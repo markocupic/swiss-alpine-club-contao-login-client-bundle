@@ -19,6 +19,8 @@ $GLOBALS['TL_HOOKS']['parseBackendTemplate'][] = [
 ];
 **/
 
+$GLOBALS['TL_JAVASCRIPT'][] = 'bundles/markocupicswissalpineclubcontaologinclient/js/ids-kill-session.js';
+
 /**
  * Hooks
  */
