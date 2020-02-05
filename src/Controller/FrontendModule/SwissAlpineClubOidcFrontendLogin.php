@@ -15,10 +15,9 @@ namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\FrontendM
 use Contao\CoreBundle\Controller\FrontendModule\AbstractFrontendModuleController;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\ModuleModel;
-use Contao\System;
 use Contao\Template;
 use Contao\FrontendUser;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\Oauth\Oauth;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Authorization\AuthorizationHelper;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Contao\PageModel;
@@ -26,21 +25,25 @@ use Symfony\Component\Security\Core\Security;
 use Contao\CoreBundle\ServiceAnnotation\FrontendModule;
 
 /**
- * Class SwissAlpineSsoFrontendLogin
+ * Class SwissAlpineClubOidcFrontendLogin
  * @package Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\FrontendModule
- * @FrontendModule("swiss_alpine_sso_frontend_login", category="user")
+ * @FrontendModule("swiss_alpine_club_oidc_frontend_login", category="user")
  */
-class SwissAlpineSsoFrontendLogin extends AbstractFrontendModuleController
+class SwissAlpineClubOidcFrontendLogin extends AbstractFrontendModuleController
 {
-    /** @var Oauth */
-    private $oauth;
+    /** @var AuthorizationHelper */
+    private $authorizationHelper;
 
     /** @var PageModel */
     private $page;
 
-    public function __construct(Oauth $oauth)
+    /**
+     * SwissAlpineClubOidcFrontendLogin constructor.
+     * @param AuthorizationHelper $authorizationHelper
+     */
+    public function __construct(AuthorizationHelper $authorizationHelper)
     {
-        $this->oauth = $oauth;
+        $this->authorizationHelper = $authorizationHelper;
     }
 
     /**
@@ -97,10 +100,10 @@ class SwissAlpineSsoFrontendLogin extends AbstractFrontendModuleController
             $template->login = true;
 
             // Check for error messages
-            if ($this->oauth->hasFlashBagMessage())
+            if ($this->authorizationHelper->hasFlashBagMessage())
             {
                 $arrError = [];
-                $flashBag = $this->oauth->getFlashBagMessage(0);
+                $flashBag = $this->authorizationHelper->getFlashBagMessage(0);
                 foreach ($flashBag as $k => $v)
                 {
                     $arrError[$k] = $v;

@@ -10,7 +10,7 @@ declare(strict_types=1);
  * @link https://github.com/markocupic/swiss-alpine-club-contao-login-client-bundle
  */
 
-namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Oauth;
+namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Authorization;
 
 use Contao\Config;
 use Contao\Controller;
@@ -30,10 +30,10 @@ use Symfony\Component\Security\Csrf\CsrfToken;
 use Symfony\Component\Security\Csrf\CsrfTokenManager;
 
 /**
- * Class Oauth
- * @package Markocupic\SwissAlpineClubContaoLoginClientBundle\Oauth
+ * Class AuthorizationHelper
+ * @package Markocupic\SwissAlpineClubContaoLoginClientBundle\Authorization
  */
-class Oauth
+class AuthorizationHelper
 {
     public const SESSION_KEY = '_swiss_alpine_club_contao_login_client_session';
 
@@ -81,7 +81,7 @@ class Oauth
     private $logger;
 
     /**
-     * Oauth constructor.
+     * AuthorizationHelper constructor.
      * @param ContaoFramework $framework
      * @param User $user
      * @param CsrfTokenManager $csrfTokenManager

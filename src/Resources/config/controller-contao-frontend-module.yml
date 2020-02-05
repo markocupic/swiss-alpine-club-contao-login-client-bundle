@@ -1,8 +1,8 @@
 services:
 
-  Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\FrontendModule\SwissAlpineSsoFrontendLogin:
+  Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\FrontendModule\SwissAlpineClubOidcFrontendLogin:
     arguments:
-    - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\Oauth\Oauth'
+    - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\Authorization\AuthorizationHelper'
     calls:
     - ['setContainer', ['@Psr\Container\ContainerInterface']]
     tags:

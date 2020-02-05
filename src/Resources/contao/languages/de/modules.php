@@ -11,4 +11,4 @@
 /**
  * Front end modules
  */
-$GLOBALS['TL_LANG']['FMD']['swiss_alpine_sso_frontend_login'] = ['SAC SSO Frontend Login', 'Single Sign On OpenId Connect SAC Login'];
+$GLOBALS['TL_LANG']['FMD']['swiss_alpine_club_oidc_frontend_login'] = ['Swiss Alpine Club OIDC (Single Sign-On) Frontend Login', 'Single Sign On OpenId Connect SAC Login'];

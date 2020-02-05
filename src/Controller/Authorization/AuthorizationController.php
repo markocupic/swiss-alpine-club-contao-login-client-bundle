@@ -10,7 +10,7 @@ declare(strict_types=1);
  * @link https://github.com/markocupic/swiss-alpine-club-contao-login-client-bundle
  */
 
-namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\Oauth;
+namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\Authorization;
 
 use Contao\BackendUser;
 use Contao\Controller;
@@ -19,9 +19,9 @@ use Contao\FrontendUser;
 use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use League\OAuth2\Client\Provider\GenericProvider;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\AppChecker\AppChecker;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\Authentication\Authentication;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\InteractiveLogin\InteractiveLogin;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\PrintErrorMessage;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\Oauth\Oauth;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Authorization\AuthorizationHelper;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\User\User;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -29,10 +29,10 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
- * Class OauthController
- * @package Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\Oauth
+ * Class AuthorizationController
+ * @package Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\Authorization
  */
-class OauthController extends AbstractController
+class AuthorizationController extends AbstractController
 {
 
     /**
@@ -51,9 +51,9 @@ class OauthController extends AbstractController
     private $user;
 
     /**
-     * @var Authentication
+     * @var InteractiveLogin
      */
-    private $authentication;
+    private $interactiveLogin;
 
     /**
      * @var AppChecker
@@ -61,9 +61,9 @@ class OauthController extends AbstractController
     private $appChecker;
 
     /**
-     * @var Oauth
+     * @var AuthorizationHelper
      */
-    private $oauth;
+    private $authorizationHelper;
 
     /**
      * @var PrintErrorMessage
@@ -71,25 +71,25 @@ class OauthController extends AbstractController
     private $printErrorMessage;
 
     /**
-     * OauthController constructor.
+     * AuthorizationController constructor.
      * @param ContaoFramework $framework
      * @param RequestStack $requestStack
      * @param User $user
-     * @param Authentication $authentication
+     * @param InteractiveLogin $interactiveLogin
      * @param AppChecker $appChecker
-     * @param Oauth $oauth
+     * @param AuthorizationHelper $authorizationHelper
      * @param PrintErrorMessage $printErrorMessage
      * @throws \Markocupic\SwissAlpineClubContaoLoginClientBundle\Exception\AppCheckFailedException
      */
-    public function __construct(ContaoFramework $framework, RequestStack $requestStack, User $user, Authentication $authentication, AppChecker $appChecker, Oauth $oauth, PrintErrorMessage $printErrorMessage)
+    public function __construct(ContaoFramework $framework, RequestStack $requestStack, User $user, InteractiveLogin $interactiveLogin, AppChecker $appChecker, AuthorizationHelper $authorizationHelper, PrintErrorMessage $printErrorMessage)
     {
         $this->framework = $framework;
         $this->requestStack = $requestStack;
         $this->user = $user;
-        $this->authentication = $authentication;
+        $this->interactiveLogin = $interactiveLogin;
         $this->framework->initialize();
         $this->appChecker = $appChecker;
-        $this->oauth = $oauth;
+        $this->authorizationHelper = $authorizationHelper;
         $this->printErrorMessage = $printErrorMessage;
 
         // Check app configuration in the contao backend settings (tl_settings)
@@ -108,7 +108,7 @@ class OauthController extends AbstractController
 
         $userClass = FrontendUser::class;
 
-        $provider = new GenericProvider($this->oauth->getProviderData());
+        $provider = new GenericProvider($this->authorizationHelper->getProviderData());
 
         $request = $this->requestStack->getCurrentRequest();
 
@@ -116,28 +116,27 @@ class OauthController extends AbstractController
         if (!$request->query->has('code'))
         {
             // Validate query params
-            $this->oauth->checkQueryParams();
+            $this->authorizationHelper->checkQueryParams();
 
-            $this->oauth->sessionSet('targetPath', $request->query->get('targetPath'));
-            $this->oauth->sessionSet('errorPath', $request->query->get('errorPath'));
-            $this->oauth->sessionSet('moduleId', $request->query->get('moduleId'));
+            $this->authorizationHelper->sessionSet('targetPath', $request->query->get('targetPath'));
+            $this->authorizationHelper->sessionSet('errorPath', $request->query->get('errorPath'));
+            $this->authorizationHelper->sessionSet('moduleId', $request->query->get('moduleId'));
 
             // Fetch the authorization URL from the provider; this returns the urlAuthorize option and generates and applies any necessary parameters
             // (e.g. state).
             $authorizationUrl = $provider->getAuthorizationUrl();
 
             // Get the state and store it to the session.
-            $this->oauth->sessionSet('oauth2state', $provider->getState());
+            $this->authorizationHelper->sessionSet('oauth2state', $provider->getState());
 
             // Redirect the user to the authorization URL.
             Controller::redirect($authorizationUrl);
             exit;
-
         }
-        elseif (empty($request->query->get('state')) || ($request->query->get('state') !== $this->oauth->sessionGet('oauth2state')))
+        elseif (empty($request->query->get('state')) || ($request->query->get('state') !== $this->authorizationHelper->sessionGet('oauth2state')))
         {
             // Check given state against previously stored one to mitigate CSRF attack
-            $this->oauth->sessionRemove('oauth2state');
+            $this->authorizationHelper->sessionRemove('oauth2state');
 
             // Invalid username or user does not exists
             return new Response(
@@ -159,17 +158,17 @@ class OauthController extends AbstractController
                 $arrData = $resourceOwner->toArray();
 
                 // Check if user is SAC member
-                $this->oauth->checkIsSacMember($arrData);
+                $this->authorizationHelper->checkIsSacMember($arrData);
 
                 // Check if user is member of an allowed section
-                //$this->oauth->checkIsMemberInAllowedSection($this->user->getMockUserData(false), $userClass); // Should end up in an error message
-                $this->oauth->checkIsMemberInAllowedSection($arrData);
+                //$this->authorizationHelper->checkIsMemberInAllowedSection($this->user->getMockUserData(false), $userClass); // Should end in an error message
+                $this->authorizationHelper->checkIsMemberInAllowedSection($arrData);
 
                 // Check if username is valid
-                $this->oauth->checkHasValidUsername($arrData);
+                $this->authorizationHelper->checkHasValidUsername($arrData);
 
                 // Check has valid email address
-                $this->oauth->checkHasValidEmail($arrData);
+                $this->authorizationHelper->checkHasValidEmail($arrData);
 
                 // Create User if it not exists (Mock test user!!!!)
                 $this->user->createIfNotExists($this->user->getMockUserData(), $userClass);
@@ -180,7 +179,7 @@ class OauthController extends AbstractController
                 $this->user->updateUser($arrData, $userClass);
 
                 // Check if user exists
-                $this->oauth->checkUserExists($arrData, $userClass);
+                $this->authorizationHelper->checkUserExists($arrData, $userClass);
 
                 // Set tl_member.login='1'
                 $this->user->activateLogin($arrData['contact_number'], $userClass);
@@ -188,11 +187,11 @@ class OauthController extends AbstractController
                 // Set tl_member.locked=0 or tl_user.locked=0
                 $this->user->unlock($arrData['contact_number'], $userClass);
 
-                // Authenticate user
-                $this->authentication->authenticate($arrData['contact_number'], $userClass, Authentication::SECURED_AREA_FRONTEND);
+                // log in user
+                $this->interactiveLogin->login($arrData['contact_number'], $userClass, InteractiveLogin::SECURED_AREA_FRONTEND);
 
-                $jumpToPath = $this->oauth->sessionGet('targetPath');
-                $this->oauth->sessionDestroy();
+                $jumpToPath = $this->authorizationHelper->sessionGet('targetPath');
+                $this->authorizationHelper->sessionDestroy();
 
                 // All ok. User is logged in redirect to target page!!!
 
@@ -208,8 +207,8 @@ class OauthController extends AbstractController
                     'howToFix' => 'Bitte überprüfen Sie die Schreibweise Ihrer Benutzereingaben.',
                     'explain'  => '',
                 ];
-                $this->oauth->addFlashBagMessage($arrError);
-                Controller::redirect($this->oauth->sessionGet('errorPath'));
+                $this->authorizationHelper->addFlashBagMessage($arrError);
+                Controller::redirect($this->authorizationHelper->sessionGet('errorPath'));
             }
         }
 
@@ -218,8 +217,8 @@ class OauthController extends AbstractController
             'howToFix' => 'Bitte überprüfen Sie die Schreibweise Ihrer Benutzereingaben.',
             'explain'  => '',
         ];
-        $this->oauth->addFlashBagMessage($arrError);
-        Controller::redirect($this->oauth->sessionGet('errorPath'));
+        $this->authorizationHelper->addFlashBagMessage($arrError);
+        Controller::redirect($this->authorizationHelper->sessionGet('errorPath'));
     }
 
     /**
@@ -237,7 +236,7 @@ class OauthController extends AbstractController
         $userClass = BackendUser::class;
 
         // Authenticate user
-        $this->authentication->authenticate($username, $userClass, Authentication::SECURED_AREA_BACKEND);
+        $this->interactiveLogin->login($username, $userClass, InteractiveLogin::SECURED_AREA_BACKEND);
 
         /** @var  Controller $controllerAdapter */
         $controllerAdapter = $this->framework->getAdapter(Controller::class);

@@ -10,7 +10,7 @@ declare(strict_types=1);
  * @link https://github.com/markocupic/swiss-alpine-club-contao-login-client-bundle
  */
 
-namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Authentication;
+namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\InteractiveLogin;
 
 use Contao\BackendUser;
 use Contao\CoreBundle\Framework\ContaoFramework;
@@ -32,12 +32,10 @@ use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Security\Http\Event\InteractiveLoginEvent;
 
 /**
- * Class Authentication
- * Interactive login into the contao backend or frontend
- * Can be used for openid connect login attempts
- * @package Markocupic\SacEventToolBundle\OpenIdConnect\Authentication
+ * Class InteractiveLogin
+ * @package Markocupic\SwissAlpineClubContaoLoginClientBundle\InteractiveLogin
  */
-class Authentication
+class InteractiveLogin
 {
 
     /** @var string provider key for contao frontend secured area */
@@ -82,7 +80,7 @@ class Authentication
     private $logger;
 
     /**
-     * Authentication constructor.
+     * InteractiveLogin constructor.
      * @param ContaoFramework $framework
      * @param UserChecker $userChecker
      * @param SessionInterface $session
@@ -110,7 +108,7 @@ class Authentication
      * @param string $providerKey
      * @throws \Exception
      */
-    public function authenticate(string $username, string $userClass, string $providerKey): void
+    public function login(string $username, string $userClass, string $providerKey): void
     {
         if (!\is_string($username) && (!\is_object($username) || !method_exists($username, '__toString')))
         {
@@ -181,7 +179,7 @@ class Authentication
         $event = new InteractiveLoginEvent($this->requestStack->getCurrentRequest(), $token);
         $this->eventDispatcher->dispatch('security.interactive_login', $event);
 
-        // Now the user is authenticated!
+        // Now the user is logged in!
         if ($this->logger)
         {
             $this->logger->log(

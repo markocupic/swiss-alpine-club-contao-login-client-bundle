@@ -1,17 +1,17 @@
 services:
 
-  Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\Oauth\OauthController:
+  Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\Authorization\AuthorizationController:
     arguments:
     - '@contao.framework'
     - '@request_stack'
     - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\User\User'
-    - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\Authentication\Authentication'
+    - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\InteractiveLogin\InteractiveLogin'
     - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\AppChecker\AppChecker'
-    - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\Oauth\Oauth'
+    - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\Authorization\AuthorizationHelper'
     - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\PrintErrorMessage'
     public: true
 
-  Markocupic\SwissAlpineClubContaoLoginClientBundle\Authentication\Authentication:
+  Markocupic\SwissAlpineClubContaoLoginClientBundle\InteractiveLogin\InteractiveLogin:
     arguments:
     - '@contao.framework'
     - '@contao.security.user_checker'
@@ -48,7 +48,7 @@ services:
     - '@?logger'
     public: true
 
-  Markocupic\SwissAlpineClubContaoLoginClientBundle\Oauth\Oauth:
+  Markocupic\SwissAlpineClubContaoLoginClientBundle\Authorization\AuthorizationHelper:
     arguments:
     - '@contao.framework'
     - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\User\User'
