@@ -107,7 +107,6 @@ class AuthorizationController extends AbstractController
 
         $this->framework->initialize();
 
-
         // Check app configuration in the contao backend settings (tl_settings)
         $this->appChecker->checkConfiguration();
     }
@@ -119,7 +118,6 @@ class AuthorizationController extends AbstractController
      */
     public function frontendUserAuthenticationAction(): Response
     {
-
         $userClass = FrontendUser::class;
 
         $provider = new GenericProvider($this->authorizationHelper->getProviderData());
@@ -244,8 +242,6 @@ class AuthorizationController extends AbstractController
     public function backendUserAuthenticationAction(): Response
     {
         return new Response('This extension is under construction.', 200);
-
-
     }
 
 }
