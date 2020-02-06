@@ -116,7 +116,7 @@ class RemoteUser
      */
     public function checkIsMemberInAllowedSection(): void
     {
-        $arrMembership = static::getGroupMembership($this->getData());
+        $arrMembership = $this->getGroupMembership();
         if (count($arrMembership) > 0)
         {
             return;
@@ -167,20 +167,20 @@ class RemoteUser
     }
 
     /**
-     * @param array $arrData
      * @return array
      */
-    public static function getGroupMembership(array $arrData): array
+    public function getGroupMembership(): array
     {
+        $strRoles = $this->get('Roles');
         $arrMembership = [];
         $arrClubIds = explode(',', Config::get('SAC_EVT_SAC_SECTION_IDS'));
-        if (isset($arrData['Roles']) && !empty($arrData['Roles']))
+        if ($strRoles !== null && !empty($strRoles))
         {
             foreach ($arrClubIds as $arrClubId)
             {
                 // Search for NAV_MITGLIED_S00004250 or NAV_MITGLIED_S00004251, etc.
                 $pattern = '/NAV_MITGLIED_S([0])+' . $arrClubId . '/';
-                if (preg_match($pattern, $arrData['Roles']))
+                if (preg_match($pattern, $strRoles))
                 {
                     $arrMembership[] = $arrClubId;
                 }

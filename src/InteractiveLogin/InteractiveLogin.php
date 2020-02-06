@@ -144,12 +144,12 @@ class InteractiveLogin
 
         if ($user instanceof FrontendUser)
         {
-            if (null !== ($objMember = MemberModel::findByUsername($user->username)))
+            if (null !== ($objUser = MemberModel::findByUsername($user->username)))
             {
-                $objMember->disable = '';
-                $objMember->login = '1';
-                $objMember->locked = 0;
-                $objMember->save();
+                $objUser->disable = '';
+                $objUser->login = '1';
+                $objUser->locked = 0;
+                $objUser->save();
             }
         }
 
@@ -181,6 +181,26 @@ class InteractiveLogin
         // Fire the login event manually
         $event = new InteractiveLoginEvent($this->requestStack->getCurrentRequest(), $token);
         $this->eventDispatcher->dispatch('security.interactive_login', $event);
+
+        if ($user instanceof FrontendUser)
+        {
+            if (null !== ($objUser = MemberModel::findByUsername($user->username)))
+            {
+                $objUser->lastLogin = time();
+                $objUser->currentLogin = time();
+                $objUser->save();
+            }
+        }
+
+        if ($user instanceof BackendUser)
+        {
+            if (null !== ($objUser = UserModel::findByUsername($user->username)))
+            {
+                $objUser->lastLogin = time();
+                $objUser->currentLogin = time();
+                $objUser->save();
+            }
+        }
 
         // Now the user is logged in!
         if ($this->logger)

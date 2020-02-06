@@ -154,9 +154,9 @@ class User
             $objUser->gender = $arrData['anredecode'] === 'HERR' ? 'male' : 'female';
             $objUser->country = strtolower($arrData['land']);
             $objUser->email = $arrData['email'];
-            $objUser->sectionId = serialize(RemoteUser::getGroupMembership($arrData));
+            $objUser->sectionId = serialize($remoteUser->getGroupMembership());
             // Member has to be member of a valid sac section
-            $objUser->isSacMember = count(RemoteUser::getGroupMembership($arrData)) > 0 ? '1' : '';
+            $objUser->isSacMember = count($remoteUser->getGroupMembership()) > 0 ? '1' : '';
             $objUser->tstamp = time();
             // Groups
             $arrGroups = StringUtil::deserialize($objUser->groups, true);
