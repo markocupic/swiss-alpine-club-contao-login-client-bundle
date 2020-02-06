@@ -2,7 +2,7 @@ services:
 
   Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\FrontendModule\SwissAlpineClubOidcFrontendLogin:
     arguments:
-    - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\Authorization\AuthorizationHelper'
+    - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\Session\Session'
     calls:
     - ['setContainer', ['@Psr\Container\ContainerInterface']]
     tags:

@@ -4,6 +4,8 @@ services:
     arguments:
     - '@contao.framework'
     - '@request_stack'
+    - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\Session\Session'
+    - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\User\RemoteUser'
     - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\User\User'
     - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\InteractiveLogin\InteractiveLogin'
     - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\AppChecker\AppChecker'
@@ -25,11 +27,8 @@ services:
   Markocupic\SwissAlpineClubContaoLoginClientBundle\User\User:
     arguments:
     - '@contao.framework'
-    - '@contao.security.user_checker'
     - '@session'
-    - '@security.token_storage'
-    - '@event_dispatcher'
-    - '@request_stack'
+    - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\Session\Session'
     - '@monolog.logger.contao'
     public: true
 
@@ -51,14 +50,21 @@ services:
   Markocupic\SwissAlpineClubContaoLoginClientBundle\Authorization\AuthorizationHelper:
     arguments:
     - '@contao.framework'
-    - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\User\User'
     - '@contao.csrf.token_manager'
-    - '@contao.security.user_checker'
-    - '@session'
-    - '@security.token_storage'
-    - '@event_dispatcher'
     - '@request_stack'
-    - '@monolog.logger.contao'
+    public: true
+
+  Markocupic\SwissAlpineClubContaoLoginClientBundle\User\RemoteUser:
+    arguments:
+    - '@contao.framework'
+    - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\Authorization\AuthorizationHelper'
+    - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\User\User'
+    - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\Session\Session'
+    public: true
+
+  Markocupic\SwissAlpineClubContaoLoginClientBundle\Session\Session:
+    arguments:
+    - '@session'
     public: true
 
 

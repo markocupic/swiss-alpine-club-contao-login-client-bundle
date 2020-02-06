@@ -16,18 +16,14 @@ use Contao\BackendUser;
 use Contao\Config;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\CoreBundle\Security\User\ContaoUserProvider;
-use Contao\CoreBundle\Security\User\UserChecker;
 use Contao\FrontendUser;
 use Contao\MemberModel;
 use Contao\StringUtil;
-use Contao\UserModel;
 use Contao\System;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\Authorization\AuthorizationHelper;
+use Contao\UserModel;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Session\Session;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
-use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Security;
 
 /**
@@ -43,53 +39,32 @@ class User
     private $framework;
 
     /**
-     * @var UserChecker
-     */
-    private $userChecker;
-
-    /**
-     * @var SessionInterface
-     */
-    private $session;
-
-    /**
-     * @var TokenStorageInterface
-     */
-    private $tokenStorage;
-
-    /**
-     * @var EventDispatcherInterface
-     */
-    private $eventDispatcher;
-
-    /**
-     * @var RequestStack
-     */
-    private $requestStack;
-
-    /**
-     * @var LoggerInterface|null
+     * @var LoggerInterface
      */
     private $logger;
 
     /**
+     * @var SessionInterface
+     */
+    private $sessionInterface;
+
+    /**
+     * @var Session
+     */
+    private $session;
+
+    /**
      * User constructor.
      * @param ContaoFramework $framework
-     * @param UserChecker $userChecker
-     * @param SessionInterface $session
-     * @param TokenStorageInterface $tokenStorage
-     * @param EventDispatcherInterface $eventDispatcher
-     * @param RequestStack $requestStack
+     * @param SessionInterface $sessionInterface
+     * @param Session $session
      * @param null|LoggerInterface $logger
      */
-    public function __construct(ContaoFramework $framework, UserChecker $userChecker, SessionInterface $session, TokenStorageInterface $tokenStorage, EventDispatcherInterface $eventDispatcher, RequestStack $requestStack, ?LoggerInterface $logger = null)
+    public function __construct(ContaoFramework $framework, SessionInterface $sessionInterface, Session $session, ?LoggerInterface $logger = null)
     {
         $this->framework = $framework;
-        $this->userChecker = $userChecker;
         $this->session = $session;
-        $this->tokenStorage = $tokenStorage;
-        $this->eventDispatcher = $eventDispatcher;
-        $this->requestStack = $requestStack;
+        $this->sessionInterface = $sessionInterface;
         $this->logger = $logger;
 
         // Initialize Contao framework
@@ -97,27 +72,28 @@ class User
     }
 
     /**
-     * @param array $arrData
+     * @param RemoteUser $remoteUser
      * @param string $userClass
      */
-    public function createIfNotExists(array $arrData, string $userClass): void
+    public function createIfNotExists(RemoteUser $remoteUser, string $userClass): void
     {
         if ($userClass === FrontendUser::class)
         {
-            $this->createFrontendUserIfNotExists($arrData);
+            $this->createFrontendUserIfNotExists($remoteUser);
         }
 
         if ($userClass === BackendUser::class)
         {
-            $this->createBackendUserIfNotExists($arrData);
+            $this->createBackendUserIfNotExists($remoteUser);
         }
     }
 
     /**
-     * @param $arrData
+     * @param RemoteUser $remoteUser
      */
-    private function createFrontendUserIfNotExists($arrData)
+    private function createFrontendUserIfNotExists(RemoteUser $remoteUser)
     {
+        $arrData = $remoteUser->getData();
         $username = preg_replace('/^0+/', '', $arrData['contact_number']);
         if (!$this->isValidUsername($username))
         {
@@ -138,27 +114,28 @@ class User
     }
 
     /**
-     * @param array $arrData
+     * @param RemoteUser $remoteUser
      * @param string $userClass
      */
-    public function updateUser(array $arrData, string $userClass): void
+    public function updateUser(RemoteUser $remoteUser, string $userClass): void
     {
         if ($userClass === FrontendUser::class)
         {
-            $this->updateFrontendUser($arrData);
+            $this->updateFrontendUser($remoteUser);
         }
 
         if ($userClass === BackendUser::class)
         {
-            $this->updateBackendUser($arrData);
+            $this->updateBackendUser($remoteUser);
         }
     }
 
     /**
-     * @param array $arrData
+     * @param RemoteUser $remoteUser
      */
-    public function updateFrontendUser(array $arrData)
+    public function updateFrontendUser(RemoteUser $remoteUser)
     {
+        $arrData = $remoteUser->getData();
         $objUser = MemberModel::findByUsername($arrData['contact_number']);
         if ($objUser !== null)
         {
@@ -177,9 +154,9 @@ class User
             $objUser->gender = $arrData['anredecode'] === 'HERR' ? 'male' : 'female';
             $objUser->country = strtolower($arrData['land']);
             $objUser->email = $arrData['email'];
-            $objUser->sectionId = serialize(AuthorizationHelper::getGroupMembership($arrData));
+            $objUser->sectionId = serialize(RemoteUser::getGroupMembership($arrData));
             // Member has to be member of a valid sac section
-            $objUser->isSacMember = count(AuthorizationHelper::getGroupMembership($arrData)) > 0 ? '1' : '';
+            $objUser->isSacMember = count(RemoteUser::getGroupMembership($arrData)) > 0 ? '1' : '';
             $objUser->tstamp = time();
             // Groups
             $arrGroups = StringUtil::deserialize($objUser->groups, true);
@@ -223,17 +200,37 @@ class User
     }
 
     /**
+     * @param RemoteUser $remoteUser
+     * @param string $userClass
+     */
+    public function checkUserExists(RemoteUser $remoteUser, string $userClass)
+    {
+        $arrData = $remoteUser->getData();
+        if (!isset($arrData) || empty($arrData['contact_number']) || !$this->userExists($remoteUser, $userClass))
+        {
+            $arrError = [
+                'matter'   => sprintf('Hallo %s<br>Schön bist du hier. Leider hat die Überprüfung deiner vom Identity Provider an uns übermittelten Daten fehlgeschlagen.', $arrData['vorname']),
+                'howToFix' => 'Falls du soeben/erst kürzlich eine Neumitgliedschaft beantragt hast, dann warte bitten einen Tag und versuche dich danach noch einmal hier einzuloggen.',
+                'explain'  => 'Leider dauert es mindestens einen Tag bis uns von der Zentralstelle deine Mitgliedschaft bestätigt wird.',
+            ];
+            $this->session->addFlashBagMessage($arrError);
+            Controller::redirect($this->session->sessionGet('errorPath'));
+        }
+    }
+
+    /**
      * @param string $username
      * @param string $userClass
      */
-    public function activateLogin(string $username, string $userClass)
+    public function activateLogin(RemoteUser $remoteUser, string $userClass)
     {
+        $username = $remoteUser->get('contact_number');
         if ($userClass !== FrontendUser::class)
         {
             return;
         }
         // Retrieve user by its username
-        $userProvider = new ContaoUserProvider($this->framework, $this->session, $userClass, $this->logger);
+        $userProvider = new ContaoUserProvider($this->framework, $this->sessionInterface, $userClass, $this->logger);
 
         $user = $userProvider->loadUserByUsername($username);
         if (!$user instanceof FrontendUser)
@@ -249,10 +246,16 @@ class User
         }
     }
 
-    public function unlock($username, $userClass)
+    /**
+     * @param RemoteUser $remoteUser
+     * @param $userClass
+     */
+    public function unlock(RemoteUser $remoteUser, $userClass)
     {
+        $username = $remoteUser->get('contact_number');
+
         // Retrieve user by its username
-        $userProvider = new ContaoUserProvider($this->framework, $this->session, $userClass, $this->logger);
+        $userProvider = new ContaoUserProvider($this->framework, $this->sessionInterface, $userClass, $this->logger);
 
         $user = $userProvider->loadUserByUsername($username);
         if (!$user instanceof $userClass)
@@ -284,14 +287,16 @@ class User
     }
 
     /**
-     * @param $username
+     * @param RemoteUser $remoteUser
      * @param string $userClass
      * @return bool
      */
-    public function userExists(string $username, string $userClass): bool
+    public function userExists(RemoteUser $remoteUser, string $userClass): bool
     {
+        $username = $remoteUser->get('contact_number');
+
         // Retrieve user by its username
-        $userProvider = new ContaoUserProvider($this->framework, $this->session, $userClass, $this->logger);
+        $userProvider = new ContaoUserProvider($this->framework, $this->sessionInterface, $userClass, $this->logger);
 
         $user = $userProvider->loadUserByUsername($username);
         if ($user instanceof $userClass)

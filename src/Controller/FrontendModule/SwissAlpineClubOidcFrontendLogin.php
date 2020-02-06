@@ -18,6 +18,7 @@ use Contao\ModuleModel;
 use Contao\Template;
 use Contao\FrontendUser;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Authorization\AuthorizationHelper;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Session\Session;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Contao\PageModel;
@@ -31,19 +32,23 @@ use Contao\CoreBundle\ServiceAnnotation\FrontendModule;
  */
 class SwissAlpineClubOidcFrontendLogin extends AbstractFrontendModuleController
 {
-    /** @var AuthorizationHelper */
-    private $authorizationHelper;
+    /**
+     * @var Session
+     */
+    private $authorizationSession;
 
-    /** @var PageModel */
+    /**
+     * @var PageModel
+     */
     private $page;
 
     /**
      * SwissAlpineClubOidcFrontendLogin constructor.
      * @param AuthorizationHelper $authorizationHelper
      */
-    public function __construct(AuthorizationHelper $authorizationHelper)
+    public function __construct(Session $authorizationSession)
     {
-        $this->authorizationHelper = $authorizationHelper;
+        $this->authorizationSession = $authorizationSession;
     }
 
     /**
@@ -100,10 +105,10 @@ class SwissAlpineClubOidcFrontendLogin extends AbstractFrontendModuleController
             $template->login = true;
 
             // Check for error messages
-            if ($this->authorizationHelper->hasFlashBagMessage())
+            if ($this->authorizationSession->hasFlashBagMessage())
             {
                 $arrError = [];
-                $flashBag = $this->authorizationHelper->getFlashBagMessage(0);
+                $flashBag = $this->authorizationSession->getFlashBagMessage(0);
                 foreach ($flashBag as $k => $v)
                 {
                     $arrError[$k] = $v;

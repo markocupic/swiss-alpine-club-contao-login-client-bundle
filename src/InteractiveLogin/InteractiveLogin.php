@@ -20,6 +20,7 @@ use Contao\CoreBundle\Security\User\UserChecker;
 use Contao\FrontendUser;
 use Contao\MemberModel;
 use Contao\UserModel;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\User\RemoteUser;
 use Psr\Log\LogLevel;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -103,13 +104,15 @@ class InteractiveLogin
     }
 
     /**
-     * @param string $username
+     * @param RemoteUser $remoteUser
      * @param string $userClass
      * @param string $providerKey
      * @throws \Exception
      */
-    public function login(string $username, string $userClass, string $providerKey): void
+    public function login(RemoteUser $remoteUser, string $userClass, string $providerKey): void
     {
+        $username = $remoteUser->get('contact_number');
+
         if (!\is_string($username) && (!\is_object($username) || !method_exists($username, '__toString')))
         {
             throw new BadRequestHttpException(

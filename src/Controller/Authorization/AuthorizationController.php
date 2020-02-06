@@ -12,12 +12,13 @@ declare(strict_types=1);
 
 namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\Authorization;
 
-use Contao\BackendUser;
 use Contao\Controller;
 use Contao\CoreBundle\Framework\ContaoFramework;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\User\RemoteUser;
 use Contao\FrontendUser;
 use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use League\OAuth2\Client\Provider\GenericProvider;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Session\Session;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\AppChecker\AppChecker;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\InteractiveLogin\InteractiveLogin;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\PrintErrorMessage;
@@ -44,6 +45,16 @@ class AuthorizationController extends AbstractController
      * @var RequestStack
      */
     private $requestStack;
+
+    /**
+     * @var Session
+     */
+    private $session;
+
+    /**
+     * @var RemoteUser
+     */
+    private $remoteUser;
 
     /**
      * @var User
@@ -74,6 +85,7 @@ class AuthorizationController extends AbstractController
      * AuthorizationController constructor.
      * @param ContaoFramework $framework
      * @param RequestStack $requestStack
+     * @param RemoteUser $remoteUser
      * @param User $user
      * @param InteractiveLogin $interactiveLogin
      * @param AppChecker $appChecker
@@ -81,16 +93,20 @@ class AuthorizationController extends AbstractController
      * @param PrintErrorMessage $printErrorMessage
      * @throws \Markocupic\SwissAlpineClubContaoLoginClientBundle\Exception\AppCheckFailedException
      */
-    public function __construct(ContaoFramework $framework, RequestStack $requestStack, User $user, InteractiveLogin $interactiveLogin, AppChecker $appChecker, AuthorizationHelper $authorizationHelper, PrintErrorMessage $printErrorMessage)
+    public function __construct(ContaoFramework $framework, RequestStack $requestStack, Session $session, RemoteUser $remoteUser, User $user, InteractiveLogin $interactiveLogin, AppChecker $appChecker, AuthorizationHelper $authorizationHelper, PrintErrorMessage $printErrorMessage)
     {
         $this->framework = $framework;
         $this->requestStack = $requestStack;
+        $this->session = $session;
+        $this->remoteUser = $remoteUser;
         $this->user = $user;
         $this->interactiveLogin = $interactiveLogin;
-        $this->framework->initialize();
         $this->appChecker = $appChecker;
         $this->authorizationHelper = $authorizationHelper;
         $this->printErrorMessage = $printErrorMessage;
+
+        $this->framework->initialize();
+
 
         // Check app configuration in the contao backend settings (tl_settings)
         $this->appChecker->checkConfiguration();
@@ -103,8 +119,6 @@ class AuthorizationController extends AbstractController
      */
     public function frontendUserAuthenticationAction(): Response
     {
-        // Ruwic&Aviyu926
-        // Kill session https://ids02.sac-cas.ch/AvintisSSO/index.jsp
 
         $userClass = FrontendUser::class;
 
@@ -118,25 +132,25 @@ class AuthorizationController extends AbstractController
             // Validate query params
             $this->authorizationHelper->checkQueryParams();
 
-            $this->authorizationHelper->sessionSet('targetPath', $request->query->get('targetPath'));
-            $this->authorizationHelper->sessionSet('errorPath', $request->query->get('errorPath'));
-            $this->authorizationHelper->sessionSet('moduleId', $request->query->get('moduleId'));
+            $this->session->sessionSet('targetPath', $request->query->get('targetPath'));
+            $this->session->sessionSet('errorPath', $request->query->get('errorPath'));
+            $this->session->sessionSet('moduleId', $request->query->get('moduleId'));
 
             // Fetch the authorization URL from the provider; this returns the urlAuthorize option and generates and applies any necessary parameters
             // (e.g. state).
             $authorizationUrl = $provider->getAuthorizationUrl();
 
             // Get the state and store it to the session.
-            $this->authorizationHelper->sessionSet('oauth2state', $provider->getState());
+            $this->session->sessionSet('oauth2state', $provider->getState());
 
             // Redirect the user to the authorization URL.
             Controller::redirect($authorizationUrl);
             exit;
         }
-        elseif (empty($request->query->get('state')) || ($request->query->get('state') !== $this->authorizationHelper->sessionGet('oauth2state')))
+        elseif (empty($request->query->get('state')) || ($request->query->get('state') !== $this->session->sessionGet('oauth2state')))
         {
             // Check given state against previously stored one to mitigate CSRF attack
-            $this->authorizationHelper->sessionRemove('oauth2state');
+            $this->session->sessionRemove('oauth2state');
 
             // Invalid username or user does not exists
             return new Response(
@@ -157,41 +171,42 @@ class AuthorizationController extends AbstractController
                 $resourceOwner = $provider->getResourceOwner($accessToken);
                 $arrData = $resourceOwner->toArray();
 
+                $this->remoteUser->create($arrData);
+
                 // Check if user is SAC member
-                $this->authorizationHelper->checkIsSacMember($arrData);
+                $this->remoteUser->checkIsSacMember();
 
                 // Check if user is member of an allowed section
-                //$this->authorizationHelper->checkIsMemberInAllowedSection($this->user->getMockUserData(false), $userClass); // Should end in an error message
-                $this->authorizationHelper->checkIsMemberInAllowedSection($arrData);
+                //$this->remoteUser->create($this->user->getMockUserData(false)); // Should end in an error message
+                $this->remoteUser->checkIsMemberInAllowedSection();
 
                 // Check if username is valid
-                $this->authorizationHelper->checkHasValidUsername($arrData);
+                $this->remoteUser->checkHasValidUsername();
 
                 // Check has valid email address
-                $this->authorizationHelper->checkHasValidEmail($arrData);
+                $this->remoteUser->checkHasValidEmail();
 
                 // Create User if it not exists (Mock test user!!!!)
-                $this->user->createIfNotExists($this->user->getMockUserData(), $userClass);
-                $this->user->createIfNotExists($arrData, $userClass);
+                //$this->user->createIfNotExists($this->user->getMockUserData(), $userClass);
+                $this->user->createIfNotExists($this->remoteUser, $userClass);
 
-                // Update user (Mock test user!!!!)
-                $this->user->updateUser($this->user->getMockUserData(false), $userClass);
-                $this->user->updateUser($arrData, $userClass);
+                // Update user
+                $this->user->updateUser($this->remoteUser, $userClass);
 
                 // Check if user exists
-                $this->authorizationHelper->checkUserExists($arrData, $userClass);
+                $this->user->checkUserExists($this->remoteUser, $userClass);
 
                 // Set tl_member.login='1'
-                $this->user->activateLogin($arrData['contact_number'], $userClass);
+                $this->user->activateLogin($this->remoteUser, $userClass);
 
                 // Set tl_member.locked=0 or tl_user.locked=0
-                $this->user->unlock($arrData['contact_number'], $userClass);
+                $this->user->unlock($this->remoteUser, $userClass);
 
                 // log in user
-                $this->interactiveLogin->login($arrData['contact_number'], $userClass, InteractiveLogin::SECURED_AREA_FRONTEND);
+                $this->interactiveLogin->login($this->remoteUser, $userClass, InteractiveLogin::SECURED_AREA_FRONTEND);
 
-                $jumpToPath = $this->authorizationHelper->sessionGet('targetPath');
-                $this->authorizationHelper->sessionDestroy();
+                $jumpToPath = $this->session->sessionGet('targetPath');
+                $this->session->sessionDestroy();
 
                 // All ok. User is logged in redirect to target page!!!
 
@@ -207,8 +222,8 @@ class AuthorizationController extends AbstractController
                     'howToFix' => 'Bitte überprüfen Sie die Schreibweise Ihrer Benutzereingaben.',
                     'explain'  => '',
                 ];
-                $this->authorizationHelper->addFlashBagMessage($arrError);
-                Controller::redirect($this->authorizationHelper->sessionGet('errorPath'));
+                $this->session->addFlashBagMessage($arrError);
+                Controller::redirect($this->session->sessionGet('errorPath'));
             }
         }
 
@@ -217,8 +232,8 @@ class AuthorizationController extends AbstractController
             'howToFix' => 'Bitte überprüfen Sie die Schreibweise Ihrer Benutzereingaben.',
             'explain'  => '',
         ];
-        $this->authorizationHelper->addFlashBagMessage($arrError);
-        Controller::redirect($this->authorizationHelper->sessionGet('errorPath'));
+        $this->session->addFlashBagMessage($arrError);
+        Controller::redirect($this->session->sessionGet('errorPath'));
     }
 
     /**
@@ -230,22 +245,7 @@ class AuthorizationController extends AbstractController
     {
         return new Response('This extension is under construction.', 200);
 
-        // Retrieve the username from openid connect
-        $username = 'xxxxxxxxxxxx';
 
-        $userClass = BackendUser::class;
-
-        // Authenticate user
-        $this->interactiveLogin->login($username, $userClass, InteractiveLogin::SECURED_AREA_BACKEND);
-
-        /** @var  Controller $controllerAdapter */
-        $controllerAdapter = $this->framework->getAdapter(Controller::class);
-        $controllerAdapter->redirect('contao');
-
-        return new Response(
-            'Successfully logged in.',
-            Response::HTTP_UNAUTHORIZED
-        );
     }
 
 }
