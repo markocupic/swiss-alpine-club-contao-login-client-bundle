@@ -44,11 +44,6 @@ class User
     private $logger;
 
     /**
-     * @var SessionInterface
-     */
-    private $sessionInterface;
-
-    /**
      * @var Session
      */
     private $session;
@@ -56,15 +51,13 @@ class User
     /**
      * User constructor.
      * @param ContaoFramework $framework
-     * @param SessionInterface $sessionInterface
      * @param Session $session
      * @param null|LoggerInterface $logger
      */
-    public function __construct(ContaoFramework $framework, SessionInterface $sessionInterface, Session $session, ?LoggerInterface $logger = null)
+    public function __construct(ContaoFramework $framework, Session $session, ?LoggerInterface $logger = null)
     {
         $this->framework = $framework;
         $this->session = $session;
-        $this->sessionInterface = $sessionInterface;
         $this->logger = $logger;
 
         // Initialize Contao framework
@@ -230,7 +223,8 @@ class User
             return;
         }
         // Retrieve user by its username
-        $userProvider = new ContaoUserProvider($this->framework, $this->sessionInterface, $userClass, $this->logger);
+        $session = $this->session->sessionGetSession();
+        $userProvider = new ContaoUserProvider($this->framework, $session, $userClass, $this->logger);
 
         $user = $userProvider->loadUserByUsername($username);
         if (!$user instanceof FrontendUser)
@@ -255,7 +249,9 @@ class User
         $username = $remoteUser->get('contact_number');
 
         // Retrieve user by its username
-        $userProvider = new ContaoUserProvider($this->framework, $this->sessionInterface, $userClass, $this->logger);
+        /** @var SessionInterface $session */
+        $session = $this->session->sessionGetSession();
+        $userProvider = new ContaoUserProvider($this->framework, $session, $userClass, $this->logger);
 
         $user = $userProvider->loadUserByUsername($username);
         if (!$user instanceof $userClass)
@@ -296,7 +292,9 @@ class User
         $username = $remoteUser->get('contact_number');
 
         // Retrieve user by its username
-        $userProvider = new ContaoUserProvider($this->framework, $this->sessionInterface, $userClass, $this->logger);
+        /** @var SessionInterface $session */
+        $session = $this->session->sessionGetSession();
+        $userProvider = new ContaoUserProvider($this->framework, $session, $userClass, $this->logger);
 
         $user = $userProvider->loadUserByUsername($username);
         if ($user instanceof $userClass)

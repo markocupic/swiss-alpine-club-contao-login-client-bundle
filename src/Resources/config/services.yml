@@ -27,16 +27,23 @@ services:
   Markocupic\SwissAlpineClubContaoLoginClientBundle\User\User:
     arguments:
     - '@contao.framework'
-    - '@session'
     - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\Session\Session'
     - '@monolog.logger.contao'
+    public: true
+
+  Markocupic\SwissAlpineClubContaoLoginClientBundle\User\RemoteUser:
+    arguments:
+    - '@contao.framework'
+    - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\Authorization\AuthorizationHelper'
+    - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\User\User'
+    - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\Session\Session'
     public: true
 
   Markocupic\SwissAlpineClubContaoLoginClientBundle\AppChecker\AppChecker:
     arguments:
     - '@contao.framework'
     public: true
-
+  
   Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\PrintErrorMessage:
     arguments:
     - '%contao.pretty_error_screens%'
@@ -54,16 +61,9 @@ services:
     - '@request_stack'
     public: true
 
-  Markocupic\SwissAlpineClubContaoLoginClientBundle\User\RemoteUser:
-    arguments:
-    - '@contao.framework'
-    - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\Authorization\AuthorizationHelper'
-    - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\User\User'
-    - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\Session\Session'
-    public: true
-
   Markocupic\SwissAlpineClubContaoLoginClientBundle\Session\Session:
     arguments:
+    - '@contao.framework'
     - '@session'
     public: true
 

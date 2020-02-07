@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Session;
 
+use Contao\CoreBundle\Framework\ContaoFramework;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 
 /**
@@ -24,6 +25,9 @@ class Session
 
     public const ERROR_SESSION_FLASHBAG_KEY = '_swiss_alpine_club_contao_login_client_err_session_flashbag';
 
+    /** @var ContaoFramework */
+    private $framework;
+
     /**
      * @var SessionInterface
      */
@@ -33,9 +37,18 @@ class Session
      * Session constructor.
      * @param SessionInterface $session
      */
-    public function __construct(SessionInterface $session)
+    public function __construct(ContaoFramework $framework, SessionInterface $session)
     {
+        $this->framework = $framework;
         $this->session = $session;
+    }
+
+    /**
+     * @return SessionInterface
+     */
+    public function sessionGetSession(): SessionInterface
+    {
+        return $this->session;
     }
 
     /**
@@ -43,12 +56,9 @@ class Session
      */
     public function hasFlashBagMessage(): bool
     {
-        if ($this->session->isStarted())
+        if ($this->session->getFlashBag()->has(static::ERROR_SESSION_FLASHBAG_KEY))
         {
-            if ($this->session->getFlashBag()->has(static::ERROR_SESSION_FLASHBAG_KEY))
-            {
-                return true;
-            }
+            return true;
         }
         return false;
     }
@@ -59,20 +69,17 @@ class Session
      */
     public function getFlashBagMessage($index = null): array
     {
-        if ($this->session->isStarted())
+        if ($this->hasFlashBagMessage())
         {
-            if ($this->hasFlashBagMessage())
+            $arrMessages = $this->session->getFlashBag()->get(static::ERROR_SESSION_FLASHBAG_KEY);
+            if (null === $index)
             {
-                $arrMessages = $this->session->getFlashBag()->get(static::ERROR_SESSION_FLASHBAG_KEY);
-                if (null === $index)
-                {
-                    return $arrMessages;
-                }
+                return $arrMessages;
+            }
 
-                if (isset($arrMessages[$index]))
-                {
-                    return $arrMessages[$index];
-                }
+            if (isset($arrMessages[$index]))
+            {
+                return $arrMessages[$index];
             }
         }
         return [];
@@ -83,11 +90,8 @@ class Session
      */
     public function addFlashBagMessage(array $arrMsg): void
     {
-        if ($this->session->isStarted())
-        {
-            $flashBag = $this->session->getFlashBag();
-            $flashBag->add(static::ERROR_SESSION_FLASHBAG_KEY, $arrMsg);
-        }
+        $flashBag = $this->session->getFlashBag();
+        $flashBag->add(static::ERROR_SESSION_FLASHBAG_KEY, $arrMsg);
     }
 
     /**
@@ -96,12 +100,9 @@ class Session
      */
     public function sessionHas(string $key): bool
     {
-        if (session_start())
+        if (isset($_SESSION[static::SESSION_KEY][$key]))
         {
-            if (isset($_SESSION[static::SESSION_KEY][$key]))
-            {
-                return true;
-            }
+            return true;
         }
         return false;
     }
@@ -112,12 +113,9 @@ class Session
      */
     public function sessionGet(string $key)
     {
-        if (session_start())
+        if (isset($_SESSION[static::SESSION_KEY][$key]))
         {
-            if (isset($_SESSION[static::SESSION_KEY][$key]))
-            {
-                return $_SESSION[static::SESSION_KEY][$key];
-            }
+            return $_SESSION[static::SESSION_KEY][$key];
         }
 
         return null;
@@ -129,14 +127,11 @@ class Session
      */
     public function sessionSet(string $key, $value): void
     {
-        if (session_start())
+        if (!isset($_SESSION[static::SESSION_KEY]))
         {
-            if (!isset($_SESSION[static::SESSION_KEY]))
-            {
-                $_SESSION[static::SESSION_KEY] = [];
-            }
-            $_SESSION[static::SESSION_KEY][$key] = $value;
+            $_SESSION[static::SESSION_KEY] = [];
         }
+        $_SESSION[static::SESSION_KEY][$key] = $value;
     }
 
     /**
@@ -144,12 +139,9 @@ class Session
      */
     public function sessionRemove(string $key): void
     {
-        if (session_start())
+        if (isset($_SESSION[static::SESSION_KEY][$key]))
         {
-            if (isset($_SESSION[static::SESSION_KEY][$key]))
-            {
-                unset($_SESSION[static::SESSION_KEY][$key]);
-            }
+            unset($_SESSION[static::SESSION_KEY][$key]);
         }
     }
 
@@ -158,12 +150,9 @@ class Session
      */
     public function sessionDestroy()
     {
-        if (session_start())
+        if (isset($_SESSION[static::SESSION_KEY]))
         {
-            if (isset($_SESSION[static::SESSION_KEY]))
-            {
-                unset($_SESSION[static::SESSION_KEY]);
-            }
+            unset($_SESSION[static::SESSION_KEY]);
         }
     }
 
