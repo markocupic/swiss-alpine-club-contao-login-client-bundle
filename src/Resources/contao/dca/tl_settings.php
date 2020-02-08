@@ -14,7 +14,8 @@ PaletteManipulator::create()
     ->addLegend('sac_sso_login_settings', 'global_legend')
     ->addField(['SAC_SSO_LOGIN_CLIENT_ID'], 'sac_sso_login_settings', PaletteManipulator::POSITION_APPEND)
     ->addField(['SAC_SSO_LOGIN_CLIENT_SECRET'], 'sac_sso_login_settings', PaletteManipulator::POSITION_APPEND)
-    ->addField(['SAC_SSO_LOGIN_REDIRECT_URI'], 'sac_sso_login_settings', PaletteManipulator::POSITION_APPEND)
+    ->addField(['SAC_SSO_LOGIN_REDIRECT_URI_FRONTEND'], 'sac_sso_login_settings', PaletteManipulator::POSITION_APPEND)
+    ->addField(['SAC_SSO_LOGIN_REDIRECT_URI_BACKEND'], 'sac_sso_login_settings', PaletteManipulator::POSITION_APPEND)
     ->addField(['SAC_SSO_LOGIN_URL_AUTHORIZE'], 'sac_sso_login_settings', PaletteManipulator::POSITION_APPEND)
     ->addField(['SAC_SSO_LOGIN_URL_ACCESS_TOKEN'], 'sac_sso_login_settings', PaletteManipulator::POSITION_APPEND)
     ->addField(['SAC_SSO_LOGIN_URL_RESOURCE_OWNER_DETAILS'], 'sac_sso_login_settings', PaletteManipulator::POSITION_APPEND)
@@ -33,8 +34,14 @@ $GLOBALS['TL_DCA']['tl_settings']['fields']['SAC_SSO_LOGIN_CLIENT_SECRET'] = [
     'eval'      => ['mandatory' => true, 'decodeEntities' => true, 'tl_class' => 'w50'],
 ];
 
-$GLOBALS['TL_DCA']['tl_settings']['fields']['SAC_SSO_LOGIN_REDIRECT_URI'] = [
-    'label'     => &$GLOBALS['TL_LANG']['tl_settings']['SAC_SSO_LOGIN_REDIRECT_URI'],
+$GLOBALS['TL_DCA']['tl_settings']['fields']['SAC_SSO_LOGIN_REDIRECT_URI_FRONTEND'] = [
+    'label'     => &$GLOBALS['TL_LANG']['tl_settings']['SAC_SSO_LOGIN_REDIRECT_URI_FRONTEND'],
+    'inputType' => 'text',
+    'eval'      => ['mandatory' => true, 'decodeEntities' => true, 'tl_class' => 'w50'],
+];
+
+$GLOBALS['TL_DCA']['tl_settings']['fields']['SAC_SSO_LOGIN_REDIRECT_URI_BACKEND'] = [
+    'label'     => &$GLOBALS['TL_LANG']['tl_settings']['SAC_SSO_LOGIN_REDIRECT_URI_BACKEND'],
     'inputType' => 'text',
     'eval'      => ['mandatory' => true, 'decodeEntities' => true, 'tl_class' => 'w50'],
 ];

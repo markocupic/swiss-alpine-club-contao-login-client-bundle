@@ -3,14 +3,19 @@ services:
   Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\Authorization\AuthorizationController:
     arguments:
     - '@contao.framework'
-    - '@request_stack'
     - '@session'
     - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\User\RemoteUser'
     - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\User\User'
     - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\InteractiveLogin\InteractiveLogin'
-    - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\AppChecker\AppChecker'
-    - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\Authorization\AuthorizationHelper'
-    - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\PrintErrorMessage'
+    - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\Oidc\Oidc'
+    public: true
+
+  Markocupic\SwissAlpineClubContaoLoginClientBundle\Oidc\Oidc:
+    arguments:
+    - '@contao.framework'
+    - '@request_stack'
+    - '@session'
+    - '@contao.csrf.token_manager'
     public: true
 
   Markocupic\SwissAlpineClubContaoLoginClientBundle\InteractiveLogin\InteractiveLogin:
@@ -34,14 +39,8 @@ services:
   Markocupic\SwissAlpineClubContaoLoginClientBundle\User\RemoteUser:
     arguments:
     - '@contao.framework'
-    - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\Authorization\AuthorizationHelper'
     - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\User\User'
     - '@session'
-    public: true
-
-  Markocupic\SwissAlpineClubContaoLoginClientBundle\AppChecker\AppChecker:
-    arguments:
-    - '@contao.framework'
     public: true
 
   Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\PrintErrorMessage:
@@ -52,13 +51,6 @@ services:
     - '@request_stack'
     - '@security.helper'
     - '@?logger'
-    public: true
-
-  Markocupic\SwissAlpineClubContaoLoginClientBundle\Authorization\AuthorizationHelper:
-    arguments:
-    - '@contao.framework'
-    - '@contao.csrf.token_manager'
-    - '@request_stack'
     public: true
 
   Markocupic\SwissAlpineClubContaoLoginClientBundle\Session\Attribute\ArrayAttributeBag:

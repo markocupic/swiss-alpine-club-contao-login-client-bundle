@@ -17,7 +17,6 @@ use Contao\Controller;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\System;
 use Contao\Validator;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\Authorization\AuthorizationHelper;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 
 /**
@@ -50,14 +49,12 @@ class RemoteUser
     /**
      * RemoteUser constructor.
      * @param ContaoFramework $framework
-     * @param AuthorizationHelper $authorizationHelper
      * @param User $user
      * @param SessionInterface $session
      */
-    public function __construct(ContaoFramework $framework, AuthorizationHelper $authorizationHelper, User $user, SessionInterface $session)
+    public function __construct(ContaoFramework $framework, User $user, SessionInterface $session)
     {
         $this->framework = $framework;
-        $this->authorizationHelper = $authorizationHelper;
         $this->user = $user;
         $this->session = $session;
 
