@@ -120,6 +120,12 @@ class AuthorizationController extends AbstractController
      */
     public function frontendUserAuthenticationAction(): Response
     {
+        /** @var System $controllerAdapter */
+        $controllerAdapter = $this->framework->getAdapter(Controller::class);
+
+        /** @var System $systemAdapter */
+        $systemAdapter = $this->framework->getAdapter(System::class);
+
         $userClass = FrontendUser::class;
 
         /** @var GenericProvider $provider */
@@ -151,7 +157,7 @@ class AuthorizationController extends AbstractController
             $session->set('oauth2state', $provider->getState());
 
             // Redirect the user to the authorization URL.
-            Controller::redirect($authorizationUrl);
+            $controllerAdapter->redirect($authorizationUrl);
             exit;
         }
         elseif (empty($request->query->get('state')) || ($request->query->get('state') !== $session->get('oauth2state')))
@@ -165,9 +171,9 @@ class AuthorizationController extends AbstractController
                 'howToFix' => 'Bitte überprüfen Sie die Schreibweise Ihrer Benutzereingaben.',
                 'explain'  => '',
             ];
-            $flashBagKey = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client_session_flash_bag_key');
+            $flashBagKey = $systemAdapter->getContainer()->getParameter('swiss_alpine_club_contao_login_client_session_flash_bag_key');
             $this->session->getFlashBag()->add($flashBagKey, $arrError);
-            Controller::redirect($this->session->getBag($bagName)->get('errorPath'));
+            $controllerAdapter->redirect($this->session->getBag($bagName)->get('errorPath'));
         }
         else
         {
@@ -197,8 +203,7 @@ class AuthorizationController extends AbstractController
                 // Check has valid email address
                 $this->remoteUser->checkHasValidEmail();
 
-                // Create User if it not exists (Mock test user!!!!)
-                //$this->user->createIfNotExists($this->user->getMockUserData(), $userClass);
+                // Create User if it not exists
                 $this->user->createIfNotExists($this->remoteUser, $userClass);
 
                 // Update user
@@ -222,7 +227,6 @@ class AuthorizationController extends AbstractController
                 // All ok. User is logged in redirect to target page!!!
 
                 /** @var  Controller $controllerAdapter */
-                $controllerAdapter = $this->framework->getAdapter(Controller::class);
                 $controllerAdapter->redirect($jumpToPath);
             } catch (IdentityProviderException $e)
             {
@@ -234,9 +238,9 @@ class AuthorizationController extends AbstractController
                     'howToFix' => 'Bitte überprüfen Sie die Schreibweise Ihrer Benutzereingaben.',
                     'explain'  => '',
                 ];
-                $flashBagKey = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client_session_flash_bag_key');
+                $flashBagKey = $systemAdapter->getContainer()->getParameter('swiss_alpine_club_contao_login_client_session_flash_bag_key');
                 $this->session->getFlashBag()->add($flashBagKey, $arrError);
-                Controller::redirect($this->session->getBag($bagName)->get('errorPath'));
+                $controllerAdapter->redirect($this->session->getBag($bagName)->get('errorPath'));
             }
         }
     }
