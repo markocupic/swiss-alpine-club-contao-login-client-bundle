@@ -15,9 +15,10 @@ namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\User;
 use Contao\Config;
 use Contao\Controller;
 use Contao\CoreBundle\Framework\ContaoFramework;
+use Contao\System;
 use Contao\Validator;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Authorization\AuthorizationHelper;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\Session\Session;
+use Symfony\Component\HttpFoundation\Session\SessionInterface;
 
 /**
  * Class RemoteUser
@@ -37,6 +38,11 @@ class RemoteUser
     private $user;
 
     /**
+     * @var SessionInterface
+     */
+    private $session;
+
+    /**
      * remote user data
      */
     private $data = [];
@@ -46,8 +52,9 @@ class RemoteUser
      * @param ContaoFramework $framework
      * @param AuthorizationHelper $authorizationHelper
      * @param User $user
+     * @param SessionInterface $session
      */
-    public function __construct(ContaoFramework $framework, AuthorizationHelper $authorizationHelper, User $user, Session $session)
+    public function __construct(ContaoFramework $framework, AuthorizationHelper $authorizationHelper, User $user, SessionInterface $session)
     {
         $this->framework = $framework;
         $this->authorizationHelper = $authorizationHelper;
@@ -104,8 +111,10 @@ class RemoteUser
                     'howToFix' => 'Du musst Mitglied dieser Sektion sein, um dich auf diesem Portal einloggen zu können. Wenn du eine Mitgliedschaft beantragen möchtest, darfst du dich sehr gerne bei userer Geschäftsstelle melden.',
                     //'explain'  => 'Der geschütze Bereich ist nur Mitgliedern des SAC (Schweizerischer Alpen Club) zugänglich.',
                 ];
-                $this->session->addFlashBagMessage($arrError);
-                Controller::redirect($this->session->sessionGet('errorPath'));
+                $flashBagKey = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client_session_flash_bag_key');
+                $this->session->getFlashBag()->add($flashBagKey, $arrError);
+                $bagName = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client_session_attribute_bag_name');
+                Controller::redirect($this->session->getBag($bagName)->get('errorPath'));
             }
         }
     }
@@ -127,8 +136,10 @@ class RemoteUser
             'howToFix' => sprintf('Du musst Mitglied unserer SAC Sektion sein, um dich auf diesem Portal einloggen zu können. Wenn du eine Zusatzmitgliedschaft beantragen möchtest, dann darfst du dich sehr gerne bei unserer Geschäftsstelle melden.', $this->get('name')),
             //'explain'  => 'Der geschütze Bereich ist nur Mitgliedern dieser SAC Sektion zugänglich.',
         ];
-        $this->session->addFlashBagMessage($arrError);
-        Controller::redirect($this->session->sessionGet('errorPath'));
+        $flashBagKey = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client_session_flash_bag_key');
+        $this->session->getFlashBag()->add($flashBagKey, $arrError);
+        $bagName = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client_session_attribute_bag_name');
+        Controller::redirect($this->session->getBag($bagName)->get('errorPath'));
     }
 
     /**
@@ -143,8 +154,10 @@ class RemoteUser
                 'howToFix' => 'Bitte überprüfe die Schreibweise deiner Eingaben.',
                 'explain'  => '',
             ];
-            $this->session->addFlashBagMessage($arrError);
-            Controller::redirect($this->session->sessionGet('errorPath'));
+            $flashBagKey = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client_session_flash_bag_key');
+            $this->session->getFlashBag()->add($flashBagKey, $arrError);
+            $bagName = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client_session_attribute_bag_name');
+            Controller::redirect($this->session->getBag($bagName)->get('errorPath'));
         }
     }
 
@@ -161,8 +174,10 @@ class RemoteUser
                 'howToFix' => 'Du hast noch keine gültige E-Mail-Adresse hinterlegt. Bitte logge dich auf https:://www.sac-cas.ch mit deinem Account ein und hinterlege deine E-Mail-Adresse.',
                 'explain'  => 'Einige Anwendungen (z.B. Event-Tool) auf diesem Portal setzen eine gültige E-Mail-Adresse voraus.',
             ];
-            $this->session->addFlashBagMessage($arrError);
-            Controller::redirect($this->session->sessionGet('errorPath'));
+            $flashBagKey = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client_session_flash_bag_key');
+            $this->session->getFlashBag()->add($flashBagKey, $arrError);
+            $bagName = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client_session_attribute_bag_name');
+            Controller::redirect($this->session->getBag($bagName)->get('errorPath'));
         }
     }
 
@@ -187,6 +202,59 @@ class RemoteUser
             }
         }
         return $arrMembership;
+    }
+
+    /**
+     * @param bool $isMember
+     * @return array
+     */
+    public function getMockUserData($isMember = true): array
+    {
+        if ($isMember === true)
+        {
+            return [
+                'telefonmobil'         => '079 999 99 99',
+                'sub'                  => '0e592343a-2122-11e8-91a0-00505684a4ad',
+                'telefong'             => '041 984 13 50',
+                'familienname'         => 'Messner',
+                'strasse'              => 'Schloss Juval',
+                'vorname'              => 'Reinhold',
+                'Roles'                => 'NAV_BULLETIN,NAV_EINZEL_00999998,NAV_D,NAV_STAMMSEKTION_S00004250,NAV_EINZEL_S00004250,NAV_EINZEL_S00004251,NAV_S00004250,NAV_F1540,NAV_BULLETIN_S00004250,Internal/everyone,NAV_NAVISION,NAV_EINZEL,NAV_MITGLIED_S00004250,NAV_HERR,NAV_F1004V,NAV_F1004V_S00004250,NAV_BULLETIN_S00004250_PAPIER',
+                'contact_number'       => '999998',
+                'ort'                  => 'Vinschgau IT',
+                'geburtsdatum'         => '25.05.1976',
+                'anredecode'           => 'HERR',
+                'name'                 => 'Messner Reinhold',
+                'land'                 => 'IT',
+                'kanton'               => 'ST',
+                'korrespondenzsprache' => 'D',
+                'telefonp'             => '099 999 99 99',
+                'email'                => 'r.messner@matterhorn-kiosk.ch',
+                'plz'                  => '6208',
+            ];
+        }
+
+        // Non member
+        return [
+            'telefonmobil'         => '079 999 99 99',
+            'sub'                  => '0e59877743a-2122-11e8-91a0-00505684a4ad',
+            'telefong'             => '041 984 13 50',
+            'familienname'         => 'Rébuffat',
+            'strasse'              => 'Schloss Juval',
+            'vorname'              => 'Gaston',
+            'Roles'                => 'NAV_BULLETIN,NAV_EINZEL_00999999,NAV_D,NAV_STAMMSEKTION_S00009999,NAV_EINZEL_S00009999,NAV_EINZEL_S00009999,NAV_S00009999,NAV_F1540,NAV_BULLETIN_S00009999,Internal/everyone,NAV_NAVISION,NAV_EINZEL,NAV_MITGLIED_S00009999,NAV_HERR,NAV_F1004V,NAV_F1004V_S00009999,NAV_BULLETIN_S00009999_PAPIER',
+            'contact_number'       => '999999',
+            'ort'                  => 'Chamonix FR',
+            'geburtsdatum'         => '25.05.1976',
+            'anredecode'           => 'HERR',
+            'name'                 => 'Gaston Rébuffat',
+            'land'                 => 'IT',
+            'kanton'               => 'ST',
+            'korrespondenzsprache' => 'D',
+            'telefonp'             => '099 999 99 99',
+            'email'                => 'm.cupic@gmx.ch',
+            'plz'                  => '6208',
+        ];
     }
 
 }

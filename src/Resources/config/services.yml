@@ -4,7 +4,7 @@ services:
     arguments:
     - '@contao.framework'
     - '@request_stack'
-    - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\Session\Session'
+    - '@session'
     - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\User\RemoteUser'
     - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\User\User'
     - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\InteractiveLogin\InteractiveLogin'
@@ -27,7 +27,7 @@ services:
   Markocupic\SwissAlpineClubContaoLoginClientBundle\User\User:
     arguments:
     - '@contao.framework'
-    - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\Session\Session'
+    - '@session'
     - '@monolog.logger.contao'
     public: true
 
@@ -36,14 +36,14 @@ services:
     - '@contao.framework'
     - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\Authorization\AuthorizationHelper'
     - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\User\User'
-    - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\Session\Session'
+    - '@session'
     public: true
 
   Markocupic\SwissAlpineClubContaoLoginClientBundle\AppChecker\AppChecker:
     arguments:
     - '@contao.framework'
     public: true
-  
+
   Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\PrintErrorMessage:
     arguments:
     - '%contao.pretty_error_screens%'
@@ -61,10 +61,10 @@ services:
     - '@request_stack'
     public: true
 
-  Markocupic\SwissAlpineClubContaoLoginClientBundle\Session\Session:
+  Markocupic\SwissAlpineClubContaoLoginClientBundle\Session\Attribute\ArrayAttributeBag:
     arguments:
-    - '@contao.framework'
-    - '@session'
-    public: true
+    - '%swiss_alpine_club_contao_login_client_session_attribute_bag_key%'
+    calls:
+    - ['setName', ['%swiss_alpine_club_contao_login_client_session_attribute_bag_name%']]
 
 

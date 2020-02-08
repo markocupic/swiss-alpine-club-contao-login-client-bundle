@@ -14,14 +14,15 @@ namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\FrontendM
 
 use Contao\CoreBundle\Controller\FrontendModule\AbstractFrontendModuleController;
 use Contao\CoreBundle\Framework\ContaoFramework;
-use Contao\ModuleModel;
-use Contao\Template;
 use Contao\FrontendUser;
+use Contao\ModuleModel;
+use Contao\PageModel;
+use Contao\System;
+use Contao\Template;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Authorization\AuthorizationHelper;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\Session\Session;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Contao\PageModel;
+use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\Security\Core\Security;
 use Contao\CoreBundle\ServiceAnnotation\FrontendModule;
 
@@ -33,9 +34,9 @@ use Contao\CoreBundle\ServiceAnnotation\FrontendModule;
 class SwissAlpineClubOidcFrontendLogin extends AbstractFrontendModuleController
 {
     /**
-     * @var Session
+     * @var SessionInterface
      */
-    private $authorizationSession;
+    private $session;
 
     /**
      * @var PageModel
@@ -46,9 +47,9 @@ class SwissAlpineClubOidcFrontendLogin extends AbstractFrontendModuleController
      * SwissAlpineClubOidcFrontendLogin constructor.
      * @param AuthorizationHelper $authorizationHelper
      */
-    public function __construct(Session $authorizationSession)
+    public function __construct(SessionInterface $session)
     {
-        $this->authorizationSession = $authorizationSession;
+        $this->session = $session;
     }
 
     /**
@@ -87,7 +88,6 @@ class SwissAlpineClubOidcFrontendLogin extends AbstractFrontendModuleController
     protected function getResponse(Template $template, ModuleModel $model, Request $request): ?Response
     {
         $translator = $this->get('translator');
-
         // Get logged in member object
         if (($user = $this->get('security.helper')->getUser()) instanceof FrontendUser)
         {
@@ -105,11 +105,12 @@ class SwissAlpineClubOidcFrontendLogin extends AbstractFrontendModuleController
             $template->login = true;
 
             // Check for error messages
-            if ($this->authorizationSession->hasFlashBagMessage())
+            $flashBagKey = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client_session_flash_bag_key');
+            $flashBag = $this->session->getFlashBag()->get($flashBagKey);
+            if (count($flashBag) > 0)
             {
                 $arrError = [];
-                $flashBag = $this->authorizationSession->getFlashBagMessage(0);
-                foreach ($flashBag as $k => $v)
+                foreach ($flashBag[0] as $k => $v)
                 {
                     $arrError[$k] = $v;
                 }

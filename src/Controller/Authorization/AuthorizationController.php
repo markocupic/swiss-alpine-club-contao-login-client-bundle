@@ -16,9 +16,10 @@ use Contao\Controller;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\User\RemoteUser;
 use Contao\FrontendUser;
+use Contao\System;
 use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use League\OAuth2\Client\Provider\GenericProvider;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\Session\Session;
+use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\AppChecker\AppChecker;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\InteractiveLogin\InteractiveLogin;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\PrintErrorMessage;
@@ -85,6 +86,7 @@ class AuthorizationController extends AbstractController
      * AuthorizationController constructor.
      * @param ContaoFramework $framework
      * @param RequestStack $requestStack
+     * @param SessionInterface $session
      * @param RemoteUser $remoteUser
      * @param User $user
      * @param InteractiveLogin $interactiveLogin
@@ -93,7 +95,7 @@ class AuthorizationController extends AbstractController
      * @param PrintErrorMessage $printErrorMessage
      * @throws \Markocupic\SwissAlpineClubContaoLoginClientBundle\Exception\AppCheckFailedException
      */
-    public function __construct(ContaoFramework $framework, RequestStack $requestStack, Session $session, RemoteUser $remoteUser, User $user, InteractiveLogin $interactiveLogin, AppChecker $appChecker, AuthorizationHelper $authorizationHelper, PrintErrorMessage $printErrorMessage)
+    public function __construct(ContaoFramework $framework, RequestStack $requestStack, SessionInterface $session, RemoteUser $remoteUser, User $user, InteractiveLogin $interactiveLogin, AppChecker $appChecker, AuthorizationHelper $authorizationHelper, PrintErrorMessage $printErrorMessage)
     {
         $this->framework = $framework;
         $this->requestStack = $requestStack;
@@ -120,9 +122,16 @@ class AuthorizationController extends AbstractController
     {
         $userClass = FrontendUser::class;
 
+        /** @var GenericProvider $provider */
         $provider = new GenericProvider($this->authorizationHelper->getProviderData());
 
+        /** @var Symfony\Component\HttpFoundation\Request $request */
         $request = $this->requestStack->getCurrentRequest();
+
+        $bagName = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client_session_attribute_bag_name');
+
+        /** @var SessionInterface $session */
+        $session = $this->session->getBag($bagName);
 
         // If we don't have an authorization code then get one
         if (!$request->query->has('code'))
@@ -130,31 +139,35 @@ class AuthorizationController extends AbstractController
             // Validate query params
             $this->authorizationHelper->checkQueryParams();
 
-            $this->session->sessionSet('targetPath', $request->query->get('targetPath'));
-            $this->session->sessionSet('errorPath', $request->query->get('errorPath'));
-            $this->session->sessionSet('moduleId', $request->query->get('moduleId'));
+            $session->set('targetPath', $request->query->get('targetPath'));
+            $session->set('errorPath', $request->query->get('errorPath'));
+            $session->set('moduleId', $request->query->get('moduleId'));
 
             // Fetch the authorization URL from the provider; this returns the urlAuthorize option and generates and applies any necessary parameters
             // (e.g. state).
             $authorizationUrl = $provider->getAuthorizationUrl();
 
             // Get the state and store it to the session.
-            $this->session->sessionSet('oauth2state', $provider->getState());
+            $session->set('oauth2state', $provider->getState());
 
             // Redirect the user to the authorization URL.
             Controller::redirect($authorizationUrl);
             exit;
         }
-        elseif (empty($request->query->get('state')) || ($request->query->get('state') !== $this->session->sessionGet('oauth2state')))
+        elseif (empty($request->query->get('state')) || ($request->query->get('state') !== $session->get('oauth2state')))
         {
             // Check given state against previously stored one to mitigate CSRF attack
-            $this->session->sessionRemove('oauth2state');
+            $session->remove('oauth2state');
 
             // Invalid username or user does not exists
-            return new Response(
-                'Login Error: Invalid state.',
-                Response::HTTP_UNAUTHORIZED
-            );
+            $arrError = [
+                'matter'   => 'Die Überprüfung Ihrer Daten vom Identity Provider hat fehlgeschlagen. Fehlercode: ungültiger state!',
+                'howToFix' => 'Bitte überprüfen Sie die Schreibweise Ihrer Benutzereingaben.',
+                'explain'  => '',
+            ];
+            $flashBagKey = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client_session_flash_bag_key');
+            $this->session->getFlashBag()->add($flashBagKey, $arrError);
+            Controller::redirect($this->session->getBag($bagName)->get('errorPath'));
         }
         else
         {
@@ -170,12 +183,12 @@ class AuthorizationController extends AbstractController
                 $arrData = $resourceOwner->toArray();
 
                 $this->remoteUser->create($arrData);
+                //$this->remoteUser->create($this->remoteUser->getMockUserData(false)); // Should end in an error message
 
                 // Check if user is SAC member
                 $this->remoteUser->checkIsSacMember();
 
                 // Check if user is member of an allowed section
-                //$this->remoteUser->create($this->user->getMockUserData(false)); // Should end in an error message
                 $this->remoteUser->checkIsMemberInAllowedSection();
 
                 // Check if username is valid
@@ -203,8 +216,8 @@ class AuthorizationController extends AbstractController
                 // log in user
                 $this->interactiveLogin->login($this->remoteUser, $userClass, InteractiveLogin::SECURED_AREA_FRONTEND);
 
-                $jumpToPath = $this->session->sessionGet('targetPath');
-                $this->session->sessionDestroy();
+                $jumpToPath = $session->get('targetPath');
+                $session->clear();
 
                 // All ok. User is logged in redirect to target page!!!
 
@@ -215,23 +228,17 @@ class AuthorizationController extends AbstractController
             {
                 // Failed to get the access token or user details.
                 //exit($e->getMessage());
+
                 $arrError = [
                     'matter'   => 'Die Überprüfung Ihrer Daten vom Identity Provider hat fehlgeschlagen.',
                     'howToFix' => 'Bitte überprüfen Sie die Schreibweise Ihrer Benutzereingaben.',
                     'explain'  => '',
                 ];
-                $this->session->addFlashBagMessage($arrError);
-                Controller::redirect($this->session->sessionGet('errorPath'));
+                $flashBagKey = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client_session_flash_bag_key');
+                $this->session->getFlashBag()->add($flashBagKey, $arrError);
+                Controller::redirect($this->session->getBag($bagName)->get('errorPath'));
             }
         }
-
-        $arrError = [
-            'matter'   => 'Die Überprüfung Ihrer Daten vom Identity Provider hat fehlgeschlagen.',
-            'howToFix' => 'Bitte überprüfen Sie die Schreibweise Ihrer Benutzereingaben.',
-            'explain'  => '',
-        ];
-        $this->session->addFlashBagMessage($arrError);
-        Controller::redirect($this->session->sessionGet('errorPath'));
     }
 
     /**

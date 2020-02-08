@@ -21,9 +21,8 @@ use Contao\MemberModel;
 use Contao\StringUtil;
 use Contao\System;
 use Contao\UserModel;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\Session\Session;
-use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Security\Core\Security;
 
 /**
@@ -44,17 +43,17 @@ class User
     private $logger;
 
     /**
-     * @var Session
+     * @var SessionInterface
      */
     private $session;
 
     /**
      * User constructor.
      * @param ContaoFramework $framework
-     * @param Session $session
+     * @param SessionInterface $session
      * @param null|LoggerInterface $logger
      */
-    public function __construct(ContaoFramework $framework, Session $session, ?LoggerInterface $logger = null)
+    public function __construct(ContaoFramework $framework, SessionInterface $session, ?LoggerInterface $logger = null)
     {
         $this->framework = $framework;
         $this->session = $session;
@@ -88,6 +87,7 @@ class User
     {
         $arrData = $remoteUser->getData();
         $username = preg_replace('/^0+/', '', $arrData['contact_number']);
+        $uuid = $arrData['sub'];
         if (!$this->isValidUsername($username))
         {
             return;
@@ -99,6 +99,7 @@ class User
             $objNew = new MemberModel();
             $objNew->username = $username;
             $objNew->sacMemberId = $username;
+            $objNew->uuid = $uuid;
             $objNew->dateAdded = time();
             $objNew->tstamp = time();
             $objNew->save();
@@ -125,8 +126,9 @@ class User
 
     /**
      * @param RemoteUser $remoteUser
+     * @param bool $sync
      */
-    public function updateFrontendUser(RemoteUser $remoteUser)
+    public function updateFrontendUser(RemoteUser $remoteUser, bool $sync = false)
     {
         $arrData = $remoteUser->getData();
         $objUser = MemberModel::findByUsername($arrData['contact_number']);
@@ -134,7 +136,6 @@ class User
         {
             $objUser->login = '1';
             $objUser->disable = '';
-            $objUser->sacMemberId = $arrData['contact_number'];
             $objUser->mobile = $arrData['telefonmobil'];
             $objUser->phone = $arrData['telefonp'];
             $objUser->uuid = $arrData['sub'];
@@ -159,6 +160,53 @@ class User
             // Set random password
             if (empty($objUser->password))
             {
+                $encoder = System::getContainer()->get('security.encoder_factory')->getEncoder(FrontendUser::class);
+                $objUser->password = $encoder->encodePassword(substr(md5((string) rand(900009, 111111111111)), 0, 8), null);
+            }
+
+            // Save
+            $objUser->save();
+
+            $objUser->refresh();
+
+            // Update Backend User (sync)
+            if(!$sync)
+            {
+                $this->updateBackendUser($remoteUser,true);
+            }
+        }
+    }
+
+    /**
+     * @param RemoteUser $remoteUser
+     * @param bool $sync
+     */
+    public function updateBackendUser(RemoteUser $remoteUser, bool $sync = false)
+    {
+        $arrData = $remoteUser->getData();
+        $objUser = UserModel::findOneBySacMemberId($arrData['contact_number']);
+        if ($objUser !== null)
+        {
+            $objUser->disable = '';
+            $objUser->mobile = $arrData['telefonmobil'];
+            $objUser->phone = $arrData['telefonp'];
+            $objUser->uuid = $arrData['sub'];
+            $objUser->lastname = $arrData['familienname'];
+            $objUser->firstname = $arrData['vorname'];
+            $objUser->name = $arrData['vorname'];
+            $objUser->street = $arrData['strasse'];
+            $objUser->city = $arrData['ort'];
+            $objUser->postal = $arrData['plz'];
+            $objUser->dateOfBirth = strtotime($arrData['geburtsdatum']) !== false ? strtotime($arrData['geburtsdatum']) : 0;
+            $objUser->gender = $arrData['anredecode'] === 'HERR' ? 'male' : 'female';
+            $objUser->country = strtolower($arrData['land']);
+            $objUser->email = $arrData['email'];
+            $objUser->sectionId = serialize($remoteUser->getGroupMembership());
+            $objUser->tstamp = time();
+
+            // Set random password
+            if (empty($objUser->password))
+            {
                 $encoder = System::getContainer()->get('security.encoder_factory')->getEncoder(BackendUser::class);
                 $objUser->password = $encoder->encodePassword(substr(md5((string) rand(900009, 111111111111)), 0, 8), null);
             }
@@ -167,6 +215,12 @@ class User
             $objUser->save();
 
             $objUser->refresh();
+
+            // Update Frontend User
+            if(!$sync)
+            {
+                $this->updateFrontendUser($remoteUser, true);
+            }
         }
     }
 
@@ -206,8 +260,10 @@ class User
                 'howToFix' => 'Falls du soeben/erst kürzlich eine Neumitgliedschaft beantragt hast, dann warte bitten einen Tag und versuche dich danach noch einmal hier einzuloggen.',
                 'explain'  => 'Leider dauert es mindestens einen Tag bis uns von der Zentralstelle deine Mitgliedschaft bestätigt wird.',
             ];
-            $this->session->addFlashBagMessage($arrError);
-            Controller::redirect($this->session->sessionGet('errorPath'));
+            $flashBagKey = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client_session_flash_bag_key');
+            $this->session->getFlashBag()->add($flashBagKey, $arrError);
+            $bagName = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client_session_attribute_bag_name');
+            Controller::redirect($this->session->getBag($bagName)->get('errorPath'));
         }
     }
 
@@ -223,8 +279,7 @@ class User
             return;
         }
         // Retrieve user by its username
-        $session = $this->session->sessionGetSession();
-        $userProvider = new ContaoUserProvider($this->framework, $session, $userClass, $this->logger);
+        $userProvider = new ContaoUserProvider($this->framework, $this->session, $userClass, $this->logger);
 
         $user = $userProvider->loadUserByUsername($username);
         if (!$user instanceof FrontendUser)
@@ -249,9 +304,7 @@ class User
         $username = $remoteUser->get('contact_number');
 
         // Retrieve user by its username
-        /** @var SessionInterface $session */
-        $session = $this->session->sessionGetSession();
-        $userProvider = new ContaoUserProvider($this->framework, $session, $userClass, $this->logger);
+        $userProvider = new ContaoUserProvider($this->framework, $this->session, $userClass, $this->logger);
 
         $user = $userProvider->loadUserByUsername($username);
         if (!$user instanceof $userClass)
@@ -292,9 +345,7 @@ class User
         $username = $remoteUser->get('contact_number');
 
         // Retrieve user by its username
-        /** @var SessionInterface $session */
-        $session = $this->session->sessionGetSession();
-        $userProvider = new ContaoUserProvider($this->framework, $session, $userClass, $this->logger);
+        $userProvider = new ContaoUserProvider($this->framework, $this->session, $userClass, $this->logger);
 
         $user = $userProvider->loadUserByUsername($username);
         if ($user instanceof $userClass)
@@ -305,56 +356,4 @@ class User
         return false;
     }
 
-    /**
-     * @param bool $isMember
-     * @return array
-     */
-    public function getMockUserData($isMember = true): array
-    {
-        if ($isMember === true)
-        {
-            return [
-                'telefonmobil'         => '079 999 99 99',
-                'sub'                  => '0e592343a-2122-11e8-91a0-00505684a4ad',
-                'telefong'             => '041 984 13 50',
-                'familienname'         => 'Messner',
-                'strasse'              => 'Schloss Juval',
-                'vorname'              => 'Reinhold',
-                'Roles'                => 'NAV_BULLETIN,NAV_EINZEL_00999998,NAV_D,NAV_STAMMSEKTION_S00004250,NAV_EINZEL_S00004250,NAV_EINZEL_S00004251,NAV_S00004250,NAV_F1540,NAV_BULLETIN_S00004250,Internal/everyone,NAV_NAVISION,NAV_EINZEL,NAV_MITGLIED_S00004250,NAV_HERR,NAV_F1004V,NAV_F1004V_S00004250,NAV_BULLETIN_S00004250_PAPIER',
-                'contact_number'       => '999998',
-                'ort'                  => 'Vinschgau IT',
-                'geburtsdatum'         => '25.05.1976',
-                'anredecode'           => 'HERR',
-                'name'                 => 'Messner Reinhold',
-                'land'                 => 'IT',
-                'kanton'               => 'ST',
-                'korrespondenzsprache' => 'D',
-                'telefonp'             => '099 999 99 99',
-                'email'                => 'r.messner@matterhorn-kiosk.ch',
-                'plz'                  => '6208',
-            ];
-        }
-
-        // Non member
-        return [
-            'telefonmobil'         => '079 999 99 99',
-            'sub'                  => '0e59877743a-2122-11e8-91a0-00505684a4ad',
-            'telefong'             => '041 984 13 50',
-            'familienname'         => 'Rébuffat',
-            'strasse'              => 'Schloss Juval',
-            'vorname'              => 'Gaston',
-            'Roles'                => 'NAV_BULLETIN,NAV_EINZEL_00999999,NAV_D,NAV_STAMMSEKTION_S00009999,NAV_EINZEL_S00009999,NAV_EINZEL_S00009999,NAV_S00009999,NAV_F1540,NAV_BULLETIN_S00009999,Internal/everyone,NAV_NAVISION,NAV_EINZEL,NAV_MITGLIED_S00009999,NAV_HERR,NAV_F1004V,NAV_F1004V_S00009999,NAV_BULLETIN_S00009999_PAPIER',
-            'contact_number'       => '999999',
-            'ort'                  => 'Chamonix FR',
-            'geburtsdatum'         => '25.05.1976',
-            'anredecode'           => 'HERR',
-            'name'                 => 'Gaston Rébuffat',
-            'land'                 => 'IT',
-            'kanton'               => 'ST',
-            'korrespondenzsprache' => 'D',
-            'telefonp'             => '099 999 99 99',
-            'email'                => 'm.cupic@gmx.ch',
-            'plz'                  => '6208',
-        ];
-    }
 }
