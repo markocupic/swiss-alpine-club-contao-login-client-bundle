@@ -23,7 +23,7 @@ use Markocupic\SwissAlpineClubContaoLoginClientBundle\User\RemoteUser;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\User\User;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\Session\SessionInterface;
+use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
@@ -66,13 +66,13 @@ class AuthorizationController extends AbstractController
     /**
      * AuthorizationController constructor.
      * @param ContaoFramework $framework
-     * @param SessionInterface $session
+     * @param Session $session
      * @param RemoteUser $remoteUser
      * @param User $user
      * @param InteractiveLogin $interactiveLogin
      * @param Oidc $oidc
      */
-    public function __construct(ContaoFramework $framework, SessionInterface $session, RemoteUser $remoteUser, User $user, InteractiveLogin $interactiveLogin, Oidc $oidc)
+    public function __construct(ContaoFramework $framework, Session $session, RemoteUser $remoteUser, User $user, InteractiveLogin $interactiveLogin, Oidc $oidc)
     {
         $this->framework = $framework;
         $this->session = $session;
@@ -87,11 +87,11 @@ class AuthorizationController extends AbstractController
     /**
      * @return Response
      * @throws \Exception
-     * @Route("/ssoauth/frontend", name="sac_ch_sso_auth_frontend", defaults={"_scope" = "frontend", "_token_check" = false})
+     * @Route("/ssoauth/frontend", name="swiss_alpine_club_sso_login_frontend", defaults={"_scope" = "frontend", "_token_check" = false})
      */
     public function frontendUserAuthenticationAction(): Response
     {
-        /** @var System $controllerAdapter */
+        /** @var Controller $controllerAdapter */
         $controllerAdapter = $this->framework->getAdapter(Controller::class);
 
         /** @var System $systemAdapter */
@@ -99,16 +99,16 @@ class AuthorizationController extends AbstractController
 
         $userClass = FrontendUser::class;
 
-        $bagName = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client_session_attribute_bag_name');
+        $bagName = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.attribute_bag_name');
 
-        /** @var SessionInterface $session */
+        /** @var Session $session */
         $session = $this->session->getBag($bagName);
 
         // Set redirect uri
         $this->oidc->setProviderData(['redirectUri' => Config::get('SAC_SSO_LOGIN_REDIRECT_URI_FRONTEND')]);
 
         // Run the authorisation code flow
-        if ($this->oidc->runAuthorisation())
+        if ($this->oidc->runOpenIdConnectFlow())
         {
             $arrData = $session->get('arrData');
 
@@ -150,14 +150,13 @@ class AuthorizationController extends AbstractController
 
             // All ok. User is logged in redirect to target page!!!
 
-            /** @var  Controller $controllerAdapter */
             $controllerAdapter->redirect($jumpToPath);
         }
         else
         {
             $errorPage = $session->get('errorPath');
             $arrError = $session->get('lastOidcError', []);
-            $flashBagKey = $systemAdapter->getContainer()->getParameter('swiss_alpine_club_contao_login_client_session_flash_bag_key');
+            $flashBagKey = $systemAdapter->getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.flash_bag_key');
             $this->session->getFlashBag()->add($flashBagKey, $arrError);
             $controllerAdapter->redirect($errorPage);
         }
@@ -166,7 +165,7 @@ class AuthorizationController extends AbstractController
     /**
      * @return Response
      * @throws \Exception
-     * @Route("/ssoauth/backend", name="sac_ch_sso_auth_backend", defaults={"_scope" = "backend", "_token_check" = false})
+     * @Route("/ssoauth/backend", name="swiss_alpine_club_sso_login_backend", defaults={"_scope" = "backend", "_token_check" = false})
      */
     public function backendUserAuthenticationAction(): Response
     {

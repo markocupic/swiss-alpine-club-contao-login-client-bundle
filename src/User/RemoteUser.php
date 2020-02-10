@@ -17,7 +17,7 @@ use Contao\Controller;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\System;
 use Contao\Validator;
-use Symfony\Component\HttpFoundation\Session\SessionInterface;
+use Symfony\Component\HttpFoundation\Session\Session;
 
 /**
  * Class RemoteUser
@@ -37,7 +37,7 @@ class RemoteUser
     private $user;
 
     /**
-     * @var SessionInterface
+     * @var Session
      */
     private $session;
 
@@ -50,9 +50,9 @@ class RemoteUser
      * RemoteUser constructor.
      * @param ContaoFramework $framework
      * @param User $user
-     * @param SessionInterface $session
+     * @param Session $session
      */
-    public function __construct(ContaoFramework $framework, User $user, SessionInterface $session)
+    public function __construct(ContaoFramework $framework, User $user, Session $session)
     {
         $this->framework = $framework;
         $this->user = $user;
@@ -108,9 +108,9 @@ class RemoteUser
                     'howToFix' => 'Du musst Mitglied dieser Sektion sein, um dich auf diesem Portal einloggen zu können. Wenn du eine Mitgliedschaft beantragen möchtest, darfst du dich sehr gerne bei userer Geschäftsstelle melden.',
                     //'explain'  => 'Der geschütze Bereich ist nur Mitgliedern des SAC (Schweizerischer Alpen Club) zugänglich.',
                 ];
-                $flashBagKey = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client_session_flash_bag_key');
+                $flashBagKey = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.flash_bag_key');
                 $this->session->getFlashBag()->add($flashBagKey, $arrError);
-                $bagName = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client_session_attribute_bag_name');
+                $bagName = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.attribute_bag_name');
                 Controller::redirect($this->session->getBag($bagName)->get('errorPath'));
             }
         }
@@ -133,9 +133,9 @@ class RemoteUser
             'howToFix' => sprintf('Du musst Mitglied unserer SAC Sektion sein, um dich auf diesem Portal einloggen zu können. Wenn du eine Zusatzmitgliedschaft beantragen möchtest, dann darfst du dich sehr gerne bei unserer Geschäftsstelle melden.', $this->get('name')),
             //'explain'  => 'Der geschütze Bereich ist nur Mitgliedern dieser SAC Sektion zugänglich.',
         ];
-        $flashBagKey = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client_session_flash_bag_key');
+        $flashBagKey = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.flash_bag_key');
         $this->session->getFlashBag()->add($flashBagKey, $arrError);
-        $bagName = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client_session_attribute_bag_name');
+        $bagName = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.attribute_bag_name');
         Controller::redirect($this->session->getBag($bagName)->get('errorPath'));
     }
 
@@ -151,16 +151,15 @@ class RemoteUser
                 'howToFix' => 'Bitte überprüfe die Schreibweise deiner Eingaben.',
                 'explain'  => '',
             ];
-            $flashBagKey = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client_session_flash_bag_key');
+            $flashBagKey = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.flash_bag_key');
             $this->session->getFlashBag()->add($flashBagKey, $arrError);
-            $bagName = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client_session_attribute_bag_name');
+            $bagName = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.attribute_bag_name');
             Controller::redirect($this->session->getBag($bagName)->get('errorPath'));
         }
     }
 
     /**
-     * Validate email
-     * @todo Check for unique email address
+     * Check for a valid email address
      */
     public function checkHasValidEmail(): void
     {
@@ -171,9 +170,9 @@ class RemoteUser
                 'howToFix' => 'Du hast noch keine gültige E-Mail-Adresse hinterlegt. Bitte logge dich auf https:://www.sac-cas.ch mit deinem Account ein und hinterlege deine E-Mail-Adresse.',
                 'explain'  => 'Einige Anwendungen (z.B. Event-Tool) auf diesem Portal setzen eine gültige E-Mail-Adresse voraus.',
             ];
-            $flashBagKey = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client_session_flash_bag_key');
+            $flashBagKey = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.flash_bag_key');
             $this->session->getFlashBag()->add($flashBagKey, $arrError);
-            $bagName = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client_session_attribute_bag_name');
+            $bagName = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.attribute_bag_name');
             Controller::redirect($this->session->getBag($bagName)->get('errorPath'));
         }
     }

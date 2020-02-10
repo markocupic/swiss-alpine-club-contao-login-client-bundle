@@ -14,6 +14,7 @@ namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\User;
 
 use Contao\BackendUser;
 use Contao\Config;
+use Contao\Controller;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\CoreBundle\Security\User\ContaoUserProvider;
 use Contao\FrontendUser;
@@ -21,7 +22,7 @@ use Contao\MemberModel;
 use Contao\StringUtil;
 use Contao\System;
 use Contao\UserModel;
-use Symfony\Component\HttpFoundation\Session\SessionInterface;
+use Symfony\Component\HttpFoundation\Session\Session;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Security\Core\Security;
 
@@ -43,17 +44,17 @@ class User
     private $logger;
 
     /**
-     * @var SessionInterface
+     * @var Session
      */
     private $session;
 
     /**
      * User constructor.
      * @param ContaoFramework $framework
-     * @param SessionInterface $session
+     * @param Session $session
      * @param null|LoggerInterface $logger
      */
-    public function __construct(ContaoFramework $framework, SessionInterface $session, ?LoggerInterface $logger = null)
+    public function __construct(ContaoFramework $framework, Session $session, ?LoggerInterface $logger = null)
     {
         $this->framework = $framework;
         $this->session = $session;
@@ -76,7 +77,8 @@ class User
 
         if ($userClass === BackendUser::class)
         {
-            $this->createBackendUserIfNotExists($remoteUser);
+            // Do not create backend user automatically
+            //$this->createBackendUserIfNotExists($remoteUser);
         }
     }
 
@@ -103,7 +105,7 @@ class User
             $objNew->dateAdded = time();
             $objNew->tstamp = time();
             $objNew->save();
-            $this->updateFrontendUser($arrData);
+            $this->updateFrontendUser($remoteUser);
         }
     }
 
@@ -170,9 +172,9 @@ class User
             $objUser->refresh();
 
             // Update Backend User (sync)
-            if(!$sync)
+            if (!$sync)
             {
-                $this->updateBackendUser($remoteUser,true);
+                $this->updateBackendUser($remoteUser, true);
             }
         }
     }
@@ -217,7 +219,7 @@ class User
             $objUser->refresh();
 
             // Update Frontend User
-            if(!$sync)
+            if (!$sync)
             {
                 $this->updateFrontendUser($remoteUser, true);
             }
@@ -260,15 +262,15 @@ class User
                 'howToFix' => 'Falls du soeben/erst kürzlich eine Neumitgliedschaft beantragt hast, dann warte bitten einen Tag und versuche dich danach noch einmal hier einzuloggen.',
                 'explain'  => 'Leider dauert es mindestens einen Tag bis uns von der Zentralstelle deine Mitgliedschaft bestätigt wird.',
             ];
-            $flashBagKey = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client_session_flash_bag_key');
+            $flashBagKey = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.flash_bag_key');
             $this->session->getFlashBag()->add($flashBagKey, $arrError);
-            $bagName = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client_session_attribute_bag_name');
+            $bagName = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.attribute_bag_name');
             Controller::redirect($this->session->getBag($bagName)->get('errorPath'));
         }
     }
 
     /**
-     * @param string $username
+     * @param RemoteUser $remoteUser
      * @param string $userClass
      */
     public function activateLogin(RemoteUser $remoteUser, string $userClass)

@@ -19,8 +19,10 @@ use Contao\System;
 use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use League\OAuth2\Client\Provider\GenericProvider;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Exception\AppCheckFailedException;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Exception\InvalidRequestTokenException;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\HttpFoundation\Session\SessionInterface;
+use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Security\Csrf\CsrfToken;
 use Symfony\Component\Security\Csrf\CsrfTokenManager;
 
@@ -60,11 +62,11 @@ class Oidc
      * Oidc constructor.
      * @param ContaoFramework $framework
      * @param RequestStack $requestStack
-     * @param SessionInterface $session
+     * @param Session $session
      * @param CsrfTokenManager $csrfTokenManager
      * @throws AppCheckFailedException
      */
-    public function __construct(ContaoFramework $framework, RequestStack $requestStack, SessionInterface $session, CsrfTokenManager $csrfTokenManager)
+    public function __construct(ContaoFramework $framework, RequestStack $requestStack, Session $session, CsrfTokenManager $csrfTokenManager)
     {
         $this->framework = $framework;
         $this->requestStack = $requestStack;
@@ -83,21 +85,22 @@ class Oidc
     /**
      * @return bool
      * @throws AppCheckFailedException
+     * @throws InvalidRequestTokenException
      */
-    public function runAuthorisation(): bool
+    public function runOpenIdConnectFlow(): bool
     {
-        /** @var System $controllerAdapter */
+        /** @var Controller $controllerAdapter */
         $controllerAdapter = $this->framework->getAdapter(Controller::class);
 
         /** @var GenericProvider $provider */
         $provider = new GenericProvider($this->getProviderData());
 
-        /** @var Symfony\Component\HttpFoundation\Request $request */
+        /** @var Request $request */
         $request = $this->requestStack->getCurrentRequest();
 
-        $bagName = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client_session_attribute_bag_name');
+        $bagName = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.attribute_bag_name');
 
-        /** @var SessionInterface $session */
+        /** @var Session $session */
         $session = $this->session->getBag($bagName);
 
         // If we don't have an authorization code then get one
@@ -126,7 +129,6 @@ class Oidc
             // Check given state against previously stored one to mitigate CSRF attack
             $session->remove('oauth2state');
 
-            // Invalid username or user does not exists
             $arrError = [
                 'matter'   => 'Die Überprüfung Ihrer Daten vom Identity Provider hat fehlgeschlagen. Fehlercode: ungültiger state!',
                 'howToFix' => 'Bitte überprüfen Sie die Schreibweise Ihrer Benutzereingaben.',
@@ -152,8 +154,6 @@ class Oidc
             } catch (IdentityProviderException $e)
             {
                 // Failed to get the access token or user details.
-                //exit($e->getMessage());
-
                 $arrError = [
                     'matter'   => 'Die Überprüfung Ihrer Daten vom Identity Provider hat fehlgeschlagen.',
                     'howToFix' => 'Bitte überprüfen Sie die Schreibweise Ihrer Benutzereingaben.',
@@ -208,7 +208,6 @@ class Oidc
     private function checkQueryParams()
     {
         $request = $this->requestStack->getCurrentRequest();
-
         if (!$request->query->has('moduleId'))
         {
             // Module id not found in the query string

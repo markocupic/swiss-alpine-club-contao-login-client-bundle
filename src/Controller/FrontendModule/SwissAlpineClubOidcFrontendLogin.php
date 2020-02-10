@@ -22,7 +22,7 @@ use Contao\Template;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Authorization\AuthorizationHelper;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\Session\SessionInterface;
+use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Security\Core\Security;
 use Contao\CoreBundle\ServiceAnnotation\FrontendModule;
 
@@ -34,7 +34,7 @@ use Contao\CoreBundle\ServiceAnnotation\FrontendModule;
 class SwissAlpineClubOidcFrontendLogin extends AbstractFrontendModuleController
 {
     /**
-     * @var SessionInterface
+     * @var Session
      */
     private $session;
 
@@ -45,9 +45,9 @@ class SwissAlpineClubOidcFrontendLogin extends AbstractFrontendModuleController
 
     /**
      * SwissAlpineClubOidcFrontendLogin constructor.
-     * @param AuthorizationHelper $authorizationHelper
+     * @param Session $session
      */
-    public function __construct(SessionInterface $session)
+    public function __construct(Session $session)
     {
         $this->session = $session;
     }
@@ -105,7 +105,7 @@ class SwissAlpineClubOidcFrontendLogin extends AbstractFrontendModuleController
             $template->login = true;
 
             // Check for error messages
-            $flashBagKey = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client_session_flash_bag_key');
+            $flashBagKey = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.flash_bag_key');
             $flashBag = $this->session->getFlashBag()->get($flashBagKey);
             if (count($flashBag) > 0)
             {

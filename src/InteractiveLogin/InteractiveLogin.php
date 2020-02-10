@@ -25,7 +25,7 @@ use Psr\Log\LogLevel;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\HttpFoundation\Session\SessionInterface;
+use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
@@ -56,7 +56,7 @@ class InteractiveLogin
     private $userChecker;
 
     /**
-     * @var SessionInterface
+     * @var Session
      */
     private $session;
 
@@ -84,13 +84,13 @@ class InteractiveLogin
      * InteractiveLogin constructor.
      * @param ContaoFramework $framework
      * @param UserChecker $userChecker
-     * @param SessionInterface $session
+     * @param Session $session
      * @param TokenStorageInterface $tokenStorage
      * @param EventDispatcherInterface $eventDispatcher
      * @param RequestStack $requestStack
      * @param null|LoggerInterface $logger
      */
-    public function __construct(ContaoFramework $framework, UserChecker $userChecker, SessionInterface $session, TokenStorageInterface $tokenStorage, EventDispatcherInterface $eventDispatcher, RequestStack $requestStack, ?LoggerInterface $logger = null)
+    public function __construct(ContaoFramework $framework, UserChecker $userChecker, Session $session, TokenStorageInterface $tokenStorage, EventDispatcherInterface $eventDispatcher, RequestStack $requestStack, ?LoggerInterface $logger = null)
     {
         $this->framework = $framework;
         $this->userChecker = $userChecker;

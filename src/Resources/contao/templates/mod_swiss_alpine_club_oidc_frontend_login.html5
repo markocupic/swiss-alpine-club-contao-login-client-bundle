@@ -7,7 +7,7 @@
 
 
 <?php if($this->login): ?>
-<a href="<?= $this->route('sac_ch_sso_auth_frontend') ?>?moduleId=<?= $this->id ?>&amp;rt={{request_token}}&amp;targetPath=<?= $this->targetPath ?>&amp;errorPath=<?= $this->errorPath ?>" class="btn btn-lg btn-danger">
+<a href="<?= $this->route('swiss_alpine_club_sso_login_frontend') ?>?moduleId=<?= $this->id ?>&amp;rt={{request_token}}&amp;targetPath=<?= $this->targetPath ?>&amp;errorPath=<?= $this->errorPath ?>" class="btn btn-lg btn-danger">
     <i class="fas fa-sign-in-alt"></i> <?= $this->loginWithSacSso ?>
 </a>
 <?php if($this->error): ?>

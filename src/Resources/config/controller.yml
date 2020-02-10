@@ -1,9 +1,0 @@
-services:
-
-  Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\OauthController:
-    arguments:
-    - '@contao.framework'
-    - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\OauthController'
-    public: true
-
-
