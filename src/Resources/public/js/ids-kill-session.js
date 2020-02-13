@@ -6,7 +6,7 @@ window.onload = function () {
             elButton[i].addEventListener("click", function (e) {
                 let self = this;
                 e.preventDefault();
-                logout('href');
+                logout($(self).data('href'));
             });
         }
     }
