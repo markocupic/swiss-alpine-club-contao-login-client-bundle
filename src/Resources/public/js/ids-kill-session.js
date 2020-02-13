@@ -6,7 +6,11 @@ window.onload = function () {
             elButton[i].addEventListener("click", function (e) {
                 let self = this;
                 e.preventDefault();
-                fetch('https://ids01.sac-cas.ch/authenticationendpoint/oauth2_logout.do');
+                fetch('https://ids02.sac-cas.ch/authenticationendpoint/oauth2_logout.do',
+                    {
+                        credentials: 'include',
+                        mode: 'no-cors',
+                    });
                 window.setTimeout(function () {
                     window.location.href = $(self).data('href');
                 }, 100);
