@@ -84,6 +84,33 @@ class User
 
     /**
      * @param RemoteUser $remoteUser
+     * @param string $userClass
+     */
+    public function checkUserIsDisabled(RemoteUser $remoteUser, string $userClass): void
+    {
+        $arrData = $remoteUser->getData();
+
+        $model = $userClass === BackendUser::class ? UserModel::findByUsername($remoteUser->get('contao_username')) : MemberModel::findByUsername($remoteUser->get('contao_username'));
+
+        if (null !== ($model))
+        {
+            if ($model->disable)
+            {
+                $arrError = [
+                    'matter'  => sprintf('Hallo %s<br>Schön bist du hier. Leider hat die Überprüfung deiner vom Identity Provider an uns übermittelten Daten fehlgeschlagen.', $arrData['vorname']),
+                    //'howToFix' => 'Falls du soeben/erst kürzlich eine Neumitgliedschaft beantragt hast, dann warte bitten einen Tag und versuche dich danach noch einmal hier einzuloggen.',
+                    'explain' => 'Dein Konto wurde leider deaktiviert und kann im Moment nicht verwendet werden.',
+                ];
+                $flashBagKey = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.flash_bag_key');
+                $this->session->getFlashBag()->add($flashBagKey, $arrError);
+                $bagName = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.attribute_bag_name');
+                Controller::redirect($this->session->getBag($bagName)->get('errorPath'));
+            }
+        }
+    }
+
+    /**
+     * @param RemoteUser $remoteUser
      */
     private function createFrontendUserIfNotExists(RemoteUser $remoteUser)
     {
@@ -345,6 +372,15 @@ class User
     public function userExists(RemoteUser $remoteUser, string $userClass): bool
     {
         $username = $remoteUser->get('contact_number');
+        // Get username from sac member id
+        if ($userClass === BackendUser::class)
+        {
+            if (null !== ($objUser = UserModel::findBySacMemberId($username)))
+            {
+                $username = $objUser->username;
+                $remoteUser->username = $username;
+            }
+        }
 
         // Retrieve user by its username
         $userProvider = new ContaoUserProvider($this->framework, $this->session, $userClass, $this->logger);

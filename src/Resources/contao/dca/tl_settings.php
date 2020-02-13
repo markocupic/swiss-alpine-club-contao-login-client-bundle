@@ -20,6 +20,7 @@ PaletteManipulator::create()
     ->addField(['SAC_SSO_LOGIN_URL_ACCESS_TOKEN'], 'sac_sso_login_settings', PaletteManipulator::POSITION_APPEND)
     ->addField(['SAC_SSO_LOGIN_URL_RESOURCE_OWNER_DETAILS'], 'sac_sso_login_settings', PaletteManipulator::POSITION_APPEND)
     ->addField(['SAC_SSO_LOGIN_ADD_TO_MEMBER_GROUPS'], 'sac_sso_login_settings', PaletteManipulator::POSITION_APPEND)
+    ->addField(['SAC_SSO_LOGIN_ENABLE_BACKEND_SSO'], 'sac_sso_login_settings', PaletteManipulator::POSITION_APPEND)
     ->applyToPalette('default', 'tl_settings');
 
 $GLOBALS['TL_DCA']['tl_settings']['fields']['SAC_SSO_LOGIN_CLIENT_ID'] = [
@@ -69,6 +70,12 @@ $GLOBALS['TL_DCA']['tl_settings']['fields']['SAC_SSO_LOGIN_ADD_TO_MEMBER_GROUPS'
     'inputType'        => 'select',
     'options_callback' => ['SwissAlpineClubContaoLoginClient_tl_settings', 'getMemberGroups'],
     'eval'             => ['multiple' => true, 'chosen' => true, 'tl_class' => 'clr'],
+];
+
+$GLOBALS['TL_DCA']['tl_settings']['fields']['SAC_SSO_LOGIN_ENABLE_BACKEND_SSO'] = [
+    'label'            => &$GLOBALS['TL_LANG']['tl_settings']['SAC_SSO_LOGIN_ENABLE_BACKEND_SSO'],
+    'inputType'        => 'checkbox',
+    'eval'             => ['tl_class' => 'clr'],
 ];
 
 class SwissAlpineClubContaoLoginClient_tl_settings

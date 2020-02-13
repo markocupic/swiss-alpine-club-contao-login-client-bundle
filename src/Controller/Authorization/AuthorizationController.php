@@ -15,6 +15,7 @@ namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\Authoriza
 use Contao\Config;
 use Contao\Controller;
 use Contao\CoreBundle\Framework\ContaoFramework;
+use Contao\BackendUser;
 use Contao\FrontendUser;
 use Contao\System;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\InteractiveLogin\InteractiveLogin;
@@ -112,8 +113,8 @@ class AuthorizationController extends AbstractController
         {
             $arrData = $session->get('arrData');
 
-            $this->remoteUser->create($arrData);
-            //$this->remoteUser->create($this->remoteUser->getMockUserData(false)); // Should end in an error message
+            $this->remoteUser->create($arrData, $userClass);
+            //$this->remoteUser->create($this->remoteUser->getMockUserData(false), $userClass); // Should end in an error message
 
             // Check if user is SAC member
             $this->remoteUser->checkIsSacMember();
@@ -169,7 +170,78 @@ class AuthorizationController extends AbstractController
      */
     public function backendUserAuthenticationAction(): Response
     {
-        return new Response('This extension is under construction.', 200);
+        /** @var Controller $controllerAdapter */
+        $controllerAdapter = $this->framework->getAdapter(Controller::class);
+
+        /** @var System $systemAdapter */
+        $systemAdapter = $this->framework->getAdapter(System::class);
+
+        $userClass = BackendUser::class;
+
+        $bagName = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.attribute_bag_name');
+
+        /** @var Session $session */
+        $session = $this->session->getBag($bagName);
+
+        // Set redirect uri
+        $this->oidc->setProviderData(['redirectUri' => Config::get('SAC_SSO_LOGIN_REDIRECT_URI_BACKEND')]);
+
+        // Run the authorisation code flow
+        if ($this->oidc->runOpenIdConnectFlow())
+        {
+            $arrData = $session->get('arrData');
+
+            $this->remoteUser->create($arrData, $userClass);
+            //$this->remoteUser->create($this->remoteUser->getMockUserData(false), $userClass); // Should end in an error message
+
+            // Check if user is SAC member
+            $this->remoteUser->checkIsSacMember();
+
+            // Check if user is member of an allowed section
+            $this->remoteUser->checkIsMemberInAllowedSection();
+
+            // Check if username is valid
+            $this->remoteUser->checkHasValidUsername();
+
+            // Check has valid email address
+            $this->remoteUser->checkHasValidEmail();
+
+            // Create User if it not exists
+            //$this->user->createIfNotExists($this->remoteUser, $userClass);
+
+            // Update user
+            $this->user->updateUser($this->remoteUser, $userClass);
+
+            // Check if user exists
+            $this->user->checkUserExists($this->remoteUser, $userClass);
+
+            // Check if user is has been disabled
+            $this->user->checkUserIsDisabled($this->remoteUser, $userClass);
+
+            // Set tl_member.login='1'
+            //$this->user->activateLogin($this->remoteUser, $userClass);
+
+            // Set tl_member.locked=0 or tl_user.locked=0
+            //$this->user->unlock($this->remoteUser, $userClass);
+
+            // log in user
+            $this->interactiveLogin->login($this->remoteUser, $userClass, InteractiveLogin::SECURED_AREA_BACKEND);
+
+            $jumpToPath = $session->get('targetPath');
+            $session->clear();
+
+            // All ok. User is logged in redirect to target page!!!
+
+            $controllerAdapter->redirect($jumpToPath);
+        }
+        else
+        {
+            $errorPage = $session->get('errorPath');
+            $arrError = $session->get('lastOidcError', []);
+            $flashBagKey = $systemAdapter->getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.flash_bag_key');
+            $this->session->getFlashBag()->add($flashBagKey, $arrError);
+            $controllerAdapter->redirect($errorPage);
+        }
     }
 
 }

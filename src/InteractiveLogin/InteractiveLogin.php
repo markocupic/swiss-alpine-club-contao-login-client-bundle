@@ -111,7 +111,7 @@ class InteractiveLogin
      */
     public function login(RemoteUser $remoteUser, string $userClass, string $providerKey): void
     {
-        $username = $remoteUser->get('contact_number');
+        $username = $remoteUser->get('contao_username');
 
         if (!\is_string($username) && (!\is_object($username) || !method_exists($username, '__toString')))
         {

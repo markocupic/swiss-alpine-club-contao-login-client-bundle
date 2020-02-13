@@ -1,9 +1,38 @@
-<?php if (count($this->loginServers)>0): ?>
-	<!-- list -->
-	<div class="superlogin-login-box">
-	    <?php if ($this->loginServers):?>
-	    <?php foreach($this->loginServers as $k => $server): ?>
-	        <a href="<?php echo $server->getRedirectUrl(); ?>" class="login-button" data-id="<?php echo $server->id; ?>"><?php echo $server->name; ?></a>
-	    <?php endforeach; endif; ?>
+<div id="mod_swiss_alpine_club_oidc_backend_login">
+
+	<div>
+		<a href="<?= $this->route('swiss_alpine_club_sso_login_backend') ?>?rt=<?= $this->rt ?>&amp;targetPath=<?= $this->targetPath ?>&amp;errorPath=<?= $this->failurePath ?>&amp;alwaysUseTargetPath=<?= $this->alwaysUseTargetPath ?>" class="btn sac-login-backend-button">
+		Mit SAC Login anmelden
+		</a>
 	</div>
-<?php endif; ?>
+
+	<?php if($this->error): ?>
+	<div class="trigger-ids-kill-session sac-oidc-error error backend">
+
+		<?php if($this->error['matter'] != ''): ?>
+		<div class="errorMatterBox mb-3">
+			<h7 class="error-title mt-0"><?= $this->trans('MSC.errorMatter', [], 'contao_default') ?></h7>
+			<p class="errorMatter small"><?= $this->error['matter'] ?></p>
+		</div>
+		<?php endif; ?>
+
+		<?php if($this->error['howToFix'] != ''): ?>
+		<div class="errorHowToFixBox mb-3">
+			<h7 class="error-title mt-0"><?= $this->trans('MSC.errorHowToFix', [], 'contao_default') ?></h7>
+			<p class="errorHowToFix small"><?= $this->error['howToFix'] ?></p>
+		</div>
+		<?php endif; ?>
+
+		<?php if($this->error['explain'] != ''): ?>
+		<div class="errorExplainBox mb-3">
+			<h7 class="error-title mt-0"><?= $this->trans('MSC.errorExplain', [], 'contao_default') ?></h7>
+			<p class="errorExplain small"><?= $this->error['explain'] ?></p>
+		</div>
+		<?php endif; ?>
+
+	</div>
+	<?php endif; ?>
+
+	<div class="beta">Beta-Version (Testphase)</div>
+
+</div>

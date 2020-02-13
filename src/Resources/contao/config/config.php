@@ -10,18 +10,15 @@
  * @copyright 2020 Marko Cupic
  */
 
-if (TL_MODE === 'BE') {
+if (TL_MODE === 'BE')
+{
 	$GLOBALS['TL_CSS'][] = \Contao\Environment::get('path').'/bundles/markocupicswissalpineclubcontaologinclient/css/backend.css';
 }
-/**
-$GLOBALS['TL_HOOKS']['parseBackendTemplate'][] = [
-    /\Markocupic\SwissAlpineClubContaoLoginClientBundle\BackendModule\DisplayAuthProviders::class, 'addServersToLoginPage'
-];
-**/
 
 $GLOBALS['TL_JAVASCRIPT'][] = 'bundles/markocupicswissalpineclubcontaologinclient/js/ids-kill-session.js|static';
 
 /**
  * Hooks
  */
-$GLOBALS['TL_HOOKS']['postLogout'][] = array('Markocupic\SwissAlpineClubContaoLoginClientBundle\EventListener\Contao\PostLogoutListener', 'killSession');
+//$GLOBALS['TL_HOOKS']['postLogout'][] = array('Markocupic\SwissAlpineClubContaoLoginClientBundle\EventListener\Contao\PostLogoutListener', 'killSession');
+$GLOBALS['TL_HOOKS']['parseBackendTemplate'][] = array('Markocupic\SwissAlpineClubContaoLoginClientBundle\EventListener\Contao\ParseBackendTemplateListener', 'addLoginButtonToTemplate');

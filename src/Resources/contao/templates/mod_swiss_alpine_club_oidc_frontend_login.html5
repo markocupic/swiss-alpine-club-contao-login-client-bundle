@@ -7,30 +7,30 @@
 
 
 <?php if($this->login): ?>
-<a href="<?= $this->route('swiss_alpine_club_sso_login_frontend') ?>?moduleId=<?= $this->id ?>&amp;rt={{request_token}}&amp;targetPath=<?= $this->targetPath ?>&amp;errorPath=<?= $this->errorPath ?>" class="btn btn-lg btn-danger">
+<a href="<?= $this->route('swiss_alpine_club_sso_login_frontend') ?>?moduleId=<?= $this->id ?>&amp;rt={{request_token}}&amp;targetPath=<?= $this->targetPath ?>&amp;errorPath=<?= $this->errorPath ?>" class="btn btn-danger">
     <i class="fas fa-sign-in-alt"></i> <?= $this->loginWithSacSso ?>
 </a>
 <?php if($this->error): ?>
-<div class="error alert alert-dark mt-4">
+<div class="trigger-ids-kill-session sac-oidc-error error alert alert-dark mt-4">
 
     <?php if($this->error['matter'] != ''): ?>
     <div class="errorMatterBox mb-3">
-        <h5 class="mt-0"><?= $this->trans('MSC.errorMatter', [], 'contao_default') ?></h5>
-        <p class="errorMatter"><?= $this->error['matter'] ?></p>
+        <h6 class="error-title mt-0"><?= $this->trans('MSC.errorMatter', [], 'contao_default') ?></h6>
+        <p class="errorMatter small"><?= $this->error['matter'] ?></p>
     </div>
     <?php endif; ?>
 
     <?php if($this->error['howToFix'] != ''): ?>
     <div class="errorHowToFixBox mb-3">
-        <h5 class="mt-0"><?= $this->trans('MSC.errorHowToFix', [], 'contao_default') ?></h5>
-        <p class="errorHowToFix"><?= $this->error['howToFix'] ?></p>
+        <h6 class="error-title mt-0"><?= $this->trans('MSC.errorHowToFix', [], 'contao_default') ?></h6>
+        <p class="errorHowToFix small"><?= $this->error['howToFix'] ?></p>
     </div>
     <?php endif; ?>
 
     <?php if($this->error['explain'] != ''): ?>
     <div class="errorExplainBox mb-3">
-        <h5 class="mt-0"><?= $this->trans('MSC.errorExplain', [], 'contao_default') ?></h5>
-        <p class="errorExplain"><?= $this->error['explain'] ?></p>
+        <h6 class="error-title mt-0"><?= $this->trans('MSC.errorExplain', [], 'contao_default') ?></h6>
+        <p class="errorExplain small"><?= $this->error['explain'] ?></p>
     </div>
     <?php endif; ?>
 

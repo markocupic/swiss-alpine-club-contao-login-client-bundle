@@ -12,10 +12,14 @@ declare(strict_types=1);
 
 namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\User;
 
+use Contao\BackendUser;
 use Contao\Config;
 use Contao\Controller;
 use Contao\CoreBundle\Framework\ContaoFramework;
+use Contao\FrontendUser;
+use Contao\MemberModel;
 use Contao\System;
+use Contao\UserModel;
 use Contao\Validator;
 use Symfony\Component\HttpFoundation\Session\Session;
 
@@ -47,6 +51,11 @@ class RemoteUser
     private $data = [];
 
     /**
+     * @var string
+     */
+    private $userClass;
+
+    /**
      * RemoteUser constructor.
      * @param ContaoFramework $framework
      * @param User $user
@@ -63,12 +72,32 @@ class RemoteUser
 
     /**
      * @param array $arrData
+     * @param string $userClass
      */
-    public function create(array $arrData)
+    public function create(array $arrData, string $userClass)
     {
+        $this->userClass = $userClass;
         foreach ($arrData as $k => $v)
         {
             $this->data[$k] = $v;
+        }
+
+        // Get username from sac member id
+        if ($this->userClass === BackendUser::class)
+        {
+            if (null !== ($objUser = UserModel::findBySacMemberId($arrData['contact_number'])))
+            {
+                $this->data['contao_username'] = $objUser->username;
+            }
+        }
+
+        // Get username from sac member id
+        if ($this->userClass === FrontendUser::class)
+        {
+            if (null !== ($objUser = MemberModel::findBySacMemberId($arrData['contact_number'])))
+            {
+                $this->data['contao_username'] = $objUser->username;
+            }
         }
     }
 

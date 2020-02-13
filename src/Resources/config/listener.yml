@@ -18,3 +18,11 @@ services:
     - "@contao.framework"
     tags:
     - { name: kernel.event_listener, event: contao.postLogout, method: killSession }
+
+  # Contao parse backend template hook
+  Markocupic\SwissAlpineClubContaoLoginClientBundle\EventListener\Contao\ParseBackendTemplateListener:
+    public: true
+    arguments:
+    - "@session"
+    tags:
+    - { name: kernel.event_listener, event: contao.parseBackendTemplate, method: addLoginButtonToTemplate }

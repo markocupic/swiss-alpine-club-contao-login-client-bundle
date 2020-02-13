@@ -111,7 +111,10 @@ class Oidc
 
             $session->set('targetPath', $request->query->get('targetPath'));
             $session->set('errorPath', $request->query->get('errorPath'));
-            $session->set('moduleId', $request->query->get('moduleId'));
+            if ($request->query->has('moduleId'))
+            {
+                $session->set('moduleId', $request->query->get('moduleId'));
+            }
 
             // Fetch the authorization URL from the provider; this returns the urlAuthorize option and generates and applies any necessary parameters
             // (e.g. state).
@@ -208,11 +211,6 @@ class Oidc
     private function checkQueryParams()
     {
         $request = $this->requestStack->getCurrentRequest();
-        if (!$request->query->has('moduleId'))
-        {
-            // Module id not found in the query string
-            throw new AppCheckFailedException('Login Error: URI parameter "moduleId" not found.');
-        }
 
         if (!$request->query->has('targetPath'))
         {
