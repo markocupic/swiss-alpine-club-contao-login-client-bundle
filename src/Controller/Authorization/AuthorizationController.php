@@ -155,7 +155,7 @@ class AuthorizationController extends AbstractController
         }
         else
         {
-            $errorPage = $session->get('errorPath');
+            $errorPage = $session->get('failurePath');
             $arrError = $session->get('lastOidcError', []);
             $flashBagKey = $systemAdapter->getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.flash_bag_key');
             $this->session->getFlashBag()->add($flashBagKey, $arrError);
@@ -236,7 +236,7 @@ class AuthorizationController extends AbstractController
         }
         else
         {
-            $errorPage = $session->get('errorPath');
+            $errorPage = $session->get('failurePath');
             $arrError = $session->get('lastOidcError', []);
             $flashBagKey = $systemAdapter->getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.flash_bag_key');
             $this->session->getFlashBag()->add($flashBagKey, $arrError);

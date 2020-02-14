@@ -1,0 +1,42 @@
+#mod_swiss_alpine_club_oidc_backend_login {
+  padding: 0 45px 45px 45px;
+
+  .formbody {
+    padding: 0;
+    .btn.sac-login-backend-button {
+      background-color: #aa0000;
+      color: white;
+      line-height: 1;
+      padding: 12px 12px;
+      display: block;
+      width: 100%;
+      border: 0;
+    }
+
+  }
+
+  .sac-oidc-error.backend.error {
+    margin-top: 1rem;
+    .error-title {
+      font-size: .875rem;
+      color: black;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+
+    p {
+      font-size: .875rem;
+      line-height: normal;
+      color: red;
+      margin-top: 10px;
+      margin: 10px 0 15px 0;
+    }
+  }
+
+  .beta {
+    font-size: .825rem;
+    display: block;
+    margin-top: 10px;
+  }
+
+}

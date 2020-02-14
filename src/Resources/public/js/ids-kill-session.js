@@ -1,12 +1,24 @@
 window.onload = function () {
-    let elButton = document.querySelectorAll('.trigger-ids-kill-session');
-    if (elButton.length) {
+    // Frontend logout
+    let elFeLogoutButton = document.querySelectorAll('.trigger-ids-kill-session');
+    if (elFeLogoutButton.length) {
         let i;
-        for (i = 0; i < elButton.length; ++i) {
-            elButton[i].addEventListener("click", function (e) {
-                let self = this;
+        for (i = 0; i < elFeLogoutButton.length; ++i) {
+            elFeLogoutButton[i].addEventListener("click", function (e) {
                 e.preventDefault();
-                logout($(self).data('href'));
+                logout(e.target.getAttribute('data-href'));
+            });
+        }
+    }
+
+    // Backend logout
+    let elBeLogoutButton = document.querySelectorAll('#tmenu a[href$="contao/logout"]');
+    if (elBeLogoutButton.length) {
+        let i;
+        for (i = 0; i < elBeLogoutButton.length; ++i) {
+            elBeLogoutButton[i].addEventListener("click", function (e) {
+                e.preventDefault();
+                logout(e.target.getAttribute('href'));
             });
         }
     }
@@ -20,7 +32,7 @@ window.onload = function () {
         logout('');
     }
     else if (RegExp("^/contao\/login(.*)$", "g").test(path)) {
-        logout('');
+        //logout('');
     }
 
     /**

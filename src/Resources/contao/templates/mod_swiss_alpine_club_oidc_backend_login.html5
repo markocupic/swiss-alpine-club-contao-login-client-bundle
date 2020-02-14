@@ -1,10 +1,17 @@
 <div id="mod_swiss_alpine_club_oidc_backend_login">
 
-	<div>
-		<a href="<?= $this->route('swiss_alpine_club_sso_login_backend') ?>?rt=<?= $this->rt ?>&amp;targetPath=<?= $this->targetPath ?>&amp;errorPath=<?= $this->failurePath ?>&amp;alwaysUseTargetPath=<?= $this->alwaysUseTargetPath ?>" class="btn sac-login-backend-button">
-		Mit SAC Login anmelden
-		</a>
-	</div>
+
+	<form action="/<?= $this->route('swiss_alpine_club_sso_login_backend') ?>" id="sac-oidc-login-be" method="post">
+		<div class="formbody">
+			<input type="hidden" name="FORM_SUBMIT" value="sac-oidc-login-be">
+			<input type="hidden" name="REQUEST_TOKEN" value="<?= $this->rt ?>">
+			<input type="hidden" name="targetPath" value="<?= $this->targetPath ?>">
+			<input type="hidden" name="failurePath" value="<?= $this->failurePath ?>">
+			<input type="hidden" name="alwaysUseTargetPath" value="<?= $this->alwaysUseTargetPath ?>">
+			<button class="btn sac-login-backend-button"><?= $this->trans('MSC.loginWithSacSso', [], 'contao_default') ?></button>
+		</div>
+	</form>
+
 
 	<?php if($this->error): ?>
 	<div class="trigger-ids-kill-session sac-oidc-error error backend">

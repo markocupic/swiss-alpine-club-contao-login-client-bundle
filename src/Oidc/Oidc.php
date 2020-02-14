@@ -109,11 +109,11 @@ class Oidc
             // Validate query params
             $this->checkQueryParams();
 
-            $session->set('targetPath', $request->query->get('targetPath'));
-            $session->set('errorPath', $request->query->get('errorPath'));
-            if ($request->query->has('moduleId'))
+            $session->set('targetPath', $request->request->get('targetPath'));
+            $session->set('failurePath', $request->request->get('failurePath'));
+            if ($request->request->has('moduleId'))
             {
-                $session->set('moduleId', $request->query->get('moduleId'));
+                $session->set('moduleId', $request->request->get('moduleId'));
             }
 
             // Fetch the authorization URL from the provider; this returns the urlAuthorize option and generates and applies any necessary parameters
@@ -212,22 +212,22 @@ class Oidc
     {
         $request = $this->requestStack->getCurrentRequest();
 
-        if (!$request->query->has('targetPath'))
+        if (!$request->request->has('targetPath'))
         {
             // Target path not found in the query string
             throw new AppCheckFailedException('Login Error: URI parameter "targetPath" not found.');
         }
 
-        if (!$request->query->has('errorPath'))
+        if (!$request->request->has('failurePath'))
         {
             // Target path not found in the query string
-            throw new AppCheckFailedException('Login Error: URI parameter "errorPath" not found.');
+            throw new AppCheckFailedException('Login Error: URI parameter "failurePath" not found.');
         }
 
         $tokenName = System::getContainer()->getParameter('contao.csrf_token_name');
-        if (!$request->query->has('rt') || !$this->csrfTokenManager->isTokenValid(new CsrfToken($tokenName, $request->query->get('rt'))))
+        if (!$request->request->has('REQUEST_TOKEN') || !$this->csrfTokenManager->isTokenValid(new CsrfToken($tokenName, $request->request->get('REQUEST_TOKEN'))))
         {
-            //throw new InvalidRequestTokenException('Invalid CSRF token. Please reload the page and try again.');
+            throw new InvalidRequestTokenException('Invalid CSRF token. Please reload the page and try again.');
         }
     }
 

@@ -99,9 +99,8 @@ class SwissAlpineClubOidcFrontendLogin extends AbstractFrontendModuleController
         {
             $redirectPage = $model->jumpTo > 0 ? PageModel::findByPk($model->jumpTo) : null;
             $targetPath = $redirectPage instanceof PageModel ? $redirectPage->getAbsoluteUrl() : $this->page->getAbsoluteUrl();
-            $template->targetPath = urlencode($targetPath);
-            $template->errorPath = urlencode($this->page->getAbsoluteUrl());
-            $template->loginWithSacSso = $translator->trans('MSC.loginWithSacSso', [], 'contao_default');
+            $template->targetPath = $targetPath;
+            $template->failurePath = $this->page->getAbsoluteUrl();
             $template->login = true;
 
             // Check for error messages

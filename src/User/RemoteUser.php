@@ -140,7 +140,7 @@ class RemoteUser
                 $flashBagKey = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.flash_bag_key');
                 $this->session->getFlashBag()->add($flashBagKey, $arrError);
                 $bagName = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.attribute_bag_name');
-                Controller::redirect($this->session->getBag($bagName)->get('errorPath'));
+                Controller::redirect($this->session->getBag($bagName)->get('failurePath'));
             }
         }
     }
@@ -165,7 +165,7 @@ class RemoteUser
         $flashBagKey = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.flash_bag_key');
         $this->session->getFlashBag()->add($flashBagKey, $arrError);
         $bagName = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.attribute_bag_name');
-        Controller::redirect($this->session->getBag($bagName)->get('errorPath'));
+        Controller::redirect($this->session->getBag($bagName)->get('failurePath'));
     }
 
     /**
@@ -183,7 +183,7 @@ class RemoteUser
             $flashBagKey = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.flash_bag_key');
             $this->session->getFlashBag()->add($flashBagKey, $arrError);
             $bagName = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.attribute_bag_name');
-            Controller::redirect($this->session->getBag($bagName)->get('errorPath'));
+            Controller::redirect($this->session->getBag($bagName)->get('failurePath'));
         }
     }
 
@@ -202,7 +202,7 @@ class RemoteUser
             $flashBagKey = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.flash_bag_key');
             $this->session->getFlashBag()->add($flashBagKey, $arrError);
             $bagName = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.attribute_bag_name');
-            Controller::redirect($this->session->getBag($bagName)->get('errorPath'));
+            Controller::redirect($this->session->getBag($bagName)->get('failurePath'));
         }
     }
 

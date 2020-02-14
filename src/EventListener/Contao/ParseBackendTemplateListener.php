@@ -61,13 +61,13 @@ class ParseBackendTemplateListener
             $template->targetPath = '';
             if (preg_match('/name="_target_path"\s+value=\"([^\']*?)\"/', $strContent, $matches))
             {
-                $template->targetPath = urlencode($matches[1]);
+                $template->targetPath = $matches[1];
             }
 
             $template->failurePath = '';
             if (preg_match('/name="_failure_path"\s+value=\"([^\']*?)\"/', $strContent, $matches))
             {
-                $template->failurePath = urlencode($matches[1]);
+                $template->failurePath = $matches[1];
             }
 
             $template->alwaysUseTargetPath = '';
