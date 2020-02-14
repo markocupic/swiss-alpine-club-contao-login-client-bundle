@@ -227,7 +227,7 @@ class Oidc
         $tokenName = System::getContainer()->getParameter('contao.csrf_token_name');
         if (!$request->query->has('rt') || !$this->csrfTokenManager->isTokenValid(new CsrfToken($tokenName, $request->query->get('rt'))))
         {
-            throw new InvalidRequestTokenException('Invalid CSRF token. Please reload the page and try again.');
+            //throw new InvalidRequestTokenException('Invalid CSRF token. Please reload the page and try again.');
         }
     }
 
