@@ -22,6 +22,7 @@ use Contao\System;
 use Contao\UserModel;
 use Contao\Validator;
 use Symfony\Component\HttpFoundation\Session\Session;
+use Symfony\Component\Translation\TranslatorInterface;
 
 /**
  * Class RemoteUser
@@ -56,16 +57,23 @@ class RemoteUser
     private $userClass;
 
     /**
+     * @var TranslatorInterface
+     */
+    private $translator;
+
+    /**
      * RemoteUser constructor.
      * @param ContaoFramework $framework
      * @param User $user
      * @param Session $session
+     * @param TranslatorInterface $translator
      */
-    public function __construct(ContaoFramework $framework, User $user, Session $session)
+    public function __construct(ContaoFramework $framework, User $user, Session $session, TranslatorInterface $translator)
     {
         $this->framework = $framework;
         $this->user = $user;
         $this->session = $session;
+        $this->translator = $translator;
 
         $this->framework->initialize();
     }
@@ -130,18 +138,15 @@ class RemoteUser
     {
         if (empty($this->get('contact_number')) || empty($this->get('Roles')) || empty($this->get('contact_number')) || empty($this->get('sub')))
         {
-            if (empty($this->get('contact_number')) || empty($this->get('Roles')) || empty($this->get('contact_number')) || empty($this->get('sub')))
-            {
-                $arrError = [
-                    'matter'   => sprintf('Hallo %s<br>Schön bist du hier. Leider hat die Überprüfung deiner vom Identity Provider an uns übermittelten Daten fehlgeschlagen.', $this->get('vorname')),
-                    'howToFix' => 'Du musst Mitglied dieser Sektion sein, um dich auf diesem Portal einloggen zu können. Wenn du eine Mitgliedschaft beantragen möchtest, darfst du dich sehr gerne bei userer Geschäftsstelle melden.',
-                    //'explain'  => 'Der geschütze Bereich ist nur Mitgliedern des SAC (Schweizerischer Alpen Club) zugänglich.',
-                ];
-                $flashBagKey = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.flash_bag_key');
-                $this->session->getFlashBag()->add($flashBagKey, $arrError);
-                $bagName = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.attribute_bag_name');
-                Controller::redirect($this->session->getBag($bagName)->get('failurePath'));
-            }
+            $arrError = [
+                'matter'   => $this->translator->trans('ERR.sacOidcLoginError_userIsNotSacMember_matter', [$this->get('vorname')], 'contao_default'),
+                'howToFix' => $this->translator->trans('ERR.sacOidcLoginError_userIsNotSacMember_howToFix', [], 'contao_default'),
+                //'explain' => $this->translator->trans('ERR.sacOidcLoginError_userIsNotSacMember_explain', [], 'contao_default'),
+            ];
+            $flashBagKey = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.flash_bag_key');
+            $this->session->getFlashBag()->add($flashBagKey, $arrError);
+            $bagName = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.attribute_bag_name');
+            Controller::redirect($this->session->getBag($bagName)->get('failurePath'));
         }
     }
 
@@ -158,9 +163,9 @@ class RemoteUser
         }
 
         $arrError = [
-            'matter'   => sprintf('Hallo %s<br>Schön bist du hier. Leider hat die Überprüfung deiner vom Identity Provider an uns übermittelten Daten fehlgeschlagen.', $this->get('vorname')),
-            'howToFix' => sprintf('Du musst Mitglied unserer SAC Sektion sein, um dich auf diesem Portal einloggen zu können. Wenn du eine Zusatzmitgliedschaft beantragen möchtest, dann darfst du dich sehr gerne bei unserer Geschäftsstelle melden.', $this->get('name')),
-            //'explain'  => 'Der geschütze Bereich ist nur Mitgliedern dieser SAC Sektion zugänglich.',
+            'matter'   => $this->translator->trans('ERR.sacOidcLoginError_userIsNotMemberOfAllowedSection_matter', [$this->get('vorname')], 'contao_default'),
+            'howToFix' => $this->translator->trans('ERR.sacOidcLoginError_userIsNotMemberOfAllowedSection_howToFix', [], 'contao_default'),
+            //'explain' => $this->translator->trans('ERR.sacOidcLoginError_userIsNotMemberOfAllowedSection_explain', [], 'contao_default'),
         ];
         $flashBagKey = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.flash_bag_key');
         $this->session->getFlashBag()->add($flashBagKey, $arrError);
@@ -176,10 +181,11 @@ class RemoteUser
         if (empty($this->get('contact_number') || !$this->user->isValidUsername($this->get('contact_number'))))
         {
             $arrError = [
-                'matter'   => 'Schön bist du hier. Leider hat die Überprüfung deiner vom Identity Provider an uns übermittelten Daten fehlgeschlagen.',
-                'howToFix' => 'Bitte überprüfe die Schreibweise deiner Eingaben.',
-                'explain'  => '',
+                'matter'   => $this->translator->trans('ERR.sacOidcLoginError_invalidUsername_matter', [], 'contao_default'),
+                'howToFix' => $this->translator->trans('ERR.sacOidcLoginError_invalidUsername_howToFix', [], 'contao_default'),
+                //'explain' => $this->translator->trans('ERR.sacOidcLoginError_invalidUsername_explain', [], 'contao_default'),
             ];
+
             $flashBagKey = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.flash_bag_key');
             $this->session->getFlashBag()->add($flashBagKey, $arrError);
             $bagName = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.attribute_bag_name');
@@ -195,9 +201,9 @@ class RemoteUser
         if (empty($this->get('email')) || !Validator::isEmail($this->get('email')))
         {
             $arrError = [
-                'matter'   => sprintf('Hallo %s<br>Schön bist du hier. Leider hat die Überprüfung deiner vom Identity Provider an uns übermittelten Daten fehlgeschlagen.', $this->get('vorname')),
-                'howToFix' => 'Du hast noch keine gültige E-Mail-Adresse hinterlegt. Bitte logge dich auf https:://www.sac-cas.ch mit deinem Account ein und hinterlege deine E-Mail-Adresse.',
-                'explain'  => 'Einige Anwendungen (z.B. Event-Tool) auf diesem Portal setzen eine gültige E-Mail-Adresse voraus.',
+                'matter'   => $this->translator->trans('ERR.sacOidcLoginError_invalidEmail_matter', [$this->get('vorname')], 'contao_default'),
+                'howToFix' => $this->translator->trans('ERR.sacOidcLoginError_invalidEmail_howToFix', [], 'contao_default'),
+                'explain'  => $this->translator->trans('ERR.sacOidcLoginError_invalidEmail_explain', [], 'contao_default'),
             ];
             $flashBagKey = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.flash_bag_key');
             $this->session->getFlashBag()->add($flashBagKey, $arrError);

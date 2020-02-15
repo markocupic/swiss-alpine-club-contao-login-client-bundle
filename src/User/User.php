@@ -22,9 +22,10 @@ use Contao\MemberModel;
 use Contao\StringUtil;
 use Contao\System;
 use Contao\UserModel;
-use Symfony\Component\HttpFoundation\Session\Session;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Security\Core\Security;
+use Symfony\Component\Translation\TranslatorInterface;
 
 /**
  * Class User
@@ -49,16 +50,23 @@ class User
     private $session;
 
     /**
+     * @var TranslatorInterface
+     */
+    private $translator;
+
+    /**
      * User constructor.
      * @param ContaoFramework $framework
      * @param Session $session
      * @param null|LoggerInterface $logger
+     * @param TranslatorInterface $translator
      */
-    public function __construct(ContaoFramework $framework, Session $session, ?LoggerInterface $logger = null)
+    public function __construct(ContaoFramework $framework, Session $session, ?LoggerInterface $logger = null, TranslatorInterface $translator)
     {
         $this->framework = $framework;
         $this->session = $session;
         $this->logger = $logger;
+        $this->translator = $translator;
 
         // Initialize Contao framework
         $this->framework->initialize();
@@ -97,9 +105,9 @@ class User
             if ($model->disable)
             {
                 $arrError = [
-                    'matter'  => sprintf('Hallo %s<br>Schön bist du hier. Leider hat die Überprüfung deiner vom Identity Provider an uns übermittelten Daten fehlgeschlagen.', $arrData['vorname']),
-                    //'howToFix' => 'Falls du soeben/erst kürzlich eine Neumitgliedschaft beantragt hast, dann warte bitten einen Tag und versuche dich danach noch einmal hier einzuloggen.',
-                    'explain' => 'Dein Konto wurde leider deaktiviert und kann im Moment nicht verwendet werden.',
+                    'matter'  => $this->translator->trans('ERR.sacOidcLoginError_accountDisabled_matter', [$arrData['vorname']], 'contao_default'),
+                    //'howToFix' => $this->translator->trans('ERR.sacOidcLoginError_accountDisabled_howToFix', [], 'contao_default'),
+                    'explain' => $this->translator->trans('ERR.sacOidcLoginError_accountDisabled_explain', [], 'contao_default'),
                 ];
                 $flashBagKey = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.flash_bag_key');
                 $this->session->getFlashBag()->add($flashBagKey, $arrError);
@@ -285,9 +293,9 @@ class User
         if (!isset($arrData) || empty($arrData['contact_number']) || !$this->userExists($remoteUser, $userClass))
         {
             $arrError = [
-                'matter'   => sprintf('Hallo %s<br>Schön bist du hier. Leider hat die Überprüfung deiner vom Identity Provider an uns übermittelten Daten fehlgeschlagen.', $arrData['vorname']),
-                'howToFix' => 'Falls du soeben/erst kürzlich eine Neumitgliedschaft beantragt hast, dann warte bitten einen Tag und versuche dich danach noch einmal hier einzuloggen.',
-                'explain'  => 'Leider dauert es mindestens einen Tag bis uns von der Zentralstelle deine Mitgliedschaft bestätigt wird.',
+                'matter'   => $this->translator->trans('ERR.sacOidcLoginError_userDoesNotExist_matter', [$arrData['vorname']], 'contao_default'),
+                'howToFix' => $this->translator->trans('ERR.sacOidcLoginError_userDoesNotExist_howToFix', [], 'contao_default'),
+                'explain'  => $this->translator->trans('ERR.sacOidcLoginError_userDoesNotExist_explain', [], 'contao_default'),
             ];
             $flashBagKey = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.flash_bag_key');
             $this->session->getFlashBag()->add($flashBagKey, $arrError);

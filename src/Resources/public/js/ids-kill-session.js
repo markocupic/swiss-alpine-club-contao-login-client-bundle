@@ -1,3 +1,4 @@
+"use strict";
 window.onload = function () {
     // Frontend logout
     let elFeLogoutButton = document.querySelectorAll('.trigger-ids-kill-session[data-href]');

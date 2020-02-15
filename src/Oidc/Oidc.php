@@ -22,9 +22,11 @@ use Markocupic\SwissAlpineClubContaoLoginClientBundle\Exception\AppCheckFailedEx
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Exception\InvalidRequestTokenException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Security\Csrf\CsrfToken;
 use Symfony\Component\Security\Csrf\CsrfTokenManager;
+use Symfony\Component\Translation\TranslatorInterface;
 
 /**
  * Class Oidc
@@ -54,6 +56,11 @@ class Oidc
     private $csrfTokenManager;
 
     /**
+     * @var TranslatorInterface
+     */
+    private $translator;
+
+    /**
      * @var array
      */
     private $providerData = [];
@@ -64,14 +71,16 @@ class Oidc
      * @param RequestStack $requestStack
      * @param Session $session
      * @param CsrfTokenManager $csrfTokenManager
+     * @param TranslatorInterface $translator
      * @throws AppCheckFailedException
      */
-    public function __construct(ContaoFramework $framework, RequestStack $requestStack, Session $session, CsrfTokenManager $csrfTokenManager)
+    public function __construct(ContaoFramework $framework, RequestStack $requestStack, Session $session, CsrfTokenManager $csrfTokenManager, TranslatorInterface $translator)
     {
         $this->framework = $framework;
         $this->requestStack = $requestStack;
         $this->session = $session;
         $this->csrfTokenManager = $csrfTokenManager;
+        $this->translator = $translator;
 
         $this->framework->initialize();
 
@@ -133,9 +142,9 @@ class Oidc
             $session->remove('oauth2state');
 
             $arrError = [
-                'matter'   => 'Die Überprüfung Ihrer Daten vom Identity Provider hat fehlgeschlagen. Fehlercode: ungültiger state!',
-                'howToFix' => 'Bitte überprüfen Sie die Schreibweise Ihrer Benutzereingaben.',
-                'explain'  => '',
+                'matter'   => $this->translator->trans('ERR.sacOidcLoginError_invalidState_matter', [], 'contao_default'),
+                'howToFix' => $this->translator->trans('ERR.sacOidcLoginError_invalidState_howToFix', [], 'contao_default'),
+                'explain'  => $this->translator->trans('ERR.sacOidcLoginError_invalidState_explain', [], 'contao_default'),
             ];
             $session->set('lastOidcError', $arrError);
             return false;
@@ -158,9 +167,9 @@ class Oidc
             {
                 // Failed to get the access token or user details.
                 $arrError = [
-                    'matter'   => 'Die Überprüfung Ihrer Daten vom Identity Provider hat fehlgeschlagen.',
-                    'howToFix' => 'Bitte überprüfen Sie die Schreibweise Ihrer Benutzereingaben.',
-                    'explain'  => '',
+                    'matter'   => $this->translator->trans('ERR.sacOidcLoginError_invalidState_matter', [], 'contao_default'),
+                    'howToFix' => $this->translator->trans('ERR.sacOidcLoginError_invalidState_howToFix', [], 'contao_default'),
+                    'explain'  => $this->translator->trans('ERR.sacOidcLoginError_invalidState_explain', [], 'contao_default'),
                 ];
                 $session->set('lastOidcError', $arrError);
                 return false;
@@ -215,19 +224,22 @@ class Oidc
         if (!$request->request->has('targetPath'))
         {
             // Target path not found in the query string
-            throw new AppCheckFailedException('Login Error: URI parameter "targetPath" not found.');
+            $this->sendErrorMessageToBrowser('Login Error: URI parameter "targetPath" not found.');
+            exit;
         }
 
         if (!$request->request->has('failurePath'))
         {
             // Target path not found in the query string
-            throw new AppCheckFailedException('Login Error: URI parameter "failurePath" not found.');
+            $this->sendErrorMessageToBrowser('Login Error: URI parameter "failurePath" not found.');
+            exit;
         }
 
         $tokenName = System::getContainer()->getParameter('contao.csrf_token_name');
         if (!$request->request->has('REQUEST_TOKEN') || !$this->csrfTokenManager->isTokenValid(new CsrfToken($tokenName, $request->request->get('REQUEST_TOKEN'))))
         {
-            throw new InvalidRequestTokenException('Invalid CSRF token. Please reload the page and try again.');
+            $this->sendErrorMessageToBrowser('Invalid CSRF token. Please reload the page and try again.');
+            exit;
         }
     }
 
@@ -259,6 +271,14 @@ class Oidc
         }
     }
 
-
+    /**
+     * @param $arrMsg
+     * @return Response
+     */
+    private function sendErrorMessageToBrowser(string $msg): Response
+    {
+        $response = new Response($msg, 400);
+        return $response->send();
+    }
 
 }

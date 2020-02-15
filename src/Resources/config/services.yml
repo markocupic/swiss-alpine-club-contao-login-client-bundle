@@ -17,6 +17,7 @@ services:
     - '@request_stack'
     - '@session'
     - '@contao.csrf.token_manager'
+    - '@translator'
     public: true
 
   Markocupic\SwissAlpineClubContaoLoginClientBundle\InteractiveLogin\InteractiveLogin:
@@ -35,6 +36,7 @@ services:
     - '@contao.framework'
     - '@session'
     - '@monolog.logger.contao'
+    - '@translator'
     public: true
 
   Markocupic\SwissAlpineClubContaoLoginClientBundle\User\RemoteUser:
@@ -42,6 +44,7 @@ services:
     - '@contao.framework'
     - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\User\User'
     - '@session'
+    - '@translator'
     public: true
 
   Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\PrintErrorMessage:
