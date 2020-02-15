@@ -23,6 +23,7 @@ use Markocupic\SwissAlpineClubContaoLoginClientBundle\Oidc\Oidc;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\User\RemoteUser;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\User\User;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Routing\Annotation\Route;
@@ -242,6 +243,20 @@ class AuthorizationController extends AbstractController
             $this->session->getFlashBag()->add($flashBagKey, $arrError);
             $controllerAdapter->redirect($errorPage);
         }
+    }
+
+    /**
+     * @return Response
+     * @Route("/ssoauth/send_logout_endpoint", name="swiss_alpine_club_sso_login_send_logout_endpoint")
+     */
+    public function sendLogoutEndpointAction(): Response
+    {
+        $data = array(
+            'success' => 'true',
+            'logout_endpoint_url' => Config::get('SAC_SSO_LOGIN_URL_LOGOUT'),
+        );
+        return new JsonResponse($data);
+
     }
 
 }

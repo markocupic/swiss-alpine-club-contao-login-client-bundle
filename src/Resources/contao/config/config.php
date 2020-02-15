@@ -20,5 +20,5 @@ $GLOBALS['TL_JAVASCRIPT'][] = 'bundles/markocupicswissalpineclubcontaologinclien
 /**
  * Hooks
  */
-//$GLOBALS['TL_HOOKS']['postLogout'][] = array('Markocupic\SwissAlpineClubContaoLoginClientBundle\EventListener\Contao\PostLogoutListener', 'killSession');
+$GLOBALS['TL_HOOKS']['postLogout'][] = array('Markocupic\SwissAlpineClubContaoLoginClientBundle\EventListener\Contao\PostLogoutListener', 'killSession');
 $GLOBALS['TL_HOOKS']['parseBackendTemplate'][] = array('Markocupic\SwissAlpineClubContaoLoginClientBundle\EventListener\Contao\ParseBackendTemplateListener', 'addLoginButtonToTemplate');

@@ -14,6 +14,7 @@ namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\EventListener\Contao
 
 use Contao\User;
 use Contao\CoreBundle\Framework\ContaoFramework;
+use Symfony\Component\HttpFoundation\Cookie;
 
 /**
  * Class PostLogoutListener
@@ -40,6 +41,7 @@ class PostLogoutListener
      */
     public function killSession(User $objUser)
     {
-        // Do nothing at the moment
+       //
+
     }
 }

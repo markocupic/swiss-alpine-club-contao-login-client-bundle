@@ -247,6 +247,7 @@ class Oidc
             'SAC_SSO_LOGIN_URL_AUTHORIZE',
             'SAC_SSO_LOGIN_URL_ACCESS_TOKEN',
             'SAC_SSO_LOGIN_URL_RESOURCE_OWNER_DETAILS',
+            'SAC_SSO_LOGIN_URL_LOGOUT',
         ];
 
         foreach ($arrConfigs as $config)
@@ -257,5 +258,7 @@ class Oidc
             }
         }
     }
+
+
 
 }

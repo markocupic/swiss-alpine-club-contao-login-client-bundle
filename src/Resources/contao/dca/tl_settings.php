@@ -19,6 +19,7 @@ PaletteManipulator::create()
     ->addField(['SAC_SSO_LOGIN_URL_AUTHORIZE'], 'sac_sso_login_settings', PaletteManipulator::POSITION_APPEND)
     ->addField(['SAC_SSO_LOGIN_URL_ACCESS_TOKEN'], 'sac_sso_login_settings', PaletteManipulator::POSITION_APPEND)
     ->addField(['SAC_SSO_LOGIN_URL_RESOURCE_OWNER_DETAILS'], 'sac_sso_login_settings', PaletteManipulator::POSITION_APPEND)
+    ->addField(['SAC_SSO_LOGIN_URL_LOGOUT'], 'sac_sso_login_settings', PaletteManipulator::POSITION_APPEND)
     ->addField(['SAC_SSO_LOGIN_ADD_TO_MEMBER_GROUPS'], 'sac_sso_login_settings', PaletteManipulator::POSITION_APPEND)
     ->addField(['SAC_SSO_LOGIN_ENABLE_BACKEND_SSO'], 'sac_sso_login_settings', PaletteManipulator::POSITION_APPEND)
     ->applyToPalette('default', 'tl_settings');
@@ -61,6 +62,12 @@ $GLOBALS['TL_DCA']['tl_settings']['fields']['SAC_SSO_LOGIN_URL_ACCESS_TOKEN'] = 
 
 $GLOBALS['TL_DCA']['tl_settings']['fields']['SAC_SSO_LOGIN_URL_RESOURCE_OWNER_DETAILS'] = [
     'label'     => &$GLOBALS['TL_LANG']['tl_settings']['SAC_SSO_LOGIN_URL_RESOURCE_OWNER_DETAILS'],
+    'inputType' => 'text',
+    'eval'      => ['mandatory' => true, 'decodeEntities' => false, 'tl_class' => 'w50'],
+];
+
+$GLOBALS['TL_DCA']['tl_settings']['fields']['SAC_SSO_LOGIN_URL_LOGOUT'] = [
+    'label'     => &$GLOBALS['TL_LANG']['tl_settings']['SAC_SSO_LOGIN_URL_LOGOUT'],
     'inputType' => 'text',
     'eval'      => ['mandatory' => true, 'decodeEntities' => false, 'tl_class' => 'w50'],
 ];
