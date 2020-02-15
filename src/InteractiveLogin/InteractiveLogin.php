@@ -19,10 +19,12 @@ use Contao\CoreBundle\Security\User\ContaoUserProvider;
 use Contao\CoreBundle\Security\User\UserChecker;
 use Contao\FrontendUser;
 use Contao\MemberModel;
+use Contao\System;
+use Contao\User;
 use Contao\UserModel;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\User\RemoteUser;
-use Psr\Log\LogLevel;
 use Psr\Log\LoggerInterface;
+use Psr\Log\LogLevel;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Session\Session;
@@ -190,6 +192,7 @@ class InteractiveLogin
                 $objUser->currentLogin = time();
                 $objUser->save();
             }
+            $logTxt = sprintf('Frontend User "%s" [%s] has logged in with openid connect.', $remoteUser->get('name'), $remoteUser->get('contact_number'));
         }
 
         if ($user instanceof BackendUser)
@@ -200,16 +203,44 @@ class InteractiveLogin
                 $objUser->currentLogin = time();
                 $objUser->save();
             }
+            $logTxt = sprintf('Backend User "%s" [%s] has logged in with openid connect.', $remoteUser->get('name'), $remoteUser->get('contact_number'));
         }
 
         // Now the user is logged in!
-        if ($this->logger)
+        if ($this->logger && isset($logTxt))
         {
             $this->logger->log(
                 LogLevel::INFO,
-                sprintf('User "%s" has logged in with openid connect.', $username),
+                $logTxt,
                 ['contao' => new ContaoContext(__METHOD__, ContaoContext::ACCESS)]
             );
+        }
+
+        // Trigger the Contao post login hook
+        $this->triggerPostLoginHook($user);
+    }
+
+    /**
+     * Trigger the Contao post login hook
+     * @param User $user
+     */
+    private function triggerPostLoginHook(User $user): void
+    {
+        $this->framework->initialize();
+
+        if (empty($GLOBALS['TL_HOOKS']['postLogin']) || !\is_array($GLOBALS['TL_HOOKS']['postLogin']))
+        {
+            return;
+        }
+
+        @trigger_error('Using the "postLogin" hook has been deprecated and will no longer work in Contao 5.0.', E_USER_DEPRECATED);
+
+        /** @var System $system */
+        $system = $this->framework->getAdapter(System::class);
+
+        foreach ($GLOBALS['TL_HOOKS']['postLogin'] as $callback)
+        {
+            $system->importStatic($callback[0])->{$callback[1]}($user);
         }
     }
 }

@@ -31,45 +31,25 @@ window.onload = function () {
         //logout('');
     }
 
-
     /**
-     * Logout
+     * Get logout endpoint, logout and redirect
      * @param url
      */
     function logout(url) {
-
-        _getLogoutEndpointUrl().then((logoutendpoint) => {
-            fetch(logoutendpoint,
-                {
-                    credentials: 'include',
-                    mode: 'no-cors',
-                })
-                .then(function (response) {
-                    if (url !== '') {
-                        window.location.href = url;
-                    }
-                }).catch(function () {
+        // Get logout endpoint url
+        fetch('/ssoauth/send_logout_endpoint').then(function (response) {
+            return response.json();
+        }).then(function (json) {
+            return fetch(json.logout_endpoint_url, {
+                credentials: 'include',
+                mode: 'no-cors'
+            }).then(function (response) {
+                if (url !== '') {
+                    window.location.href = url;
+                }
+            }).catch(function () {
                 window.location.href = url;
             });
-        }).catch(function () {
-            window.location.href = url;
         });
-    }
-
-    /**
-     * Get the logut endpoint url
-     * @returns {Promise<Response | never | never | string>}
-     */
-    function _getLogoutEndpointUrl() {
-
-        return fetch('/ssoauth/send_logout_endpoint')
-            .then(function (response) {
-                return response.json();
-            })
-            .then(function (json) {
-                return json.logout_endpoint_url;
-            }).catch(function () {
-                return '';
-            });
     }
 };
