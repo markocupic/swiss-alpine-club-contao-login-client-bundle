@@ -23,6 +23,7 @@ services:
   Markocupic\SwissAlpineClubContaoLoginClientBundle\InteractiveLogin\InteractiveLogin:
     arguments:
     - '@contao.framework'
+    - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\User\User'
     - '@contao.security.user_checker'
     - '@session'
     - '@security.token_storage'

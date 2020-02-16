@@ -30,6 +30,10 @@ $GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_userDoesNotExist_matter'] = 'Hallo
 $GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_userDoesNotExist_howToFix'] = 'Falls du soeben/erst kürzlich eine Neumitgliedschaft beantragt hast, dann warte bitten einen Tag und versuche dich danach noch einmal hier einzuloggen.';
 $GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_userDoesNotExist_explain'] = 'Leider dauert es mindestens einen Tag bis uns von der Zentralstelle deine Mitgliedschaft bestätigt wird.';
 
+$GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_backendUserNotFound_matter'] = 'Hallo %s{{br}}Schön bist du hier. Leider wurde dein Konto nicht gefunden. Wenn du meinst, dass es sich um einen Fehler handelt, dann melde dich mit deinem Anliegen bei der Geschäftsstelle.';
+$GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_backendUserNotFound_howToFix'] = '';
+$GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_backendUserNotFound_explain'] = '';
+
 $GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_userIsNotSacMember_matter'] = 'Hallo %s{{br}}Schön bist du hier. Leider hat die Überprüfung deiner vom Identity Provider an uns übermittelten Daten fehlgeschlagen.';
 $GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_userIsNotSacMember_howToFix'] = 'Du musst Mitglied dieser Sektion sein, um dich auf diesem Portal einloggen zu können. Wenn du eine Mitgliedschaft beantragen möchtest, darfst du dich sehr gerne bei userer Geschäftsstelle melden.';
 $GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_userIsNotSacMember_explain'] = '';

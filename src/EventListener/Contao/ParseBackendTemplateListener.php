@@ -14,6 +14,7 @@ namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\EventListener\Contao
 
 use Contao\BackendTemplate;
 use Contao\Config;
+use Contao\Controller;
 use Contao\System;
 use Symfony\Component\HttpFoundation\Session\Session;
 
@@ -90,7 +91,7 @@ class ParseBackendTemplateListener
             }
 
             $searchString = '</form>';
-            $strContent = str_replace($searchString, $searchString . $template->parse(), $strContent);
+            $strContent = str_replace($searchString, $searchString . Controller::replaceInsertTags($template->parse()), $strContent);
         }
 
         return $strContent;

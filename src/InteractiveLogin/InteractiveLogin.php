@@ -33,6 +33,7 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Security\Http\Event\InteractiveLoginEvent;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\User\User as UserHelper;
 
 /**
  * Class InteractiveLogin
@@ -51,6 +52,11 @@ class InteractiveLogin
      * @var ContaoFramework
      */
     private $framework;
+
+    /**
+     * @var UserHelper
+     */
+    private $user;
 
     /**
      * @var UserChecker
@@ -85,6 +91,7 @@ class InteractiveLogin
     /**
      * InteractiveLogin constructor.
      * @param ContaoFramework $framework
+     * @param UserHelper $user
      * @param UserChecker $userChecker
      * @param Session $session
      * @param TokenStorageInterface $tokenStorage
@@ -92,9 +99,10 @@ class InteractiveLogin
      * @param RequestStack $requestStack
      * @param null|LoggerInterface $logger
      */
-    public function __construct(ContaoFramework $framework, UserChecker $userChecker, Session $session, TokenStorageInterface $tokenStorage, EventDispatcherInterface $eventDispatcher, RequestStack $requestStack, ?LoggerInterface $logger = null)
+    public function __construct(ContaoFramework $framework, UserHelper $user, UserChecker $userChecker, Session $session, TokenStorageInterface $tokenStorage, EventDispatcherInterface $eventDispatcher, RequestStack $requestStack, ?LoggerInterface $logger = null)
     {
         $this->framework = $framework;
+        $this->user = $user;
         $this->userChecker = $userChecker;
         $this->session = $session;
         $this->tokenStorage = $tokenStorage;
@@ -108,11 +116,11 @@ class InteractiveLogin
     /**
      * @param RemoteUser $remoteUser
      * @param string $userClass
-     * @param string $providerKey
      * @throws \Exception
      */
-    public function login(RemoteUser $remoteUser, string $userClass, string $providerKey): void
+    public function login(RemoteUser $remoteUser, string $userClass): void
     {
+        $providerKey = $userClass === FrontendUser::class ? static::SECURED_AREA_FRONTEND : static::SECURED_AREA_BACKEND;
         $username = $remoteUser->get('contao_username');
 
         if (!\is_string($username) && (!\is_object($username) || !method_exists($username, '__toString')))
@@ -123,6 +131,8 @@ class InteractiveLogin
         }
 
         $username = trim($username);
+
+        $this->user->checkUserExists($remoteUser, $userClass);
 
         // Check if username is valid
         // Security::MAX_USERNAME_LENGTH = 4096;
@@ -137,12 +147,6 @@ class InteractiveLogin
         $userProvider = new ContaoUserProvider($this->framework, $this->session, $userClass, $this->logger);
 
         $user = $userProvider->loadUserByUsername($username);
-        if (!$user instanceof $userClass)
-        {
-            throw new \Exception(
-                'Username does not exists.'
-            );
-        }
 
         if ($user instanceof FrontendUser)
         {

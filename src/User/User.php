@@ -16,7 +16,6 @@ use Contao\BackendUser;
 use Contao\Config;
 use Contao\Controller;
 use Contao\CoreBundle\Framework\ContaoFramework;
-use Contao\CoreBundle\Security\User\ContaoUserProvider;
 use Contao\FrontendUser;
 use Contao\MemberModel;
 use Contao\StringUtil;
@@ -150,14 +149,14 @@ class User
      */
     public function updateUser(RemoteUser $remoteUser, string $userClass): void
     {
-        if ($userClass === FrontendUser::class)
-        {
-            $this->updateFrontendUser($remoteUser);
-        }
-
         if ($userClass === BackendUser::class)
         {
             $this->updateBackendUser($remoteUser);
+        }
+
+        if ($userClass === FrontendUser::class)
+        {
+            $this->updateFrontendUser($remoteUser);
         }
     }
 
@@ -292,11 +291,22 @@ class User
         $arrData = $remoteUser->getData();
         if (!isset($arrData) || empty($arrData['contact_number']) || !$this->userExists($remoteUser, $userClass))
         {
-            $arrError = [
-                'matter'   => $this->translator->trans('ERR.sacOidcLoginError_userDoesNotExist_matter', [$arrData['vorname']], 'contao_default'),
-                'howToFix' => $this->translator->trans('ERR.sacOidcLoginError_userDoesNotExist_howToFix', [], 'contao_default'),
-                'explain'  => $this->translator->trans('ERR.sacOidcLoginError_userDoesNotExist_explain', [], 'contao_default'),
-            ];
+            if($userClass === FrontendUser::class)
+            {
+                $arrError = [
+                    'matter'   => $this->translator->trans('ERR.sacOidcLoginError_userDoesNotExist_matter', [$arrData['vorname']], 'contao_default'),
+                    'howToFix' => $this->translator->trans('ERR.sacOidcLoginError_userDoesNotExist_howToFix', [], 'contao_default'),
+                    'explain'  => $this->translator->trans('ERR.sacOidcLoginError_userDoesNotExist_explain', [], 'contao_default'),
+                ];
+            }else{
+                $arrError = [
+                    'matter'   => $this->translator->trans('ERR.sacOidcLoginError_backendUserNotFound_matter', [$arrData['vorname']], 'contao_default'),
+                    //'howToFix' => $this->translator->trans('ERR.sacOidcLoginError_backendUserNotFound_howToFix', [], 'contao_default'),
+                    //'explain'  => $this->translator->trans('ERR.sacOidcLoginError_backendUserNotFound_explain', [], 'contao_default'),
+                ];
+            }
+
+
             $flashBagKey = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.flash_bag_key');
             $this->session->getFlashBag()->add($flashBagKey, $arrError);
             $bagName = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.attribute_bag_name');
@@ -310,25 +320,16 @@ class User
      */
     public function activateLogin(RemoteUser $remoteUser, string $userClass)
     {
-        $username = $remoteUser->get('contact_number');
+        $username = $remoteUser->get('contao_username');
         if ($userClass !== FrontendUser::class)
         {
             return;
         }
-        // Retrieve user by its username
-        $userProvider = new ContaoUserProvider($this->framework, $this->session, $userClass, $this->logger);
 
-        $user = $userProvider->loadUserByUsername($username);
-        if (!$user instanceof FrontendUser)
-        {
-            return;
-        }
-
-        if (null !== ($objMember = MemberModel::findByUsername($user->username)))
+        if (null !== ($objMember = MemberModel::findByUsername($username)))
         {
             $objMember->login = '1';
             $objMember->save();
-            $userProvider->refreshUser($user);
         }
     }
 
@@ -336,37 +337,26 @@ class User
      * @param RemoteUser $remoteUser
      * @param $userClass
      */
-    public function unlock(RemoteUser $remoteUser, $userClass)
+    public function unlock(RemoteUser $remoteUser, string $userClass)
     {
-        $username = $remoteUser->get('contact_number');
+        $username = $remoteUser->get('contao_username');
 
-        // Retrieve user by its username
-        $userProvider = new ContaoUserProvider($this->framework, $this->session, $userClass, $this->logger);
-
-        $user = $userProvider->loadUserByUsername($username);
-        if (!$user instanceof $userClass)
+        if ($userClass === BackendUser::class)
         {
-            return;
-        }
-
-        if ($user instanceof FrontendUser)
-        {
-            if (null !== ($objMember = MemberModel::findByUsername($user->username)))
+            if (null !== ($objUser = UserModel::findByUsername($username)))
             {
-                $objMember->locked = 0;
-                $objMember->save();
-                $userProvider->refreshUser($user);
+                $objUser->locked = 0;
+                $objUser->save();
             }
             return;
         }
 
-        if ($user instanceof BackendUser)
+        if ($userClass === FrontendUser::class)
         {
-            if (null !== ($objUser = UserModel::findByUsername($user->username)))
+            if (null !== ($objMember = MemberModel::findByUsername($username)))
             {
-                $objUser->locked = 0;
-                $objUser->save();
-                $userProvider->refreshUser($user);
+                $objMember->locked = 0;
+                $objMember->save();
             }
             return;
         }
@@ -379,27 +369,29 @@ class User
      */
     public function userExists(RemoteUser $remoteUser, string $userClass): bool
     {
-        $username = $remoteUser->get('contact_number');
+        $username = $remoteUser->get('contao_username');
+
         // Get username from sac member id
         if ($userClass === BackendUser::class)
         {
-            if (null !== ($objUser = UserModel::findBySacMemberId($username)))
+            if (null !== ($objUser = UserModel::findByUsername($username)))
             {
                 $username = $objUser->username;
                 $remoteUser->username = $username;
+                return true;
             }
         }
 
-        // Retrieve user by its username
-        $userProvider = new ContaoUserProvider($this->framework, $this->session, $userClass, $this->logger);
-
-        $user = $userProvider->loadUserByUsername($username);
-        if ($user instanceof $userClass)
+        if ($userClass === FrontendUser::class)
         {
-            return true;
+            if (null !== ($objUser = MemberModel::findByUsername($username)))
+            {
+                $username = $objUser->username;
+                $remoteUser->username = $username;
+                return true;
+            }
         }
 
         return false;
     }
-
 }

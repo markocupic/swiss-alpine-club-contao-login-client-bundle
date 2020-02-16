@@ -145,7 +145,7 @@ class AuthorizationController extends AbstractController
             $this->user->unlock($this->remoteUser, $userClass);
 
             // log in user
-            $this->interactiveLogin->login($this->remoteUser, $userClass, InteractiveLogin::SECURED_AREA_FRONTEND);
+            $this->interactiveLogin->login($this->remoteUser, $userClass);
 
             $jumpToPath = $session->get('targetPath');
             $session->clear();
@@ -226,7 +226,7 @@ class AuthorizationController extends AbstractController
             //$this->user->unlock($this->remoteUser, $userClass);
 
             // log in user
-            $this->interactiveLogin->login($this->remoteUser, $userClass, InteractiveLogin::SECURED_AREA_BACKEND);
+            $this->interactiveLogin->login($this->remoteUser, $userClass);
 
             $jumpToPath = $session->get('targetPath');
             $session->clear();
@@ -251,12 +251,11 @@ class AuthorizationController extends AbstractController
      */
     public function sendLogoutEndpointAction(): Response
     {
-        $data = array(
-            'success' => 'true',
+        $data = [
+            'success'             => 'true',
             'logout_endpoint_url' => Config::get('SAC_SSO_LOGIN_URL_LOGOUT'),
-        );
+        ];
         return new JsonResponse($data);
-
     }
 
 }
