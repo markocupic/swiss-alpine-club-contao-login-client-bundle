@@ -132,6 +132,7 @@ class InteractiveLogin
 
         $username = trim($username);
 
+        // Be sure user exists
         $this->user->checkUserExists($remoteUser, $userClass);
 
         // Check if username is valid
@@ -196,7 +197,7 @@ class InteractiveLogin
                 $objUser->currentLogin = time();
                 $objUser->save();
             }
-            $logTxt = sprintf('Frontend User "%s" [%s] has logged in with openid connect.', $remoteUser->get('name'), $remoteUser->get('contact_number'));
+            $logTxt = sprintf('Frontend User "%s" [%s] has logged in with SAC OPENID CONNECT APP.', $remoteUser->get('name'), $remoteUser->get('contact_number'));
         }
 
         if ($user instanceof BackendUser)
@@ -207,7 +208,7 @@ class InteractiveLogin
                 $objUser->currentLogin = time();
                 $objUser->save();
             }
-            $logTxt = sprintf('Backend User "%s" [%s] has logged in with openid connect.', $remoteUser->get('name'), $remoteUser->get('contact_number'));
+            $logTxt = sprintf('Backend User "%s" [%s] has logged in with SAC OPENID CONNECT APP.', $remoteUser->get('name'), $remoteUser->get('contact_number'));
         }
 
         // Now the user is logged in!
