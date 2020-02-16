@@ -17,6 +17,6 @@ $GLOBALS['TL_DCA']['tl_module']['fields']['swiss_alpine_club_oidc_frontend_login
     'flag'      => 1,
     'search'    => true,
     'inputType' => 'text',
-    'eval'      => ['mandatory' => true, 'maxlength' => 255, 'tl_class' => 'w50'],
+    'eval'      => ['mandatory' => false, 'maxlength' => 255, 'tl_class' => 'w50'],
     'sql'       => "varchar(255) NOT NULL default ''"
 ];
