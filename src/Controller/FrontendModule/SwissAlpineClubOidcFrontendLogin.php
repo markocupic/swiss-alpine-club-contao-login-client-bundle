@@ -102,6 +102,7 @@ class SwissAlpineClubOidcFrontendLogin extends AbstractFrontendModuleController
             $template->targetPath = $targetPath;
             $template->failurePath = $this->page->getAbsoluteUrl();
             $template->login = true;
+            $template->btnLbl = empty($model->swiss_alpine_club_oidc_frontend_login_btn_lbl) ? $translator->trans('MSC.loginWithSacSso', [], 'contao_default') : $model->swiss_alpine_club_oidc_frontend_login_btn_lbl;
 
             // Check for error messages
             $flashBagKey = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.flash_bag_key');

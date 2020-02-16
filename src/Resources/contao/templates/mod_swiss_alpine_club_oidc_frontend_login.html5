@@ -15,7 +15,7 @@
         <input type="hidden" name="failurePath" value="<?= $this->failurePath ?>">
         <input type="hidden" name="alwaysUseTargetPath" value="<?= $this->alwaysUseTargetPath ?>">
         <input type="hidden" name="moduleId" value="<?= $this->id ?>">
-        <button class="btn btn-danger sac-login-frontend-button"><i class="fas fa-sign-in-alt"></i>&nbsp;<?= $this->trans('MSC.loginWithSacSso', [], 'contao_default') ?></button>
+        <button class="btn btn-danger sac-login-frontend-button"><i class="fas fa-sign-in-alt"></i>&nbsp;<?= $this->btnLbl ?></button>
     </div>
 </form>
 
