@@ -229,7 +229,7 @@ class User
             $objUser->uuid = $arrData['sub'];
             $objUser->lastname = $arrData['familienname'];
             $objUser->firstname = $arrData['vorname'];
-            $objUser->name = $arrData['vorname'];
+            $objUser->name = $arrData['name'];
             $objUser->street = $arrData['strasse'];
             $objUser->city = $arrData['ort'];
             $objUser->postal = $arrData['plz'];
@@ -291,21 +291,22 @@ class User
         $arrData = $remoteUser->getData();
         if (!isset($arrData) || empty($arrData['contact_number']) || !$this->userExists($remoteUser, $userClass))
         {
-            if($userClass === FrontendUser::class)
+            if ($userClass === FrontendUser::class)
             {
                 $arrError = [
                     'matter'   => $this->translator->trans('ERR.sacOidcLoginError_userDoesNotExist_matter', [$arrData['vorname']], 'contao_default'),
                     'howToFix' => $this->translator->trans('ERR.sacOidcLoginError_userDoesNotExist_howToFix', [], 'contao_default'),
                     'explain'  => $this->translator->trans('ERR.sacOidcLoginError_userDoesNotExist_explain', [], 'contao_default'),
                 ];
-            }else{
+            }
+            else
+            {
                 $arrError = [
-                    'matter'   => $this->translator->trans('ERR.sacOidcLoginError_backendUserNotFound_matter', [$arrData['vorname']], 'contao_default'),
+                    'matter' => $this->translator->trans('ERR.sacOidcLoginError_backendUserNotFound_matter', [$arrData['vorname']], 'contao_default'),
                     //'howToFix' => $this->translator->trans('ERR.sacOidcLoginError_backendUserNotFound_howToFix', [], 'contao_default'),
                     //'explain'  => $this->translator->trans('ERR.sacOidcLoginError_backendUserNotFound_explain', [], 'contao_default'),
                 ];
             }
-
 
             $flashBagKey = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.flash_bag_key');
             $this->session->getFlashBag()->add($flashBagKey, $arrError);
