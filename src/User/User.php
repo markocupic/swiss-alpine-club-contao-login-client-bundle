@@ -229,7 +229,7 @@ class User
             $objUser->uuid = $arrData['sub'];
             $objUser->lastname = $arrData['familienname'];
             $objUser->firstname = $arrData['vorname'];
-            $objUser->name = $arrData['name'];
+            $objUser->name = $arrData['vorname'] . ' ' . $arrData['familienname'];
             $objUser->street = $arrData['strasse'];
             $objUser->city = $arrData['ort'];
             $objUser->postal = $arrData['plz'];
