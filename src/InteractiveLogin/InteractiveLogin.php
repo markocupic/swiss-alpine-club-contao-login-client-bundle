@@ -193,7 +193,7 @@ class InteractiveLogin
         {
             if (null !== ($objUser = MemberModel::findByUsername($user->username)))
             {
-                $objUser->lastLogin = time();
+                $objUser->lastLogin = $objUser->currentLogin;
                 $objUser->currentLogin = time();
                 $objUser->save();
             }
@@ -204,7 +204,7 @@ class InteractiveLogin
         {
             if (null !== ($objUser = UserModel::findByUsername($user->username)))
             {
-                $objUser->lastLogin = time();
+                $objUser->lastLogin = $objUser->currentLogin;
                 $objUser->currentLogin = time();
                 $objUser->save();
             }
