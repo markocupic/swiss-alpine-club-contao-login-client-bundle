@@ -25,7 +25,6 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Translation\TranslatorInterface;
-use Symfony\Component\Yaml\Tests\B;
 
 /**
  * Class User
@@ -256,8 +255,6 @@ class User
         $objUser = MemberModel::findByUsername($arrData['contact_number']);
         if ($objUser !== null)
         {
-            $objUser->login = '1';
-            $objUser->disable = '';
             $objUser->mobile = $arrData['telefonmobil'];
             $objUser->phone = $arrData['telefonp'];
             $objUser->uuid = $arrData['sub'];
@@ -309,7 +306,6 @@ class User
         $objUser = UserModel::findOneBySacMemberId($arrData['contact_number']);
         if ($objUser !== null)
         {
-            $objUser->disable = '';
             $objUser->mobile = $arrData['telefonmobil'];
             $objUser->phone = $arrData['telefonp'];
             $objUser->uuid = $arrData['sub'];
