@@ -149,35 +149,6 @@ class InteractiveLogin
 
         $user = $userProvider->loadUserByUsername($username);
 
-        if ($user instanceof FrontendUser)
-        {
-            if (null !== ($objUser = MemberModel::findByUsername($user->username)))
-            {
-                $objUser->disable = '';
-                $objUser->login = '1';
-                $objUser->locked = 0;
-                $objUser->save();
-            }
-        }
-
-        if ($user instanceof BackendUser)
-        {
-            if (null !== ($objUser = UserModel::findByUsername($user->username)))
-            {
-                $objUser->locked = 0;
-                $objUser->save();
-            }
-        }
-
-        // Refresh user
-        $user = $userProvider->refreshUser($user);
-
-        // Check if account is locked
-        // Check if account is disabled
-        // Check if Login is allowed
-        // Check if account is active
-        $this->userChecker->checkPreAuth($user);
-
         $token = new UsernamePasswordToken($user, null, $providerKey, $user->getRoles());
         $this->tokenStorage->setToken($token);
 

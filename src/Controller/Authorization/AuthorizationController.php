@@ -24,7 +24,6 @@ use Markocupic\SwissAlpineClubContaoLoginClientBundle\User\RemoteUser;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\User\User;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Routing\Annotation\Route;
 
@@ -87,11 +86,12 @@ class AuthorizationController extends AbstractController
     }
 
     /**
-     * @return Response
-     * @throws \Exception
+     * Login frontend user
+     * @throws \Markocupic\SwissAlpineClubContaoLoginClientBundle\Exception\AppCheckFailedException
+     * @throws \Markocupic\SwissAlpineClubContaoLoginClientBundle\Exception\InvalidRequestTokenException
      * @Route("/ssoauth/frontend", name="swiss_alpine_club_sso_login_frontend", defaults={"_scope" = "frontend", "_token_check" = false})
      */
-    public function frontendUserAuthenticationAction(): Response
+    public function frontendUserAuthenticationAction()
     {
         /** @var Controller $controllerAdapter */
         $controllerAdapter = $this->framework->getAdapter(Controller::class);
@@ -117,41 +117,49 @@ class AuthorizationController extends AbstractController
             $this->remoteUser->create($arrData, $userClass);
             //$this->remoteUser->create($this->remoteUser->getMockUserData(false), $userClass); // Should end in an error message
 
+            // Check if uuid/sub is set
+            $this->remoteUser->checkHasUuid();
+
             // Check if user is SAC member
             $this->remoteUser->checkIsSacMember();
 
             // Check if user is member of an allowed section
             $this->remoteUser->checkIsMemberInAllowedSection();
 
-            // Check if username is valid
-            $this->remoteUser->checkHasValidUsername();
-
             // Check has valid email address
+            // This test should be always positive,
+            // because email is mandatory
             $this->remoteUser->checkHasValidEmail();
 
             // Create User if it not exists
             $this->user->createIfNotExists($this->remoteUser, $userClass);
 
-            // Update user
-            $this->user->updateUser($this->remoteUser, $userClass);
-
             // Check if user exists
             $this->user->checkUserExists($this->remoteUser, $userClass);
+
+            // Allow login: set tl_member.disable = ''
+            $this->user->enableLogin($this->remoteUser, $userClass);
+
+            // Set tl_member.locked=0
+            $this->user->unlock($this->remoteUser, $userClass);
 
             // Set tl_member.login='1'
             $this->user->activateLogin($this->remoteUser, $userClass);
 
-            // Set tl_member.locked=0 or tl_user.locked=0
-            $this->user->unlock($this->remoteUser, $userClass);
+            // Update user
+            $this->user->updateUser($this->remoteUser, $userClass);
 
-            // log in user
+            // Check if tl_member.disable == '' & tl_member.locked == 0 & tl_member.login == '1'
+            $this->user->checkIsLoginAllowed($this->remoteUser, $userClass);
+
+            // Log in user
             $this->interactiveLogin->login($this->remoteUser, $userClass);
 
             $jumpToPath = $session->get('targetPath');
             $session->clear();
 
-            // All ok. User is logged in redirect to target page!!!
-
+            // All ok. User has logged in
+            // Let's redirect to target page now
             $controllerAdapter->redirect($jumpToPath);
         }
         else
@@ -165,11 +173,12 @@ class AuthorizationController extends AbstractController
     }
 
     /**
-     * @return Response
-     * @throws \Exception
+     * Login backend user
+     * @throws \Markocupic\SwissAlpineClubContaoLoginClientBundle\Exception\AppCheckFailedException
+     * @throws \Markocupic\SwissAlpineClubContaoLoginClientBundle\Exception\InvalidRequestTokenException
      * @Route("/ssoauth/backend", name="swiss_alpine_club_sso_login_backend", defaults={"_scope" = "backend", "_token_check" = false})
      */
-    public function backendUserAuthenticationAction(): Response
+    public function backendUserAuthenticationAction()
     {
         /** @var Controller $controllerAdapter */
         $controllerAdapter = $this->framework->getAdapter(Controller::class);
@@ -193,7 +202,9 @@ class AuthorizationController extends AbstractController
             $arrData = $session->get('arrData');
 
             $this->remoteUser->create($arrData, $userClass);
-            //$this->remoteUser->create($this->remoteUser->getMockUserData(false), $userClass); // Should end in an error message
+
+            // Check if uuid/sub is set
+            $this->remoteUser->checkHasUuid();
 
             // Check if user is SAC member
             $this->remoteUser->checkIsSacMember();
@@ -201,38 +212,37 @@ class AuthorizationController extends AbstractController
             // Check if user is member of an allowed section
             $this->remoteUser->checkIsMemberInAllowedSection();
 
-            // Check if username is valid
-            $this->remoteUser->checkHasValidUsername();
-
             // Check has valid email address
+            // This test should be always positive,
+            // because email is mandatory
             $this->remoteUser->checkHasValidEmail();
 
             // Create User if it not exists
             //$this->user->createIfNotExists($this->remoteUser, $userClass);
 
-            // Update user
-            $this->user->updateUser($this->remoteUser, $userClass);
-
             // Check if user exists
             $this->user->checkUserExists($this->remoteUser, $userClass);
 
-            // Check if user is has been disabled
-            $this->user->checkUserIsDisabled($this->remoteUser, $userClass);
+            // Allow login: set tl_user.disable = ''
+            //$this->user->enableLogin($this->remoteUser, $userClass);
 
-            // Set tl_member.login='1'
-            //$this->user->activateLogin($this->remoteUser, $userClass);
+            // Set tl_user.locked=0
+            $this->user->unlock($this->remoteUser, $userClass);
 
-            // Set tl_member.locked=0 or tl_user.locked=0
-            //$this->user->unlock($this->remoteUser, $userClass);
+            // Update user
+            $this->user->updateUser($this->remoteUser, $userClass);
 
-            // log in user
+            // Check if tl_user.disable == '' & tl_user.locked == 0
+            $this->user->checkIsLoginAllowed($this->remoteUser, $userClass);
+
+            // Log in user
             $this->interactiveLogin->login($this->remoteUser, $userClass);
 
             $jumpToPath = $session->get('targetPath');
             $session->clear();
 
-            // All ok. User is logged in redirect to target page!!!
-
+            // All ok. User has logged in
+            // Let's redirect to target page now
             $controllerAdapter->redirect($jumpToPath);
         }
         else
@@ -246,15 +256,16 @@ class AuthorizationController extends AbstractController
     }
 
     /**
-     * @return Response
+     * @return JsonResponse
      * @Route("/ssoauth/send_logout_endpoint", name="swiss_alpine_club_sso_login_send_logout_endpoint")
      */
-    public function sendLogoutEndpointAction(): Response
+    public function sendLogoutEndpointAction(): JsonResponse
     {
         $data = [
             'success'             => 'true',
             'logout_endpoint_url' => Config::get('SAC_SSO_LOGIN_URL_LOGOUT'),
         ];
+
         return new JsonResponse($data);
     }
 

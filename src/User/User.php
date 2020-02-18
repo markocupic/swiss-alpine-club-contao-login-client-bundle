@@ -25,6 +25,7 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Translation\TranslatorInterface;
+use Symfony\Component\Yaml\Tests\B;
 
 /**
  * Class User
@@ -84,35 +85,7 @@ class User
 
         if ($userClass === BackendUser::class)
         {
-            // Do not create backend user automatically
-            //$this->createBackendUserIfNotExists($remoteUser);
-        }
-    }
-
-    /**
-     * @param RemoteUser $remoteUser
-     * @param string $userClass
-     */
-    public function checkUserIsDisabled(RemoteUser $remoteUser, string $userClass): void
-    {
-        $arrData = $remoteUser->getData();
-
-        $model = $userClass === BackendUser::class ? UserModel::findByUsername($remoteUser->get('contao_username')) : MemberModel::findByUsername($remoteUser->get('contao_username'));
-
-        if (null !== ($model))
-        {
-            if ($model->disable)
-            {
-                $arrError = [
-                    'matter'  => $this->translator->trans('ERR.sacOidcLoginError_accountDisabled_matter', [$arrData['vorname']], 'contao_default'),
-                    //'howToFix' => $this->translator->trans('ERR.sacOidcLoginError_accountDisabled_howToFix', [], 'contao_default'),
-                    'explain' => $this->translator->trans('ERR.sacOidcLoginError_accountDisabled_explain', [], 'contao_default'),
-                ];
-                $flashBagKey = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.flash_bag_key');
-                $this->session->getFlashBag()->add($flashBagKey, $arrError);
-                $bagName = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.attribute_bag_name');
-                Controller::redirect($this->session->getBag($bagName)->get('failurePath'));
-            }
+            $this->createBackendUserIfNotExists($remoteUser);
         }
     }
 
@@ -158,6 +131,119 @@ class User
         {
             $this->updateFrontendUser($remoteUser);
         }
+    }
+
+    /**
+     * @param RemoteUser $remoteUser
+     * @param string $userClass
+     */
+    public function checkUserExists(RemoteUser $remoteUser, string $userClass)
+    {
+        $arrData = $remoteUser->getData();
+        if (!isset($arrData) || empty($arrData['contact_number']) || !$this->userExists($remoteUser, $userClass))
+        {
+            if ($userClass === FrontendUser::class)
+            {
+                $arrError = [
+                    'matter'   => $this->translator->trans('ERR.sacOidcLoginError_userDoesNotExist_matter', [$arrData['vorname']], 'contao_default'),
+                    'howToFix' => $this->translator->trans('ERR.sacOidcLoginError_userDoesNotExist_howToFix', [], 'contao_default'),
+                    'explain'  => $this->translator->trans('ERR.sacOidcLoginError_userDoesNotExist_explain', [], 'contao_default'),
+                ];
+            }
+            else
+            {
+                $arrError = [
+                    'matter' => $this->translator->trans('ERR.sacOidcLoginError_backendUserNotFound_matter', [$arrData['vorname']], 'contao_default'),
+                    //'howToFix' => $this->translator->trans('ERR.sacOidcLoginError_backendUserNotFound_howToFix', [], 'contao_default'),
+                    //'explain'  => $this->translator->trans('ERR.sacOidcLoginError_backendUserNotFound_explain', [], 'contao_default'),
+                ];
+            }
+
+            $flashBagKey = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.flash_bag_key');
+            $this->session->getFlashBag()->add($flashBagKey, $arrError);
+            $bagName = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.attribute_bag_name');
+            Controller::redirect($this->session->getBag($bagName)->get('failurePath'));
+        }
+    }
+
+    /**
+     * @param RemoteUser $remoteUser
+     * @param string $userClass
+     * @return bool
+     */
+    public function userExists(RemoteUser $remoteUser, string $userClass): bool
+    {
+        $username = $remoteUser->get('contao_username');
+
+        // Get username from sac member id
+        if ($userClass === BackendUser::class)
+        {
+            if (null !== ($objUser = UserModel::findByUsername($username)))
+            {
+                $username = $objUser->username;
+                $remoteUser->username = $username;
+                return true;
+            }
+        }
+
+        if ($userClass === FrontendUser::class)
+        {
+            if (null !== ($objUser = MemberModel::findByUsername($username)))
+            {
+                $username = $objUser->username;
+                $remoteUser->username = $username;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     *
+     * @param RemoteUser $remoteUser
+     * @param string $userClass
+     * @return bool
+     */
+    public function checkIsLoginAllowed(RemoteUser $remoteUser, string $userClass)
+    {
+        if ($userClass === FrontendUser::class)
+        {
+            $arrData = $remoteUser->getData();
+            $objUser = MemberModel::findByUsername($arrData['contao_username']);
+            if ($objUser !== null)
+            {
+                if ($objUser->login && !$objUser->disable && $objUser->locked == 0)
+                {
+                    return;
+                }
+            }
+        }
+
+        if ($userClass === BackendUser::class)
+        {
+            $arrData = $remoteUser->getData();
+            $objUser = UserModel::findByUsername($arrData['contao_username']);
+            if ($objUser !== null)
+            {
+                if (!$objUser->disable && $objUser->locked == 0)
+                {
+                    return;
+                }
+            }
+        }
+
+        $arrError = [
+            'matter'  => $this->translator->trans('ERR.sacOidcLoginError_accountDisabled_matter', [$arrData['vorname']], 'contao_default'),
+            //'howToFix' => $this->translator->trans('ERR.sacOidcLoginError_accountDisabled_howToFix', [], 'contao_default'),
+            'explain' => $this->translator->trans('ERR.sacOidcLoginError_accountDisabled_explain', [], 'contao_default'),
+        ];
+        $flashBagKey = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.flash_bag_key');
+        $this->session->getFlashBag()->add($flashBagKey, $arrError);
+        $bagName = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.attribute_bag_name');
+        Controller::redirect($this->session->getBag($bagName)->get('failurePath'));
+
+        return true;
     }
 
     /**
@@ -283,35 +369,32 @@ class User
     }
 
     /**
+     * Enable login
      * @param RemoteUser $remoteUser
      * @param string $userClass
      */
-    public function checkUserExists(RemoteUser $remoteUser, string $userClass)
+    public function enableLogin(RemoteUser $remoteUser, string $userClass)
     {
-        $arrData = $remoteUser->getData();
-        if (!isset($arrData) || empty($arrData['contact_number']) || !$this->userExists($remoteUser, $userClass))
+        if ($userClass === FrontendUser::class)
         {
-            if ($userClass === FrontendUser::class)
+            $arrData = $remoteUser->getData();
+            $objUser = MemberModel::findByUsername($arrData['contao_username']);
+            if ($objUser !== null)
             {
-                $arrError = [
-                    'matter'   => $this->translator->trans('ERR.sacOidcLoginError_userDoesNotExist_matter', [$arrData['vorname']], 'contao_default'),
-                    'howToFix' => $this->translator->trans('ERR.sacOidcLoginError_userDoesNotExist_howToFix', [], 'contao_default'),
-                    'explain'  => $this->translator->trans('ERR.sacOidcLoginError_userDoesNotExist_explain', [], 'contao_default'),
-                ];
+                $objUser->disable = '';
+                $objUser->save();
             }
-            else
-            {
-                $arrError = [
-                    'matter' => $this->translator->trans('ERR.sacOidcLoginError_backendUserNotFound_matter', [$arrData['vorname']], 'contao_default'),
-                    //'howToFix' => $this->translator->trans('ERR.sacOidcLoginError_backendUserNotFound_howToFix', [], 'contao_default'),
-                    //'explain'  => $this->translator->trans('ERR.sacOidcLoginError_backendUserNotFound_explain', [], 'contao_default'),
-                ];
-            }
+        }
 
-            $flashBagKey = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.flash_bag_key');
-            $this->session->getFlashBag()->add($flashBagKey, $arrError);
-            $bagName = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.attribute_bag_name');
-            Controller::redirect($this->session->getBag($bagName)->get('failurePath'));
+        if ($userClass === BackendUser::class)
+        {
+            $arrData = $remoteUser->getData();
+            $objUser = UserModel::findByUsername($arrData['contao_username']);
+            if ($objUser !== null)
+            {
+                $objUser->disable = '';
+                $objUser->save();
+            }
         }
     }
 
@@ -363,36 +446,4 @@ class User
         }
     }
 
-    /**
-     * @param RemoteUser $remoteUser
-     * @param string $userClass
-     * @return bool
-     */
-    public function userExists(RemoteUser $remoteUser, string $userClass): bool
-    {
-        $username = $remoteUser->get('contao_username');
-
-        // Get username from sac member id
-        if ($userClass === BackendUser::class)
-        {
-            if (null !== ($objUser = UserModel::findByUsername($username)))
-            {
-                $username = $objUser->username;
-                $remoteUser->username = $username;
-                return true;
-            }
-        }
-
-        if ($userClass === FrontendUser::class)
-        {
-            if (null !== ($objUser = MemberModel::findByUsername($username)))
-            {
-                $username = $objUser->username;
-                $remoteUser->username = $username;
-                return true;
-            }
-        }
-
-        return false;
-    }
 }

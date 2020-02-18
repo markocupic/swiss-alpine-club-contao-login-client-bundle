@@ -132,11 +132,31 @@ class RemoteUser
     }
 
     /**
+     * Check if remote user has a valid uuid/sub
+     */
+    public function checkHasUuid(): void
+    {
+        if (empty($this->get('sub')))
+        {
+            $arrError = [
+                'matter'   => $this->translator->trans('ERR.sacOidcLoginError_invalidUuid_matter', [], 'contao_default'),
+                'howToFix' => $this->translator->trans('ERR.sacOidcLoginError_invalidUuid_howToFix', [], 'contao_default'),
+                //'explain' => $this->translator->trans('ERR.sacOidcLoginError_invalidUuid_explain', [], 'contao_default'),
+            ];
+
+            $flashBagKey = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.flash_bag_key');
+            $this->session->getFlashBag()->add($flashBagKey, $arrError);
+            $bagName = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.attribute_bag_name');
+            Controller::redirect($this->session->getBag($bagName)->get('failurePath'));
+        }
+    }
+
+    /**
      * Check if remote user is SAC member
      */
     public function checkIsSacMember(): void
     {
-        if (empty($this->get('contact_number')) || empty($this->get('Roles')) || empty($this->get('contact_number')) || empty($this->get('sub')))
+        if (empty($this->get('contact_number')) || empty($this->get('Roles')) || empty($this->get('sub')))
         {
             $arrError = [
                 'matter'   => $this->translator->trans('ERR.sacOidcLoginError_userIsNotSacMember_matter', [$this->get('vorname')], 'contao_default'),
@@ -174,26 +194,6 @@ class RemoteUser
     }
 
     /**
-     * Validate username
-     */
-    public function checkHasValidUsername(): void
-    {
-        if (empty($this->get('contact_number') || !$this->user->isValidUsername($this->get('contact_number'))))
-        {
-            $arrError = [
-                'matter'   => $this->translator->trans('ERR.sacOidcLoginError_invalidUsername_matter', [], 'contao_default'),
-                'howToFix' => $this->translator->trans('ERR.sacOidcLoginError_invalidUsername_howToFix', [], 'contao_default'),
-                //'explain' => $this->translator->trans('ERR.sacOidcLoginError_invalidUsername_explain', [], 'contao_default'),
-            ];
-
-            $flashBagKey = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.flash_bag_key');
-            $this->session->getFlashBag()->add($flashBagKey, $arrError);
-            $bagName = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.attribute_bag_name');
-            Controller::redirect($this->session->getBag($bagName)->get('failurePath'));
-        }
-    }
-
-    /**
      * Check for a valid email address
      */
     public function checkHasValidEmail(): void
@@ -213,6 +213,7 @@ class RemoteUser
     }
 
     /**
+     * Return array with club ids
      * @return array
      */
     public function getGroupMembership(): array
@@ -222,13 +223,13 @@ class RemoteUser
         $arrClubIds = explode(',', Config::get('SAC_EVT_SAC_SECTION_IDS'));
         if ($strRoles !== null && !empty($strRoles))
         {
-            foreach ($arrClubIds as $arrClubId)
+            foreach ($arrClubIds as $clubId)
             {
                 // Search for NAV_MITGLIED_S00004250 or NAV_MITGLIED_S00004251, etc.
-                $pattern = '/NAV_MITGLIED_S([0])+' . $arrClubId . '/';
+                $pattern = '/NAV_MITGLIED_S([0])+' . $clubId . '/';
                 if (preg_match($pattern, $strRoles))
                 {
-                    $arrMembership[] = $arrClubId;
+                    $arrMembership[] = $clubId;
                 }
             }
         }
@@ -239,7 +240,7 @@ class RemoteUser
      * @param bool $isMember
      * @return array
      */
-    public function getMockUserData($isMember = true): array
+    public function getMockUserData(bool $isMember = true): array
     {
         if ($isMember === true)
         {

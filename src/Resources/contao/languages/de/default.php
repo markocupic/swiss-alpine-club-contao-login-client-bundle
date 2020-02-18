@@ -42,9 +42,9 @@ $GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_userIsNotMemberOfAllowedSection_ma
 $GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_userIsNotMemberOfAllowedSection_howToFix'] = 'Um von allen Services auf unserem Online-Portal zu profitieren, {{br}}- kannst du eine Zusatzmitgliedschaft bei SAC Pilatus abschliessen, {{br}}- oder einen Sektionswechsel zu SAC Pilatus beantragen.{{br}}{{br}}Dazu darfst du dich sehr gerne bei unserer Geschäftsstelle melden.';
 $GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_userIsNotMemberOfAllowedSection_explain'] = '';
 
-$GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_invalidUsername_matter'] = 'Hallo{{br}}Schön bist du hier. Leider hat die Überprüfung deiner vom Identity Provider an uns übermittelten Daten fehlgeschlagen.';
-$GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_invalidUsername_howToFix'] = 'Bitte überprüfe die Richtigkeit deiner Eingaben.';
-$GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_invalidUsername_explain'] = '';
+$GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_invalidUuid_matter'] = 'Hallo{{br}}Schön bist du hier. Leider hat die Überprüfung deiner vom Identity Provider an uns übermittelten Daten fehlgeschlagen. Es wurde keine uuid übermittelt.';
+$GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_invalidUuid_howToFix'] = 'Bitte überprüfe die Richtigkeit deiner Eingaben.';
+$GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_invalidUuid_explain'] = '';
 
 $GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_invalidEmail_matter'] = 'Hallo %s{{br}}Schön bist du hier. Leider hat die Überprüfung deiner vom Identity Provider an uns übermittelten Daten fehlgeschlagen.';
 $GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_invalidEmail_howToFix'] = 'Du hast noch keine gültige E-Mail-Adresse hinterlegt. Bitte logge dich auf https:://www.sac-cas.ch mit deinem Account ein und hinterlege deine E-Mail-Adresse.';
