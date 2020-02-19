@@ -8,6 +8,10 @@
  * @link https://github.com/markocupic/swiss-alpine-club-contao-login-client-bundle
  */
 
+// Legends
+$GLOBALS['TL_LANG']['tl_settings']['sac_sso_login_settings'] = ['SAC single sign on Einstellungen'];
+
+// Fields
 $GLOBALS['TL_LANG']['tl_settings']['SAC_SSO_LOGIN_CLIENT_ID'] = ['SAC_SSO_LOGIN: CLIENT_ID'];
 $GLOBALS['TL_LANG']['tl_settings']['SAC_SSO_LOGIN_CLIENT_SECRET'] = ['SAC_SSO_LOGIN: CLIENT_SECRET'];
 $GLOBALS['TL_LANG']['tl_settings']['SAC_SSO_LOGIN_REDIRECT_URI_FRONTEND'] = ['SAC_SSO_LOGIN: REDIRECT_URI_FRONTEND'];
