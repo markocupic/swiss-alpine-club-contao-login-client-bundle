@@ -147,8 +147,9 @@ class AuthorizationController extends AbstractController
             // Set tl_member.login='1'
             $this->user->activateLogin();
 
-            // Update user
-            $this->user->updateUser();
+            // Update tl_member and tl_user
+            $this->user->updateFrontendUser();
+            $this->user->updateBackendUser();
 
             // Check if tl_member.disable == '' & tl_member.locked == 0 & tl_member.login == '1'
             $this->user->checkIsLoginAllowed();
@@ -233,8 +234,9 @@ class AuthorizationController extends AbstractController
             // Set tl_user.locked=0
             $this->user->unlock();
 
-            // Update user
-            $this->user->updateUser();
+            // Update tl_member and tl_user
+            $this->user->updateFrontendUser();
+            $this->user->updateBackendUser();
 
             // Check if tl_user.disable == '' & tl_user.locked == 0
             $this->user->checkIsLoginAllowed();

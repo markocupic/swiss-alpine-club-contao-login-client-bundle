@@ -122,12 +122,21 @@ class User
     }
 
     /**
+     * @param string $strTable
      * @return Model|null
      * @throws \Exception
      */
-    public function getModel(): ?Model
+    public function getModel(string $strTable = ''): ?Model
     {
-        if ($this->getContaoScope() === 'frontend')
+        if ($strTable === 'tl_member')
+        {
+            return MemberModel::findByUsername($this->remoteUser->get('contact_number'));
+        }
+        elseif ($strTable === 'tl_user')
+        {
+            return UserModel::findOneBySacMemberId($this->remoteUser->get('contact_number'));
+        }
+        elseif ($this->getContaoScope() === 'frontend')
         {
             return MemberModel::findByUsername($this->remoteUser->get('contact_number'));
         }
@@ -170,7 +179,7 @@ class User
             return;
         }
 
-        if ($this->getModel() === null)
+        if ($this->getModel('tl_member') === null)
         {
             $objNew = new MemberModel();
             $objNew->username = $username;
@@ -179,22 +188,6 @@ class User
             $objNew->dateAdded = time();
             $objNew->tstamp = time();
             $objNew->save();
-            $this->updateFrontendUser();
-        }
-    }
-
-    /**
-     * @throws \Exception
-     */
-    public function updateUser(): void
-    {
-        if ($this->getContaoScope() === 'backend')
-        {
-            $this->updateBackendUser();
-        }
-
-        if ($this->getContaoScope() === 'frontend')
-        {
             $this->updateFrontendUser();
         }
     }
@@ -284,64 +277,58 @@ class User
     }
 
     /**
-     * @param bool $sync
+     * @throws \Exception
      */
-    public function updateFrontendUser(bool $sync = false)
+    public function updateFrontendUser()
     {
         $arrData = $this->remoteUser->getData();
 
-        $objUser = $this->getModel();
-        if ($objUser !== null)
+        $objMember = $this->getModel('tl_member');
+        if ($objMember !== null)
         {
-            $objUser->mobile = $arrData['telefonmobil'];
-            $objUser->phone = $arrData['telefonp'];
-            $objUser->uuid = $arrData['sub'];
-            $objUser->lastname = $arrData['familienname'];
-            $objUser->firstname = $arrData['vorname'];
-            $objUser->street = $arrData['strasse'];
-            $objUser->city = $arrData['ort'];
-            $objUser->postal = $arrData['plz'];
-            $objUser->dateOfBirth = strtotime($arrData['geburtsdatum']) !== false ? strtotime($arrData['geburtsdatum']) : 0;
-            $objUser->gender = $arrData['anredecode'] === 'HERR' ? 'male' : 'female';
-            $objUser->country = strtolower($arrData['land']);
-            $objUser->email = $arrData['email'];
-            $objUser->sectionId = serialize($this->remoteUser->getGroupMembership());
+            $objMember->mobile = $arrData['telefonmobil'];
+            $objMember->phone = $arrData['telefonp'];
+            $objMember->uuid = $arrData['sub'];
+            $objMember->lastname = $arrData['familienname'];
+            $objMember->firstname = $arrData['vorname'];
+            $objMember->street = $arrData['strasse'];
+            $objMember->city = $arrData['ort'];
+            $objMember->postal = $arrData['plz'];
+            $objMember->dateOfBirth = strtotime($arrData['geburtsdatum']) !== false ? strtotime($arrData['geburtsdatum']) : 0;
+            $objMember->gender = $arrData['anredecode'] === 'HERR' ? 'male' : 'female';
+            $objMember->country = strtolower($arrData['land']);
+            $objMember->email = $arrData['email'];
+            $objMember->sectionId = serialize($this->remoteUser->getGroupMembership());
             // Member has to be member of a valid sac section
-            $objUser->isSacMember = count($this->remoteUser->getGroupMembership()) > 0 ? '1' : '';
-            $objUser->tstamp = time();
+            $objMember->isSacMember = count($this->remoteUser->getGroupMembership()) > 0 ? '1' : '';
+            $objMember->tstamp = time();
             // Groups
-            $arrGroups = StringUtil::deserialize($objUser->groups, true);
+            $arrGroups = StringUtil::deserialize($objMember->groups, true);
             $arrAutoGroups = StringUtil::deserialize(Config::get('SAC_SSO_LOGIN_ADD_TO_MEMBER_GROUPS'), true);
-            $objUser->groups = serialize(array_merge($arrGroups, $arrAutoGroups));
+            $objMember->groups = serialize(array_merge($arrGroups, $arrAutoGroups));
 
             // Set random password
-            if (empty($objUser->password))
+            if (empty($objMember->password))
             {
                 $encoder = System::getContainer()->get('security.encoder_factory')->getEncoder(FrontendUser::class);
-                $objUser->password = $encoder->encodePassword(substr(md5((string) rand(900009, 111111111111)), 0, 8), null);
+                $objMember->password = $encoder->encodePassword(substr(md5((string) rand(900009, 111111111111)), 0, 8), null);
             }
 
             // Save
-            $objUser->save();
+            $objMember->save();
 
-            $objUser->refresh();
-
-            // Update Backend User (sync)
-            if (!$sync)
-            {
-                $this->updateBackendUser(true);
-            }
+            $objMember->refresh();
         }
     }
 
     /**
-     * @param bool $sync
+     * @throws \Exception
      */
-    public function updateBackendUser(bool $sync = false)
+    public function updateBackendUser()
     {
         $arrData = $this->remoteUser->getData();
 
-        $objUser = $this->getModel();
+        $objUser = $this->getModel('tl_user');
         if ($objUser !== null)
         {
             $objUser->mobile = $arrData['telefonmobil'];
@@ -371,12 +358,6 @@ class User
             $objUser->save();
 
             $objUser->refresh();
-
-            // Update Frontend User
-            if (!$sync)
-            {
-                $this->updateFrontendUser(true);
-            }
         }
     }
 
