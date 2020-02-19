@@ -9,7 +9,7 @@
  */
 
 // Legends
-$GLOBALS['TL_LANG']['tl_settings']['sac_sso_login_settings'] = ['SAC single sign on Einstellungen'];
+$GLOBALS['TL_LANG']['tl_settings']['sac_sso_login_settings'] = 'SAC single sign on Einstellungen';
 
 // Fields
 $GLOBALS['TL_LANG']['tl_settings']['SAC_SSO_LOGIN_CLIENT_ID'] = ['SAC_SSO_LOGIN: CLIENT_ID'];
