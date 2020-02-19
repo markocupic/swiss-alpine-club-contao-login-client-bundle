@@ -99,8 +99,9 @@ class SwissAlpineClubOidcFrontendLogin extends AbstractFrontendModuleController
         {
             $redirectPage = $model->jumpTo > 0 ? PageModel::findByPk($model->jumpTo) : null;
             $targetPath = $redirectPage instanceof PageModel ? $redirectPage->getAbsoluteUrl() : $this->page->getAbsoluteUrl();
-            $template->targetPath = $targetPath;
-            $template->failurePath = $this->page->getAbsoluteUrl();
+            // Since Contao 4.9 urls are base64 encoded
+            $template->targetPath = base64_encode($targetPath);
+            $template->failurePath = base64_encode($this->page->getAbsoluteUrl());
             $template->login = true;
             $template->btnLbl = empty($model->swiss_alpine_club_oidc_frontend_login_btn_lbl) ? $translator->trans('MSC.loginWithSacSso', [], 'contao_default') : $model->swiss_alpine_club_oidc_frontend_login_btn_lbl;
 

@@ -245,6 +245,7 @@ class AuthorizationController extends AbstractController
             $this->interactiveLogin->login($this->user);
 
             $jumpToPath = $session->get('targetPath');
+
             $session->clear();
 
             // All ok. User has logged in

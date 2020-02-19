@@ -20,7 +20,7 @@
   "require": {
     "php": "^7.1",
     "league/oauth2-client": "^2.4",
-    "contao/core-bundle": "^4.8,<5.0",
+    "contao/core-bundle": "^4.9,<5.0",
     "markocupic/sac-event-tool-bundle": "*"
   },
   "require-dev": {

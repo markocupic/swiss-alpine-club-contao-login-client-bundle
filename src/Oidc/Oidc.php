@@ -118,8 +118,8 @@ class Oidc
             // Validate query params
             $this->checkQueryParams();
 
-            $session->set('targetPath', $request->request->get('targetPath'));
-            $session->set('failurePath', $request->request->get('failurePath'));
+            $session->set('targetPath', base64_decode($request->request->get('targetPath')));
+            $session->set('failurePath', base64_decode($request->request->get('failurePath')));
             if ($request->request->has('moduleId'))
             {
                 $session->set('moduleId', $request->request->get('moduleId'));
