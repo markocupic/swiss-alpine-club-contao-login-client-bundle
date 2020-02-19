@@ -142,6 +142,7 @@ class Oidc
             $session->remove('oauth2state');
 
             $arrError = [
+                'level'    => 'error',
                 'matter'   => $this->translator->trans('ERR.sacOidcLoginError_invalidState_matter', [], 'contao_default'),
                 'howToFix' => $this->translator->trans('ERR.sacOidcLoginError_invalidState_howToFix', [], 'contao_default'),
                 'explain'  => $this->translator->trans('ERR.sacOidcLoginError_invalidState_explain', [], 'contao_default'),
@@ -167,6 +168,7 @@ class Oidc
             {
                 // Failed to get the access token or user details.
                 $arrError = [
+                    'level'    => 'error',
                     'matter'   => $this->translator->trans('ERR.sacOidcLoginError_invalidState_matter', [], 'contao_default'),
                     'howToFix' => $this->translator->trans('ERR.sacOidcLoginError_invalidState_howToFix', [], 'contao_default'),
                     'explain'  => $this->translator->trans('ERR.sacOidcLoginError_invalidState_explain', [], 'contao_default'),

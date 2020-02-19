@@ -12,14 +12,10 @@ declare(strict_types=1);
 
 namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\User;
 
-use Contao\BackendUser;
 use Contao\Config;
 use Contao\Controller;
 use Contao\CoreBundle\Framework\ContaoFramework;
-use Contao\FrontendUser;
-use Contao\MemberModel;
 use Contao\System;
-use Contao\UserModel;
 use Contao\Validator;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Translation\TranslatorInterface;
@@ -52,11 +48,6 @@ class RemoteUser
     private $data = [];
 
     /**
-     * @var string
-     */
-    private $userClass;
-
-    /**
      * @var TranslatorInterface
      */
     private $translator;
@@ -80,32 +71,12 @@ class RemoteUser
 
     /**
      * @param array $arrData
-     * @param string $userClass
      */
-    public function create(array $arrData, string $userClass)
+    public function create(array $arrData)
     {
-        $this->userClass = $userClass;
         foreach ($arrData as $k => $v)
         {
             $this->data[$k] = $v;
-        }
-
-        // Get username from sac member id
-        if ($this->userClass === BackendUser::class)
-        {
-            if (null !== ($objUser = UserModel::findBySacMemberId($arrData['contact_number'])))
-            {
-                $this->data['contao_username'] = $objUser->username;
-            }
-        }
-
-        // Get username from sac member id
-        if ($this->userClass === FrontendUser::class)
-        {
-            if (null !== ($objUser = MemberModel::findBySacMemberId($arrData['contact_number'])))
-            {
-                $this->data['contao_username'] = $objUser->username;
-            }
         }
     }
 
@@ -139,6 +110,7 @@ class RemoteUser
         if (empty($this->get('sub')))
         {
             $arrError = [
+                'level'    => 'warning',
                 'matter'   => $this->translator->trans('ERR.sacOidcLoginError_invalidUuid_matter', [], 'contao_default'),
                 'howToFix' => $this->translator->trans('ERR.sacOidcLoginError_invalidUuid_howToFix', [], 'contao_default'),
                 //'explain' => $this->translator->trans('ERR.sacOidcLoginError_invalidUuid_explain', [], 'contao_default'),
@@ -159,6 +131,7 @@ class RemoteUser
         if (empty($this->get('contact_number')) || empty($this->get('Roles')) || empty($this->get('sub')))
         {
             $arrError = [
+                'level'    => 'warning',
                 'matter'   => $this->translator->trans('ERR.sacOidcLoginError_userIsNotSacMember_matter', [$this->get('vorname')], 'contao_default'),
                 'howToFix' => $this->translator->trans('ERR.sacOidcLoginError_userIsNotSacMember_howToFix', [], 'contao_default'),
                 //'explain' => $this->translator->trans('ERR.sacOidcLoginError_userIsNotSacMember_explain', [], 'contao_default'),
@@ -183,6 +156,7 @@ class RemoteUser
         }
 
         $arrError = [
+            'level'    => 'warning',
             'matter'   => $this->translator->trans('ERR.sacOidcLoginError_userIsNotMemberOfAllowedSection_matter', [$this->get('vorname')], 'contao_default'),
             'howToFix' => $this->translator->trans('ERR.sacOidcLoginError_userIsNotMemberOfAllowedSection_howToFix', [], 'contao_default'),
             //'explain' => $this->translator->trans('ERR.sacOidcLoginError_userIsNotMemberOfAllowedSection_explain', [], 'contao_default'),
@@ -201,6 +175,7 @@ class RemoteUser
         if (empty($this->get('email')) || !Validator::isEmail($this->get('email')))
         {
             $arrError = [
+                'level'    => 'warning',
                 'matter'   => $this->translator->trans('ERR.sacOidcLoginError_invalidEmail_matter', [$this->get('vorname')], 'contao_default'),
                 'howToFix' => $this->translator->trans('ERR.sacOidcLoginError_invalidEmail_howToFix', [], 'contao_default'),
                 'explain'  => $this->translator->trans('ERR.sacOidcLoginError_invalidEmail_explain', [], 'contao_default'),

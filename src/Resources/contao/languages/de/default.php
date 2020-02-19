@@ -14,6 +14,8 @@
 $GLOBALS['TL_LANG']['MSC']['loginWithSacSso'] = 'Mit SAC Login anmelden';
 
 // Error management
+$GLOBALS['TL_LANG']['MSC']['infoMatter'] = 'Information';
+$GLOBALS['TL_LANG']['MSC']['warningMatter'] = 'Warnung';
 $GLOBALS['TL_LANG']['MSC']['errorMatter'] = 'Fehlermeldung';
 $GLOBALS['TL_LANG']['MSC']['errorHowToFix'] = 'Was kann ich tun?';
 $GLOBALS['TL_LANG']['MSC']['errorExplain'] = 'Erklärung';
@@ -34,11 +36,11 @@ $GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_backendUserNotFound_matter'] = 'Ha
 $GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_backendUserNotFound_howToFix'] = '';
 $GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_backendUserNotFound_explain'] = '';
 
-$GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_userIsNotSacMember_matter'] = 'Hallo %s{{br}}Schön bist du hier. Leider hat dein Loginversuch nicht geklappt, weil du nicht Mitglied der SAC Sektion Pilatus zu sein scheinst.';
+$GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_userIsNotSacMember_matter'] = 'Hallo %s{{br}}Schön bist du hier. Leider hat dein Loginversuch nicht geklappt, weil du kein Mitglied der SAC Sektion Pilatus zu sein scheinst.';
 $GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_userIsNotSacMember_howToFix'] = 'Um von allen Services auf unserem Online-Portal zu profitieren, {{br}}- kannst du eine Zusatzmitgliedschaft bei SAC Pilatus abschliessen, {{br}}- oder einen Sektionswechsel zu SAC Pilatus beantragen.{{br}}{{br}}Dazu darfst du dich sehr gerne bei unserer Geschäftsstelle melden.';
 $GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_userIsNotSacMember_explain'] = '';
 
-$GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_userIsNotMemberOfAllowedSection_matter'] = 'Hallo %s{{br}}Schön bist du hier. Leider hat dein Loginversuch nicht geklappt, weil du nicht Mitglied der SAC Sektion Pilatus zu sein scheinst.';
+$GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_userIsNotMemberOfAllowedSection_matter'] = 'Hallo %s{{br}}Schön bist du hier. Leider hat dein Loginversuch nicht geklappt, weil du kein Mitglied der SAC Sektion Pilatus zu sein scheinst.';
 $GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_userIsNotMemberOfAllowedSection_howToFix'] = 'Um von allen Services auf unserem Online-Portal zu profitieren, {{br}}- kannst du eine Zusatzmitgliedschaft bei SAC Pilatus abschliessen, {{br}}- oder einen Sektionswechsel zu SAC Pilatus beantragen.{{br}}{{br}}Dazu darfst du dich sehr gerne bei unserer Geschäftsstelle melden.';
 $GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_userIsNotMemberOfAllowedSection_explain'] = '';
 

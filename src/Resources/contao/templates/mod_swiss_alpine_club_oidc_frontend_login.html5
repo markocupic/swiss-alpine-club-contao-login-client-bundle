@@ -20,11 +20,11 @@
 </form>
 
 <?php if($this->error): ?>
-<div class="trigger-ids-kill-session sac-oidc-error error alert alert-dark mt-4">
+<div class="trigger-ids-kill-session sac-oidc-error error alert alert-<?= $this->error['bs-alert-class'] ?> mt-4">
 
     <?php if($this->error['matter'] != ''): ?>
     <div class="errorMatterBox mb-3">
-        <h6 class="error-title mt-0"><?= $this->trans('MSC.errorMatter', [], 'contao_default') ?></h6>
+        <h6 class="error-title mt-0"><?= $this->trans('MSC.' . $this->error['level'] . 'Matter', [], 'contao_default') ?></h6>
         <p class="errorMatter small"><?= $this->error['matter'] ?></p>
     </div>
     <?php endif; ?>

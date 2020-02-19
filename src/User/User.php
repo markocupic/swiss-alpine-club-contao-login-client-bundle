@@ -18,6 +18,7 @@ use Contao\Controller;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\FrontendUser;
 use Contao\MemberModel;
+use Contao\Model;
 use Contao\StringUtil;
 use Contao\System;
 use Contao\UserModel;
@@ -54,6 +55,16 @@ class User
     private $translator;
 
     /**
+     * @var RemoteUser
+     */
+    public $remoteUser;
+
+    /**
+     * @var string
+     */
+    private $contaoScope;
+
+    /**
      * User constructor.
      * @param ContaoFramework $framework
      * @param Session $session
@@ -73,27 +84,85 @@ class User
 
     /**
      * @param RemoteUser $remoteUser
-     * @param string $userClass
+     * @param string $scope
+     * @throws \Exception
      */
-    public function createIfNotExists(RemoteUser $remoteUser, string $userClass): void
+    public function initialize(RemoteUser $remoteUser, string $scope)
     {
-        if ($userClass === FrontendUser::class)
+        $this->remoteUser = &$remoteUser;
+        $this->setContaoScope($scope);
+    }
+
+    /**
+     * @param string $scope
+     * @throws \Exception
+     */
+    private function setContaoScope(string $scope)
+    {
+        $arrScopes = ['frontend', 'backend'];
+        if (!in_array(strtolower($scope), $arrScopes))
         {
-            $this->createFrontendUserIfNotExists($remoteUser);
+            throw new \Exception('Parameter "$scope" should be either "frontend" or "backend".');
         }
 
-        if ($userClass === BackendUser::class)
+        $this->contaoScope = strtolower($scope);
+    }
+
+    /**
+     * @return null|string
+     * @throws \Exception
+     */
+    public function getContaoScope(): ?string
+    {
+        if (empty($this->contaoScope))
         {
-            $this->createBackendUserIfNotExists($remoteUser);
+            throw new \Exception('No contao scope set.');
+        }
+        return $this->contaoScope;
+    }
+
+    /**
+     * @return Model|null
+     * @throws \Exception
+     */
+    public function getModel(): ?Model
+    {
+        if ($this->getContaoScope() === 'frontend')
+        {
+            return MemberModel::findByUsername($this->remoteUser->get('contact_number'));
+        }
+        elseif ($this->getContaoScope() === 'backend')
+        {
+            return UserModel::findOneBySacMemberId($this->remoteUser->get('contact_number'));
+        }
+        else
+        {
+            return null;
         }
     }
 
     /**
-     * @param RemoteUser $remoteUser
+     * @throws \Exception
      */
-    private function createFrontendUserIfNotExists(RemoteUser $remoteUser)
+    public function createIfNotExists(): void
     {
-        $arrData = $remoteUser->getData();
+        if ($this->getContaoScope() === 'frontend')
+        {
+            $this->createFrontendUserIfNotExists();
+        }
+
+        if ($this->getContaoScope() === 'backend')
+        {
+            throw new \Exception('Auto-Creating Backend User is not allowed.');
+        }
+    }
+
+    /**
+     * @throws \Exception
+     */
+    private function createFrontendUserIfNotExists()
+    {
+        $arrData = $this->remoteUser->getData();
         $username = preg_replace('/^0+/', '', $arrData['contact_number']);
         $uuid = $arrData['sub'];
         if (!$this->isValidUsername($username))
@@ -101,8 +170,7 @@ class User
             return;
         }
 
-        $objUser = MemberModel::findByUsername($username);
-        if ($objUser === null)
+        if ($this->getModel() === null)
         {
             $objNew = new MemberModel();
             $objNew->username = $username;
@@ -111,39 +179,38 @@ class User
             $objNew->dateAdded = time();
             $objNew->tstamp = time();
             $objNew->save();
-            $this->updateFrontendUser($remoteUser);
+            $this->updateFrontendUser();
         }
     }
 
     /**
-     * @param RemoteUser $remoteUser
-     * @param string $userClass
+     * @throws \Exception
      */
-    public function updateUser(RemoteUser $remoteUser, string $userClass): void
+    public function updateUser(): void
     {
-        if ($userClass === BackendUser::class)
+        if ($this->getContaoScope() === 'backend')
         {
-            $this->updateBackendUser($remoteUser);
+            $this->updateBackendUser();
         }
 
-        if ($userClass === FrontendUser::class)
+        if ($this->getContaoScope() === 'frontend')
         {
-            $this->updateFrontendUser($remoteUser);
+            $this->updateFrontendUser();
         }
     }
 
     /**
-     * @param RemoteUser $remoteUser
-     * @param string $userClass
+     * @throws \Exception
      */
-    public function checkUserExists(RemoteUser $remoteUser, string $userClass)
+    public function checkUserExists()
     {
-        $arrData = $remoteUser->getData();
-        if (!isset($arrData) || empty($arrData['contact_number']) || !$this->userExists($remoteUser, $userClass))
+        $arrData = $this->remoteUser->getData();
+        if (!isset($arrData) || empty($arrData['contact_number']) || !$this->userExists())
         {
-            if ($userClass === FrontendUser::class)
+            if ($this->$this->getContaoScope() === 'frontend')
             {
                 $arrError = [
+                    'level'    => 'warning',
                     'matter'   => $this->translator->trans('ERR.sacOidcLoginError_userDoesNotExist_matter', [$arrData['vorname']], 'contao_default'),
                     'howToFix' => $this->translator->trans('ERR.sacOidcLoginError_userDoesNotExist_howToFix', [], 'contao_default'),
                     'explain'  => $this->translator->trans('ERR.sacOidcLoginError_userDoesNotExist_explain', [], 'contao_default'),
@@ -152,6 +219,7 @@ class User
             else
             {
                 $arrError = [
+                    'level'  => 'warning',
                     'matter' => $this->translator->trans('ERR.sacOidcLoginError_backendUserNotFound_matter', [$arrData['vorname']], 'contao_default'),
                     //'howToFix' => $this->translator->trans('ERR.sacOidcLoginError_backendUserNotFound_howToFix', [], 'contao_default'),
                     //'explain'  => $this->translator->trans('ERR.sacOidcLoginError_backendUserNotFound_explain', [], 'contao_default'),
@@ -166,66 +234,37 @@ class User
     }
 
     /**
-     * @param RemoteUser $remoteUser
-     * @param string $userClass
      * @return bool
+     * @throws \Exception
      */
-    public function userExists(RemoteUser $remoteUser, string $userClass): bool
+    public function userExists(): bool
     {
-        $username = $remoteUser->get('contao_username');
-
-        // Get username from sac member id
-        if ($userClass === BackendUser::class)
+        if (null !== $this->getModel())
         {
-            if (null !== ($objUser = UserModel::findByUsername($username)))
-            {
-                $username = $objUser->username;
-                $remoteUser->username = $username;
-                return true;
-            }
-        }
-
-        if ($userClass === FrontendUser::class)
-        {
-            if (null !== ($objUser = MemberModel::findByUsername($username)))
-            {
-                $username = $objUser->username;
-                $remoteUser->username = $username;
-                return true;
-            }
+            return true;
         }
 
         return false;
     }
 
     /**
-     *
-     * @param RemoteUser $remoteUser
-     * @param string $userClass
-     * @return bool
+     * @throws \Exception
      */
-    public function checkIsLoginAllowed(RemoteUser $remoteUser, string $userClass)
+    public function checkIsLoginAllowed()
     {
-        if ($userClass === FrontendUser::class)
+        if (($model = $this->getModel()) !== null)
         {
-            $arrData = $remoteUser->getData();
-            $objUser = MemberModel::findByUsername($arrData['contao_username']);
-            if ($objUser !== null)
+            if ($this->getContaoScope() === 'frontend')
             {
-                if ($objUser->login && !$objUser->disable && $objUser->locked == 0)
+                if ($model->login && !$model->disable && $model->locked == 0)
                 {
                     return;
                 }
             }
-        }
 
-        if ($userClass === BackendUser::class)
-        {
-            $arrData = $remoteUser->getData();
-            $objUser = UserModel::findByUsername($arrData['contao_username']);
-            if ($objUser !== null)
+            if ($this->getContaoScope() === 'backend')
             {
-                if (!$objUser->disable && $objUser->locked == 0)
+                if (!$model->disable && $model->locked == 0)
                 {
                     return;
                 }
@@ -233,7 +272,8 @@ class User
         }
 
         $arrError = [
-            'matter'  => $this->translator->trans('ERR.sacOidcLoginError_accountDisabled_matter', [$arrData['vorname']], 'contao_default'),
+            'level'   => 'warning',
+            'matter'  => $this->translator->trans('ERR.sacOidcLoginError_accountDisabled_matter', [$this->remoteUser->get('vorname')], 'contao_default'),
             //'howToFix' => $this->translator->trans('ERR.sacOidcLoginError_accountDisabled_howToFix', [], 'contao_default'),
             'explain' => $this->translator->trans('ERR.sacOidcLoginError_accountDisabled_explain', [], 'contao_default'),
         ];
@@ -241,18 +281,16 @@ class User
         $this->session->getFlashBag()->add($flashBagKey, $arrError);
         $bagName = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.attribute_bag_name');
         Controller::redirect($this->session->getBag($bagName)->get('failurePath'));
-
-        return true;
     }
 
     /**
-     * @param RemoteUser $remoteUser
      * @param bool $sync
      */
-    public function updateFrontendUser(RemoteUser $remoteUser, bool $sync = false)
+    public function updateFrontendUser(bool $sync = false)
     {
-        $arrData = $remoteUser->getData();
-        $objUser = MemberModel::findByUsername($arrData['contact_number']);
+        $arrData = $this->remoteUser->getData();
+
+        $objUser = $this->getModel();
         if ($objUser !== null)
         {
             $objUser->mobile = $arrData['telefonmobil'];
@@ -267,9 +305,9 @@ class User
             $objUser->gender = $arrData['anredecode'] === 'HERR' ? 'male' : 'female';
             $objUser->country = strtolower($arrData['land']);
             $objUser->email = $arrData['email'];
-            $objUser->sectionId = serialize($remoteUser->getGroupMembership());
+            $objUser->sectionId = serialize($this->remoteUser->getGroupMembership());
             // Member has to be member of a valid sac section
-            $objUser->isSacMember = count($remoteUser->getGroupMembership()) > 0 ? '1' : '';
+            $objUser->isSacMember = count($this->remoteUser->getGroupMembership()) > 0 ? '1' : '';
             $objUser->tstamp = time();
             // Groups
             $arrGroups = StringUtil::deserialize($objUser->groups, true);
@@ -291,18 +329,17 @@ class User
             // Update Backend User (sync)
             if (!$sync)
             {
-                $this->updateBackendUser($remoteUser, true);
+                $this->updateBackendUser(true);
             }
         }
     }
 
     /**
-     * @param RemoteUser $remoteUser
      * @param bool $sync
      */
-    public function updateBackendUser(RemoteUser $remoteUser, bool $sync = false)
+    public function updateBackendUser(bool $sync = false)
     {
-        $arrData = $remoteUser->getData();
+        $arrData = $this->remoteUser->getData();
         $objUser = UserModel::findOneBySacMemberId($arrData['contact_number']);
         if ($objUser !== null)
         {
@@ -319,7 +356,7 @@ class User
             $objUser->gender = $arrData['anredecode'] === 'HERR' ? 'male' : 'female';
             $objUser->country = strtolower($arrData['land']);
             $objUser->email = $arrData['email'];
-            $objUser->sectionId = serialize($remoteUser->getGroupMembership());
+            $objUser->sectionId = serialize($this->remoteUser->getGroupMembership());
             $objUser->tstamp = time();
 
             // Set random password
@@ -337,7 +374,7 @@ class User
             // Update Frontend User
             if (!$sync)
             {
-                $this->updateFrontendUser($remoteUser, true);
+                $this->updateFrontendUser(true);
             }
         }
     }
@@ -365,80 +402,46 @@ class User
     }
 
     /**
-     * Enable login
-     * @param RemoteUser $remoteUser
-     * @param string $userClass
+     * @throws \Exception
      */
-    public function enableLogin(RemoteUser $remoteUser, string $userClass)
+    public function enableLogin()
     {
-        if ($userClass === FrontendUser::class)
+        if (($model = $this->getModel()) !== null)
         {
-            $arrData = $remoteUser->getData();
-            $objUser = MemberModel::findByUsername($arrData['contao_username']);
-            if ($objUser !== null)
-            {
-                $objUser->disable = '';
-                $objUser->save();
-            }
-        }
-
-        if ($userClass === BackendUser::class)
-        {
-            $arrData = $remoteUser->getData();
-            $objUser = UserModel::findByUsername($arrData['contao_username']);
-            if ($objUser !== null)
-            {
-                $objUser->disable = '';
-                $objUser->save();
-            }
+            $model->disable = '';
+            $model->save();
+            $model->refresh();
         }
     }
 
     /**
-     * @param RemoteUser $remoteUser
-     * @param string $userClass
+     * @throws \Exception
      */
-    public function activateLogin(RemoteUser $remoteUser, string $userClass)
+    public function activateLogin()
     {
-        $username = $remoteUser->get('contao_username');
-        if ($userClass !== FrontendUser::class)
+        if ($this->getContaoScope() !== 'frontend')
         {
             return;
         }
 
-        if (null !== ($objMember = MemberModel::findByUsername($username)))
+        if (($model = $this->getModel()) !== null)
         {
-            $objMember->login = '1';
-            $objMember->save();
+            $model->login = '1';
+            $model->save();
+            $model->refresh();
         }
     }
 
     /**
-     * @param RemoteUser $remoteUser
-     * @param $userClass
+     * @throws \Exception
      */
-    public function unlock(RemoteUser $remoteUser, string $userClass)
+    public function unlock()
     {
-        $username = $remoteUser->get('contao_username');
-
-        if ($userClass === BackendUser::class)
+        if (($model = $this->getModel()) !== null)
         {
-            if (null !== ($objUser = UserModel::findByUsername($username)))
-            {
-                $objUser->locked = 0;
-                $objUser->save();
-            }
-            return;
-        }
-
-        if ($userClass === FrontendUser::class)
-        {
-            if (null !== ($objMember = MemberModel::findByUsername($username)))
-            {
-                $objMember->locked = 0;
-                $objMember->save();
-            }
-            return;
+            $model->locked = 0;
+            $model->save();
+            $model->refresh();
         }
     }
 

@@ -15,8 +15,6 @@ namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\Authoriza
 use Contao\Config;
 use Contao\Controller;
 use Contao\CoreBundle\Framework\ContaoFramework;
-use Contao\BackendUser;
-use Contao\FrontendUser;
 use Contao\System;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\InteractiveLogin\InteractiveLogin;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Oidc\Oidc;
@@ -99,7 +97,7 @@ class AuthorizationController extends AbstractController
         /** @var System $systemAdapter */
         $systemAdapter = $this->framework->getAdapter(System::class);
 
-        $userClass = FrontendUser::class;
+        $contaoScope = 'frontend';
 
         $bagName = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.attribute_bag_name');
 
@@ -114,8 +112,8 @@ class AuthorizationController extends AbstractController
         {
             $arrData = $session->get('arrData');
 
-            $this->remoteUser->create($arrData, $userClass);
-            //$this->remoteUser->create($this->remoteUser->getMockUserData(false), $userClass); // Should end in an error message
+            $this->remoteUser->create($arrData);
+            //$this->remoteUser->create($this->remoteUser->getMockUserData(false)); // Should end in an error message
 
             // Check if uuid/sub is set
             $this->remoteUser->checkHasUuid();
@@ -131,29 +129,32 @@ class AuthorizationController extends AbstractController
             // because email is mandatory
             $this->remoteUser->checkHasValidEmail();
 
+            // Initialize user
+            $this->user->initialize($this->remoteUser, $contaoScope);
+
             // Create User if it not exists
-            $this->user->createIfNotExists($this->remoteUser, $userClass);
+            $this->user->createIfNotExists();
 
             // Check if user exists
-            $this->user->checkUserExists($this->remoteUser, $userClass);
+            $this->user->checkUserExists();
 
             // Allow login: set tl_member.disable = ''
-            $this->user->enableLogin($this->remoteUser, $userClass);
+            $this->user->enableLogin();
 
             // Set tl_member.locked=0
-            $this->user->unlock($this->remoteUser, $userClass);
+            $this->user->unlock();
 
             // Set tl_member.login='1'
-            $this->user->activateLogin($this->remoteUser, $userClass);
+            $this->user->activateLogin();
 
             // Update user
-            $this->user->updateUser($this->remoteUser, $userClass);
+            $this->user->updateUser();
 
             // Check if tl_member.disable == '' & tl_member.locked == 0 & tl_member.login == '1'
-            $this->user->checkIsLoginAllowed($this->remoteUser, $userClass);
+            $this->user->checkIsLoginAllowed();
 
             // Log in user
-            $this->interactiveLogin->login($this->remoteUser, $userClass);
+            $this->interactiveLogin->login($this->user);
 
             $jumpToPath = $session->get('targetPath');
             $session->clear();
@@ -186,7 +187,7 @@ class AuthorizationController extends AbstractController
         /** @var System $systemAdapter */
         $systemAdapter = $this->framework->getAdapter(System::class);
 
-        $userClass = BackendUser::class;
+        $contaoScope = 'backend';
 
         $bagName = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.attribute_bag_name');
 
@@ -201,7 +202,7 @@ class AuthorizationController extends AbstractController
         {
             $arrData = $session->get('arrData');
 
-            $this->remoteUser->create($arrData, $userClass);
+            $this->remoteUser->create($arrData);
 
             // Check if uuid/sub is set
             $this->remoteUser->checkHasUuid();
@@ -217,26 +218,29 @@ class AuthorizationController extends AbstractController
             // because email is mandatory
             $this->remoteUser->checkHasValidEmail();
 
-            // Create User if it not exists
-            //$this->user->createIfNotExists($this->remoteUser, $userClass);
+            // Initialize user
+            $this->user->initialize($this->remoteUser, $contaoScope);
+
+            // Create User if it not exists is yet not allowed!
+            //$this->user->createIfNotExists();
 
             // Check if user exists
-            $this->user->checkUserExists($this->remoteUser, $userClass);
+            $this->user->checkUserExists();
 
             // Allow login: set tl_user.disable = ''
-            //$this->user->enableLogin($this->remoteUser, $userClass);
+            //$this->user->enableLogin();
 
             // Set tl_user.locked=0
-            $this->user->unlock($this->remoteUser, $userClass);
+            $this->user->unlock();
 
             // Update user
-            $this->user->updateUser($this->remoteUser, $userClass);
+            $this->user->updateUser();
 
             // Check if tl_user.disable == '' & tl_user.locked == 0
-            $this->user->checkIsLoginAllowed($this->remoteUser, $userClass);
+            $this->user->checkIsLoginAllowed();
 
             // Log in user
-            $this->interactiveLogin->login($this->remoteUser, $userClass);
+            $this->interactiveLogin->login($this->user);
 
             $jumpToPath = $session->get('targetPath');
             $session->clear();

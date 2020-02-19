@@ -14,11 +14,11 @@
 
 
 	<?php if($this->error): ?>
-	<div class="trigger-ids-kill-session sac-oidc-error error backend">
+	<div class="trigger-ids-kill-session sac-oidc-error <?= $this->error['level'] ?> backend">
 
 		<?php if($this->error['matter'] != ''): ?>
 		<div class="errorMatterBox mb-3">
-			<h7 class="error-title mt-0"><?= $this->trans('MSC.errorMatter', [], 'contao_default') ?></h7>
+			<h7 class="error-title mt-0"><?= $this->trans('MSC.' . $this->error['level'] . 'Matter', [], 'contao_default') ?></h7>
 			<p class="errorMatter small"><?= $this->error['matter'] ?></p>
 		</div>
 		<?php endif; ?>

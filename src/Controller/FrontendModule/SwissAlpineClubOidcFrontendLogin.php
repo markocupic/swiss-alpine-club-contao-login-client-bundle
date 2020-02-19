@@ -112,6 +112,10 @@ class SwissAlpineClubOidcFrontendLogin extends AbstractFrontendModuleController
                 $arrError = [];
                 foreach ($flashBag[0] as $k => $v)
                 {
+                    if ($k === 'level')
+                    {
+                        $arrError['bs-alert-class'] = ($v === 'error') ? 'danger' : $v;
+                    }
                     $arrError[$k] = $v;
                 }
                 $template->error = $arrError;
