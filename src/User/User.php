@@ -340,7 +340,8 @@ class User
     public function updateBackendUser(bool $sync = false)
     {
         $arrData = $this->remoteUser->getData();
-        $objUser = UserModel::findOneBySacMemberId($arrData['contact_number']);
+
+        $objUser = $this->getModel();
         if ($objUser !== null)
         {
             $objUser->mobile = $arrData['telefonmobil'];
