@@ -98,6 +98,9 @@ class AuthorizationController extends AbstractController
         /** @var System $systemAdapter */
         $systemAdapter = $this->framework->getAdapter(System::class);
 
+        /** @var ModuleModel $moduleModelAdapter */
+        $moduleModelAdapter = $this->framework->getAdapter(ModuleModel::class);
+
         $contaoScope = 'frontend';
 
         $bagName = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.attribute_bag_name');
@@ -107,9 +110,6 @@ class AuthorizationController extends AbstractController
 
         // Set redirect uri
         $this->oidc->setProviderData(['redirectUri' => Config::get('SAC_SSO_LOGIN_REDIRECT_URI_FRONTEND')]);
-
-        $model = $session->get('moduleId');
-
 
         // Run the authorisation code flow
         if ($this->oidc->runOpenIdConnectFlow())
@@ -164,7 +164,7 @@ class AuthorizationController extends AbstractController
 
             // Add predefined frontend groups to contao frontend user
             // The groups have to be predefined in the frontend module settings
-            $moduleModel = ModuleModel::findByPk($session->get('moduleId'));
+            $moduleModel = $moduleModelAdapter->findByPk($session->get('moduleId'));
             $this->user->addFrontendGroups($moduleModel);
 
             $jumpToPath = $session->get('targetPath');
