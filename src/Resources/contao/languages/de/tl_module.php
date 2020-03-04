@@ -13,3 +13,4 @@ $GLOBALS['TL_LANG']['tl_module']['button_legend'] = 'Button Einstellungen';
 
 // Fields
 $GLOBALS['TL_LANG']['tl_module']['swiss_alpine_club_oidc_frontend_login_btn_lbl'] = ['Button Label', 'Nutze dieses Feld, wenn du das Default-Label überschreiben möchtest.'];
+$GLOBALS['TL_LANG']['tl_module']['swiss_alpine_club_oidc_add_to_fe_groups'] = ['Frontend Member automatisch diesen Mitgliedergruppen zuweisen', 'Geben Sie an, welchen Mitgliedergruppen Frontend Benutzer beim Login zugeordnet werden sollen.'];

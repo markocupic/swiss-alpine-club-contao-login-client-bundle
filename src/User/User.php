@@ -19,6 +19,7 @@ use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\FrontendUser;
 use Contao\MemberModel;
 use Contao\Model;
+use Contao\ModuleModel;
 use Contao\StringUtil;
 use Contao\System;
 use Contao\UserModel;
@@ -358,6 +359,26 @@ class User
             $objUser->save();
 
             $objUser->refresh();
+        }
+    }
+
+    /**
+     * @param ModuleModel $model
+     * @throws \Exception
+     */
+    public function addFrontendGroups(ModuleModel $model)
+    {
+        // Add groups
+        $objUser = $this->getModel('tl_member');
+        if ($objUser !== null)
+        {
+            $arrMemberGroups = StringUtil::deserialize($objUser->groups, true);
+            $arrGroupsToAdd = StringUtil::deserialize($model->swiss_alpine_club_oidc_add_to_fe_groups, true);
+            $arrGroups = array_merge($arrMemberGroups, $arrGroupsToAdd);
+            $arrGroups = array_unique($arrGroups);
+            $arrGroups = array_filter($arrGroups);
+            $objUser->groups = serialize($arrGroups);
+            $objUser->save();
         }
     }
 

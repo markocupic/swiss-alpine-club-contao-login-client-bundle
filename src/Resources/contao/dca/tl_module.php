@@ -8,7 +8,7 @@
  * @link https://github.com/markocupic/swiss-alpine-club-contao-login-client-bundle
  */
 
-$GLOBALS['TL_DCA']['tl_module']['palettes']['swiss_alpine_club_oidc_frontend_login'] = '{title_legend},name,headline,type;{button_legend},swiss_alpine_club_oidc_frontend_login_btn_lbl;{redirect_legend},jumpTo,redirectBack;{template_legend:hide},customTpl;{protected_legend:hide},protected;{expert_legend:hide},guests,cssID';
+$GLOBALS['TL_DCA']['tl_module']['palettes']['swiss_alpine_club_oidc_frontend_login'] = '{title_legend},name,headline,type;{button_legend},swiss_alpine_club_oidc_frontend_login_btn_lbl;{redirect_legend},jumpTo,redirectBack;{account_legend},swiss_alpine_club_oidc_add_to_fe_groups;{template_legend:hide},customTpl;{protected_legend:hide},protected;{expert_legend:hide},guests,cssID';
 
 // Fields
 $GLOBALS['TL_DCA']['tl_module']['fields']['swiss_alpine_club_oidc_frontend_login_btn_lbl'] = [
@@ -19,4 +19,13 @@ $GLOBALS['TL_DCA']['tl_module']['fields']['swiss_alpine_club_oidc_frontend_login
     'inputType' => 'text',
     'eval'      => ['mandatory' => false, 'maxlength' => 255, 'tl_class' => 'w50'],
     'sql'       => "varchar(255) NOT NULL default ''"
+];
+
+$GLOBALS['TL_DCA']['tl_module']['fields']['swiss_alpine_club_oidc_add_to_fe_groups'] = [
+    'exclude'                 => true,
+    'inputType'               => 'checkbox',
+    'foreignKey'              => 'tl_member_group.name',
+    'eval'                    => array('multiple'=>true),
+    'sql'                     => "blob NULL",
+    'relation'                => array('type'=>'hasMany', 'load'=>'lazy')
 ];

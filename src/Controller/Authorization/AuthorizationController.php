@@ -15,6 +15,7 @@ namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\Authoriza
 use Contao\Config;
 use Contao\Controller;
 use Contao\CoreBundle\Framework\ContaoFramework;
+use Contao\ModuleModel;
 use Contao\System;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\InteractiveLogin\InteractiveLogin;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Oidc\Oidc;
@@ -107,9 +108,13 @@ class AuthorizationController extends AbstractController
         // Set redirect uri
         $this->oidc->setProviderData(['redirectUri' => Config::get('SAC_SSO_LOGIN_REDIRECT_URI_FRONTEND')]);
 
+        $model = $session->get('moduleId');
+
+
         // Run the authorisation code flow
         if ($this->oidc->runOpenIdConnectFlow())
         {
+
             $arrData = $session->get('arrData');
 
             $this->remoteUser->create($arrData);
@@ -156,6 +161,11 @@ class AuthorizationController extends AbstractController
 
             // Log in user
             $this->interactiveLogin->login($this->user);
+
+            // Add predefined frontend groups to contao frontend user
+            // The groups have to be predefined in the frontend module settings
+            $moduleModel = ModuleModel::findByPk($session->get('moduleId'));
+            $this->user->addFrontendGroups($moduleModel);
 
             $jumpToPath = $session->get('targetPath');
             $session->clear();
