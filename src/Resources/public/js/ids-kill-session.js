@@ -37,17 +37,22 @@ window.onload = function () {
      * @param url
      */
     function logout(url) {
-        // Get logout endpoint url
+
+        url = url == '' ? '/' : url;
+
+        // Call contao logout route
+        fetch('/_contao/logout');
+
+        // Get logout endpoint
         fetch('/ssoauth/send_logout_endpoint').then(function (response) {
             return response.json();
         }).then(function (json) {
+            // Logout
             return fetch(json.logout_endpoint_url, {
                 credentials: 'include',
                 mode: 'no-cors'
             }).then(function (response) {
-                if (url !== '') {
-                    window.location.href = url;
-                }
+                window.location.href = url;
             }).catch(function () {
                 window.location.href = url;
             });
