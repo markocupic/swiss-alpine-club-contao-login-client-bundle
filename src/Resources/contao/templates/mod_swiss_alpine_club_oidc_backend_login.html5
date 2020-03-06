@@ -1,5 +1,8 @@
 <div id="mod_swiss_alpine_club_oidc_backend_login">
 
+	<div class="login-button-separator-container">
+		<div class="login-button-separator">oder</div>
+	</div>
 
 	<form action="/<?= $this->route('swiss_alpine_club_sso_login_backend') ?>" id="sac-oidc-login-be" method="post">
 		<div class="formbody">

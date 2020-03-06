@@ -29,6 +29,26 @@
     margin-top: 10px;
     margin: 10px 0 15px 0;
 }
+#mod_swiss_alpine_club_oidc_backend_login .login-button-separator-container {
+    margin-bottom: 32px;
+}
+#mod_swiss_alpine_club_oidc_backend_login .login-button-separator-container .login-button-separator {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    color: #c6c6c6;
+}
+#mod_swiss_alpine_club_oidc_backend_login .login-button-separator-container .login-button-separator::before, #mod_swiss_alpine_club_oidc_backend_login .login-button-separator-container .login-button-separator::after {
+    content: "";
+    flex: 1;
+    border-bottom: 1px solid #d4d4d4;
+}
+#mod_swiss_alpine_club_oidc_backend_login .login-button-separator-container .login-button-separator::before {
+    margin-right: 0.75em;
+}
+#mod_swiss_alpine_club_oidc_backend_login .login-button-separator-container .login-button-separator::after {
+    margin-left: 0.75em;
+}
 #mod_swiss_alpine_club_oidc_backend_login .beta {
     font-size: 0.825rem;
     display: block;

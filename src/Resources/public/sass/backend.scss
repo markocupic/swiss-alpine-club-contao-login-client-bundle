@@ -33,6 +33,28 @@
     }
   }
 
+  .login-button-separator-container {
+    margin-bottom: 20px;
+    .login-button-separator {
+      display: flex;
+      align-items: center;
+      text-align: center;
+      color: #c6c6c6;
+    }
+    .login-button-separator::before, .login-button-separator::after {
+      content: '';
+      flex: 1;
+      border-bottom: 1px solid #d4d4d4;
+    }
+    .login-button-separator::before {
+      margin-right: .75em;
+    }
+    .login-button-separator::after {
+      margin-left: .75em;
+    }
+
+  }
+
   .beta {
     font-size: .825rem;
     display: block;
@@ -40,3 +62,4 @@
   }
 
 }
+
