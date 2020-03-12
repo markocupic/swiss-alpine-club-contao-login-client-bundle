@@ -14,9 +14,11 @@ namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\FrontendM
 
 use Contao\CoreBundle\Controller\FrontendModule\AbstractFrontendModuleController;
 use Contao\CoreBundle\Framework\ContaoFramework;
+use Contao\Environment;
 use Contao\FrontendUser;
 use Contao\ModuleModel;
 use Contao\PageModel;
+use Contao\StringUtil;
 use Contao\System;
 use Contao\Template;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Authorization\AuthorizationHelper;
@@ -97,11 +99,16 @@ class SwissAlpineClubOidcFrontendLogin extends AbstractFrontendModuleController
         }
         else
         {
-            $redirectPage = $model->jumpTo > 0 ? PageModel::findByPk($model->jumpTo) : null;
-            $targetPath = $redirectPage instanceof PageModel ? $redirectPage->getAbsoluteUrl() : $this->page->getAbsoluteUrl();
+            $strRedirect = Environment::get('base') . Environment::get('request');
+            if (!$model->redirectBack && $model->jumpTo > 0)
+            {
+                $redirectPage = PageModel::findByPk($model->jumpTo);
+                $strRedirect = $redirectPage instanceof PageModel ? $redirectPage->getAbsoluteUrl() : $strRedirect;
+            }
+
             // Since Contao 4.9 urls are base64 encoded
-            $template->targetPath = base64_encode($targetPath);
-            $template->failurePath = base64_encode($this->page->getAbsoluteUrl());
+            $template->targetPath = StringUtil::specialchars(base64_encode($strRedirect));
+            $template->failurePath = StringUtil::specialchars(base64_encode($strRedirect));
             $template->login = true;
             $template->btnLbl = empty($model->swiss_alpine_club_oidc_frontend_login_btn_lbl) ? $translator->trans('MSC.loginWithSacSso', [], 'contao_default') : $model->swiss_alpine_club_oidc_frontend_login_btn_lbl;
 
