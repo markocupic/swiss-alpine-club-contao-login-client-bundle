@@ -16,9 +16,8 @@
       "role": "Developer"
     }
   ],
-  "version": "1.0",
   "require": {
-    "php": "^7.1",
+    "php": "^7.3",
     "league/oauth2-client": "^2.4",
     "contao/core-bundle": "^4.9,<5.0",
     "markocupic/sac-event-tool-bundle": "*"
