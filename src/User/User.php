@@ -201,7 +201,7 @@ class User
         $arrData = $this->remoteUser->getData();
         if (!isset($arrData) || empty($arrData['contact_number']) || !$this->userExists())
         {
-            if ($this->$this->getContaoScope() === 'frontend')
+            if ($this->getContaoScope() === 'frontend')
             {
                 $arrError = [
                     'level'    => 'warning',
