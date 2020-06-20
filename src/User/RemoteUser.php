@@ -66,7 +66,6 @@ class RemoteUser
         $this->session = $session;
         $this->translator = $translator;
 
-        // Initializer contao framework
         $this->framework->initialize();
     }
 
