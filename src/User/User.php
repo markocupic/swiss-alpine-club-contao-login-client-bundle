@@ -287,8 +287,8 @@ class User
         $objMember = $this->getModel('tl_member');
         if ($objMember !== null)
         {
-            $objMember->mobile = $arrData['telefonmobil'];
-            $objMember->phone = $arrData['telefonp'];
+            $objMember->mobile = $this->beautifyPhoneNumber($arrData['telefonmobil']);
+            $objMember->phone = $this->beautifyPhoneNumber($arrData['telefonp']);
             $objMember->uuid = $arrData['sub'];
             $objMember->lastname = $arrData['familienname'];
             $objMember->firstname = $arrData['vorname'];
@@ -332,8 +332,8 @@ class User
         $objUser = $this->getModel('tl_user');
         if ($objUser !== null)
         {
-            $objUser->mobile = $arrData['telefonmobil'];
-            $objUser->phone = $arrData['telefonp'];
+            $objUser->mobile = $this->beautifyPhoneNumber($arrData['telefonmobil']);
+            $objUser->phone = $this->beautifyPhoneNumber($arrData['telefonp']);
             $objUser->uuid = $arrData['sub'];
             $objUser->lastname = $arrData['familienname'];
             $objUser->firstname = $arrData['vorname'];
@@ -446,6 +446,37 @@ class User
             $model->save();
             $model->refresh();
         }
+    }
+
+    /**
+     * @param string $strNumber
+     * @return mixed|null|string|string[]
+     */
+    public static function beautifyPhoneNumber($strNumber = '')
+    {
+        if ($strNumber != '')
+        {
+            $strNumber = preg_replace('/\s+/', '', $strNumber);
+            $strNumber = str_replace('+41', '', $strNumber);
+            $strNumber = str_replace('0041', '', $strNumber);
+
+            // Add a leading zero, if there is no f.ex 41
+            if (substr($strNumber, 0, 1) != '0' && strlen($strNumber) === 9)
+            {
+                $strNumber = '0' . $strNumber;
+            }
+
+            // Search for 0799871234 and replace it with 079 987 12 34
+            $pattern = '/^([0]{1})([0-9]{2})([0-9]{3})([0-9]{2})([0-9]{2})$/';
+            if (preg_match($pattern, $strNumber))
+            {
+                $pattern = '/^([0]{1})([0-9]{2})([0-9]{3})([0-9]{2})([0-9]{2})$/';
+                $replace = '$1$2 $3 $4 $5';
+                $strNumber = preg_replace($pattern, $replace, $strNumber);
+            }
+        }
+
+        return $strNumber;
     }
 
 }
