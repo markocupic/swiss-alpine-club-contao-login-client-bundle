@@ -456,7 +456,9 @@ class User
     {
         if ($strNumber != '')
         {
+            // Remove whitespaces
             $strNumber = preg_replace('/\s+/', '', $strNumber);
+            // Remove country code
             $strNumber = str_replace('+41', '', $strNumber);
             $strNumber = str_replace('0041', '', $strNumber);
 
