@@ -2,11 +2,13 @@
 
 declare(strict_types=1);
 
-/**
- * Swiss Alpine Club (SAC) Contao Login Client Bundle
- * Copyright (c) 2008-2020 Marko Cupic
- * @package swiss-alpine-club-contao-login-client-bundle
- * @author Marko Cupic m.cupic@gmx.ch, 2017-2020
+/*
+ * This file is part of Swiss Alpine Club Contao Login Client Bundle.
+ *
+ * (c) Marko Cupic 2021 <m.cupic@gmx.ch>
+ * @license MIT
+ * For the full copyright and license information,
+ * please view the LICENSE file that was distributed with this source code.
  * @link https://github.com/markocupic/swiss-alpine-club-contao-login-client-bundle
  */
 
@@ -17,6 +19,8 @@ use Contao\Controller;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\ModuleModel;
 use Contao\System;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Exception\AppCheckFailedException;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Exception\InvalidRequestTokenException;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\InteractiveLogin\InteractiveLogin;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Oidc\Oidc;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\User\RemoteUser;
@@ -27,12 +31,10 @@ use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
- * Class AuthorizationController
- * @package Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\Authorization
+ * Class AuthorizationController.
  */
 class AuthorizationController extends AbstractController
 {
-
     /**
      * @var ContaoFramework
      */
@@ -65,12 +67,6 @@ class AuthorizationController extends AbstractController
 
     /**
      * AuthorizationController constructor.
-     * @param ContaoFramework $framework
-     * @param Session $session
-     * @param RemoteUser $remoteUser
-     * @param User $user
-     * @param InteractiveLogin $interactiveLogin
-     * @param Oidc $oidc
      */
     public function __construct(ContaoFramework $framework, Session $session, RemoteUser $remoteUser, User $user, InteractiveLogin $interactiveLogin, Oidc $oidc)
     {
@@ -85,12 +81,13 @@ class AuthorizationController extends AbstractController
     }
 
     /**
-     * Login frontend user
-     * @throws \Markocupic\SwissAlpineClubContaoLoginClientBundle\Exception\AppCheckFailedException
-     * @throws \Markocupic\SwissAlpineClubContaoLoginClientBundle\Exception\InvalidRequestTokenException
+     * Login frontend user.
+     *
+     * @throws AppCheckFailedException
+     * @throws InvalidRequestTokenException
      * @Route("/ssoauth/frontend", name="swiss_alpine_club_sso_login_frontend", defaults={"_scope" = "frontend", "_token_check" = false})
      */
-    public function frontendUserAuthenticationAction()
+    public function frontendUserAuthenticationAction(): void
     {
         /** @var Controller $controllerAdapter */
         $controllerAdapter = $this->framework->getAdapter(Controller::class);
@@ -112,9 +109,7 @@ class AuthorizationController extends AbstractController
         $this->oidc->setProviderData(['redirectUri' => Config::get('SAC_SSO_LOGIN_REDIRECT_URI_FRONTEND')]);
 
         // Run the authorisation code flow
-        if ($this->oidc->runOpenIdConnectFlow())
-        {
-
+        if ($this->oidc->runOpenIdConnectFlow()) {
             $arrData = $session->get('arrData');
 
             $this->remoteUser->create($arrData);
@@ -176,9 +171,7 @@ class AuthorizationController extends AbstractController
             // All ok. User has logged in
             // Let's redirect to target page now
             $controllerAdapter->redirect($jumpToPath);
-        }
-        else
-        {
+        } else {
             $errorPage = $session->get('failurePath');
             $arrError = $session->get('lastOidcError', []);
             $flashBagKey = $systemAdapter->getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.flash_bag_key');
@@ -188,12 +181,13 @@ class AuthorizationController extends AbstractController
     }
 
     /**
-     * Login backend user
-     * @throws \Markocupic\SwissAlpineClubContaoLoginClientBundle\Exception\AppCheckFailedException
-     * @throws \Markocupic\SwissAlpineClubContaoLoginClientBundle\Exception\InvalidRequestTokenException
+     * Login backend user.
+     *
+     * @throws AppCheckFailedException
+     * @throws InvalidRequestTokenException
      * @Route("/ssoauth/backend", name="swiss_alpine_club_sso_login_backend", defaults={"_scope" = "backend", "_token_check" = false})
      */
-    public function backendUserAuthenticationAction()
+    public function backendUserAuthenticationAction(): void
     {
         /** @var Controller $controllerAdapter */
         $controllerAdapter = $this->framework->getAdapter(Controller::class);
@@ -212,8 +206,7 @@ class AuthorizationController extends AbstractController
         $this->oidc->setProviderData(['redirectUri' => Config::get('SAC_SSO_LOGIN_REDIRECT_URI_BACKEND')]);
 
         // Run the authorisation code flow
-        if ($this->oidc->runOpenIdConnectFlow())
-        {
+        if ($this->oidc->runOpenIdConnectFlow()) {
             $arrData = $session->get('arrData');
 
             $this->remoteUser->create($arrData);
@@ -267,9 +260,7 @@ class AuthorizationController extends AbstractController
             // All ok. User has logged in
             // Let's redirect to target page now
             $controllerAdapter->redirect($jumpToPath);
-        }
-        else
-        {
+        } else {
             $errorPage = $session->get('failurePath');
             $arrError = $session->get('lastOidcError', []);
             $flashBagKey = $systemAdapter->getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.flash_bag_key');
@@ -279,17 +270,15 @@ class AuthorizationController extends AbstractController
     }
 
     /**
-     * @return JsonResponse
      * @Route("/ssoauth/send_logout_endpoint", name="swiss_alpine_club_sso_login_send_logout_endpoint")
      */
     public function sendLogoutEndpointAction(): JsonResponse
     {
         $data = [
-            'success'             => 'true',
+            'success' => 'true',
             'logout_endpoint_url' => Config::get('SAC_SSO_LOGIN_URL_LOGOUT'),
         ];
 
         return new JsonResponse($data);
     }
-
 }
