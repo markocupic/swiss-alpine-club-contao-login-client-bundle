@@ -443,6 +443,20 @@ class User
         if (($model = $this->getModel()) !== null)
         {
             $model->locked = 0;
+            $model->loginAttempts = 0;
+            $model->save();
+            $model->refresh();
+        }
+    }
+
+    /**
+     * @throws \Exception
+     */
+    public function resetLoginAttempts()
+    {
+        if (($model = $this->getModel()) !== null)
+        {
+            $model->loginAttempts = 0;
             $model->save();
             $model->refresh();
         }
@@ -450,9 +464,9 @@ class User
 
     /**
      * @param string $strNumber
-     * @return mixed|null|string|string[]
+     * @return string
      */
-    public static function beautifyPhoneNumber($strNumber = '')
+    public static function beautifyPhoneNumber($strNumber = ''): string
     {
         if ($strNumber != '')
         {

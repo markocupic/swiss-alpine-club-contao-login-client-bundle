@@ -149,6 +149,9 @@ class AuthorizationController extends AbstractController
             // Set tl_member.locked=0
             $this->user->unlock();
 
+            // Set tl_member.loginAttempts=0
+            $this->user->resetLoginAttempts();
+
             // Set tl_member.login='1'
             $this->user->activateLogin();
 
@@ -243,6 +246,9 @@ class AuthorizationController extends AbstractController
 
             // Set tl_user.locked=0
             $this->user->unlock();
+
+            // Set tl_user.loginAttempts=0
+            $this->user->resetLoginAttempts();
 
             // Update tl_member and tl_user
             $this->user->updateFrontendUser();
