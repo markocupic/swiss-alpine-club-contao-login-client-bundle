@@ -2,11 +2,13 @@
 
 declare(strict_types=1);
 
-/**
- * Swiss Alpine Club (SAC) Contao Login Client Bundle
- * Copyright (c) 2008-2020 Marko Cupic
- * @package swiss-alpine-club-contao-login-client-bundle
- * @author Marko Cupic m.cupic@gmx.ch, 2017-2020
+/*
+ * This file is part of Swiss Alpine Club Contao Login Client Bundle.
+ *
+ * (c) Marko Cupic 2021 <m.cupic@gmx.ch>
+ * @license MIT
+ * For the full copyright and license information,
+ * please view the LICENSE file that was distributed with this source code.
  * @link https://github.com/markocupic/swiss-alpine-club-contao-login-client-bundle
  */
 
@@ -29,12 +31,10 @@ use Symfony\Component\Security\Csrf\CsrfTokenManager;
 use Symfony\Component\Translation\TranslatorInterface;
 
 /**
- * Class Oidc
- * @package Markocupic\SwissAlpineClubContaoLoginClientBundle\Oidc
+ * Class Oidc.
  */
 class Oidc
 {
-
     /**
      * @var ContaoFramework
      */
@@ -67,11 +67,7 @@ class Oidc
 
     /**
      * Oidc constructor.
-     * @param ContaoFramework $framework
-     * @param RequestStack $requestStack
-     * @param Session $session
-     * @param CsrfTokenManager $csrfTokenManager
-     * @param TranslatorInterface $translator
+     *
      * @throws AppCheckFailedException
      */
     public function __construct(ContaoFramework $framework, RequestStack $requestStack, Session $session, CsrfTokenManager $csrfTokenManager, TranslatorInterface $translator)
@@ -92,7 +88,6 @@ class Oidc
     }
 
     /**
-     * @return bool
      * @throws AppCheckFailedException
      * @throws InvalidRequestTokenException
      */
@@ -113,15 +108,14 @@ class Oidc
         $session = $this->session->getBag($bagName);
 
         // If we don't have an authorization code then get one
-        if (!$request->query->has('code'))
-        {
+        if (!$request->query->has('code')) {
             // Validate query params
             $this->checkQueryParams();
 
-            $session->set('targetPath', base64_decode($request->request->get('targetPath')));
-            $session->set('failurePath', base64_decode($request->request->get('failurePath')));
-            if ($request->request->has('moduleId'))
-            {
+            $session->set('targetPath', base64_decode($request->request->get('targetPath'), true));
+            $session->set('failurePath', base64_decode($request->request->get('failurePath'), true));
+
+            if ($request->request->has('moduleId')) {
                 $session->set('moduleId', $request->request->get('moduleId'));
             }
 
@@ -136,110 +130,101 @@ class Oidc
             $controllerAdapter->redirect($authorizationUrl);
             exit;
         }
-        elseif (empty($request->query->get('state')) || ($request->query->get('state') !== $session->get('oauth2state')))
-        {
+
+        if (empty($request->query->get('state')) || ($request->query->get('state') !== $session->get('oauth2state'))) {
             // Check given state against previously stored one to mitigate CSRF attack
             $session->remove('oauth2state');
 
             $arrError = [
-                'level'    => 'error',
-                'matter'   => $this->translator->trans('ERR.sacOidcLoginError_invalidState_matter', [], 'contao_default'),
+                'level' => 'error',
+                'matter' => $this->translator->trans('ERR.sacOidcLoginError_invalidState_matter', [], 'contao_default'),
                 'howToFix' => $this->translator->trans('ERR.sacOidcLoginError_invalidState_howToFix', [], 'contao_default'),
-                'explain'  => $this->translator->trans('ERR.sacOidcLoginError_invalidState_explain', [], 'contao_default'),
+                'explain' => $this->translator->trans('ERR.sacOidcLoginError_invalidState_explain', [], 'contao_default'),
             ];
             $session->set('lastOidcError', $arrError);
+
             return false;
         }
-        else
-        {
-            try
-            {
-                // Try to get an access token using the authorization code grant.
-                $accessToken = $provider->getAccessToken('authorization_code', [
-                    'code' => $request->query->get('code')
-                ]);
 
-                // Get details about the resource owner
-                $resourceOwner = $provider->getResourceOwner($accessToken);
-                $arrData = $resourceOwner->toArray();
-                $session->set('arrData', $arrData);
-                return true;
-            } catch (IdentityProviderException $e)
-            {
-                // Failed to get the access token or user details.
-                $arrError = [
-                    'level'    => 'error',
-                    'matter'   => $this->translator->trans('ERR.sacOidcLoginError_invalidState_matter', [], 'contao_default'),
-                    'howToFix' => $this->translator->trans('ERR.sacOidcLoginError_invalidState_howToFix', [], 'contao_default'),
-                    'explain'  => $this->translator->trans('ERR.sacOidcLoginError_invalidState_explain', [], 'contao_default'),
-                ];
-                $session->set('lastOidcError', $arrError);
-                return false;
-            }
+        try {
+            // Try to get an access token using the authorization code grant.
+            $accessToken = $provider->getAccessToken('authorization_code', [
+                'code' => $request->query->get('code'),
+            ]);
+
+            // Get details about the resource owner
+            $resourceOwner = $provider->getResourceOwner($accessToken);
+            $arrData = $resourceOwner->toArray();
+            $session->set('arrData', $arrData);
+
+            return true;
+        } catch (IdentityProviderException $e) {
+            // Failed to get the access token or user details.
+            $arrError = [
+                'level' => 'error',
+                'matter' => $this->translator->trans('ERR.sacOidcLoginError_invalidState_matter', [], 'contao_default'),
+                'howToFix' => $this->translator->trans('ERR.sacOidcLoginError_invalidState_howToFix', [], 'contao_default'),
+                'explain' => $this->translator->trans('ERR.sacOidcLoginError_invalidState_explain', [], 'contao_default'),
+            ];
+            $session->set('lastOidcError', $arrError);
+
+            return false;
         }
     }
 
-    /**
-     * @return array
-     */
     public function getProviderData(): array
     {
         return $this->providerData;
     }
 
-    /**
-     * Set provider data from config
-     */
-    private function setProviderFromConfig(): void
-    {
-        $this->providerData = [
-            // The client ID assigned to you by the provider
-            'clientId'                => Config::get('SAC_SSO_LOGIN_CLIENT_ID'),
-            // The client password assigned to you by the provider
-            'clientSecret'            => Config::get('SAC_SSO_LOGIN_CLIENT_SECRET'),
-            // Absolute Callbackurl to your system(must be registered by service provider.)
-            'redirectUri'             => Config::get('SAC_SSO_LOGIN_REDIRECT_URI_BACKEND'),
-            'urlAuthorize'            => Config::get('SAC_SSO_LOGIN_URL_AUTHORIZE'),
-            'urlAccessToken'          => Config::get('SAC_SSO_LOGIN_URL_ACCESS_TOKEN'),
-            'urlResourceOwnerDetails' => Config::get('SAC_SSO_LOGIN_URL_RESOURCE_OWNER_DETAILS'),
-            'response_type'           => 'code',
-            'scopes'                  => ['openid'],
-        ];
-    }
-
-    /**
-     * @param array $arrData
-     */
     public function setProviderData(array $arrData): void
     {
         $this->providerData = array_merge($this->providerData, $arrData);
     }
 
     /**
+     * Set provider data from config.
+     */
+    private function setProviderFromConfig(): void
+    {
+        $this->providerData = [
+            // The client ID assigned to you by the provider
+            'clientId' => Config::get('SAC_SSO_LOGIN_CLIENT_ID'),
+            // The client password assigned to you by the provider
+            'clientSecret' => Config::get('SAC_SSO_LOGIN_CLIENT_SECRET'),
+            // Absolute Callbackurl to your system(must be registered by service provider.)
+            'redirectUri' => Config::get('SAC_SSO_LOGIN_REDIRECT_URI_BACKEND'),
+            'urlAuthorize' => Config::get('SAC_SSO_LOGIN_URL_AUTHORIZE'),
+            'urlAccessToken' => Config::get('SAC_SSO_LOGIN_URL_ACCESS_TOKEN'),
+            'urlResourceOwnerDetails' => Config::get('SAC_SSO_LOGIN_URL_RESOURCE_OWNER_DETAILS'),
+            'response_type' => 'code',
+            'scopes' => ['openid'],
+        ];
+    }
+
+    /**
      * @throws AppCheckFailedException
      * @throws InvalidRequestTokenException
      */
-    private function checkQueryParams()
+    private function checkQueryParams(): void
     {
         $request = $this->requestStack->getCurrentRequest();
 
-        if (!$request->request->has('targetPath'))
-        {
+        if (!$request->request->has('targetPath')) {
             // Target path not found in the query string
             $this->sendErrorMessageToBrowser('Login Error: URI parameter "targetPath" not found.');
             exit;
         }
 
-        if (!$request->request->has('failurePath'))
-        {
+        if (!$request->request->has('failurePath')) {
             // Target path not found in the query string
             $this->sendErrorMessageToBrowser('Login Error: URI parameter "failurePath" not found.');
             exit;
         }
 
         $tokenName = System::getContainer()->getParameter('contao.csrf_token_name');
-        if (!$request->request->has('REQUEST_TOKEN') || !$this->csrfTokenManager->isTokenValid(new CsrfToken($tokenName, $request->request->get('REQUEST_TOKEN'))))
-        {
+
+        if (!$request->request->has('REQUEST_TOKEN') || !$this->csrfTokenManager->isTokenValid(new CsrfToken($tokenName, $request->request->get('REQUEST_TOKEN')))) {
             $this->sendErrorMessageToBrowser('Invalid CSRF token. Please reload the page and try again.');
             exit;
         }
@@ -248,7 +233,7 @@ class Oidc
     /**
      * @throws AppCheckFailedException
      */
-    private function checkConfiguration()
+    private function checkConfiguration(): void
     {
         $arrConfigs = [
             // Club ids
@@ -264,23 +249,20 @@ class Oidc
             'SAC_SSO_LOGIN_URL_LOGOUT',
         ];
 
-        foreach ($arrConfigs as $config)
-        {
-            if (empty(Config::get($config)))
-            {
-                throw new AppCheckFailedException('Parameter tl_settings.' . $config . ' not found. Please check the Contao settings');
+        foreach ($arrConfigs as $config) {
+            if (empty(Config::get($config))) {
+                throw new AppCheckFailedException('Parameter tl_settings.'.$config.' not found. Please check the Contao settings');
             }
         }
     }
 
     /**
-     * @param $arrMsg
-     * @return Response
+     * @param $msg
      */
     private function sendErrorMessageToBrowser(string $msg): Response
     {
         $response = new Response($msg, 400);
+
         return $response->send();
     }
-
 }

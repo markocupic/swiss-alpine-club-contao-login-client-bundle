@@ -2,30 +2,31 @@
 
 declare(strict_types=1);
 
-/**
- * Swiss Alpine Club (SAC) Contao Login Client Bundle
- * Copyright (c) 2008-2020 Marko Cupic
- * @package swiss-alpine-club-contao-login-client-bundle
- * @author Marko Cupic m.cupic@gmx.ch, 2017-2020
+/*
+ * This file is part of Swiss Alpine Club Contao Login Client Bundle.
+ *
+ * (c) Marko Cupic 2021 <m.cupic@gmx.ch>
+ * @license MIT
+ * For the full copyright and license information,
+ * please view the LICENSE file that was distributed with this source code.
  * @link https://github.com/markocupic/swiss-alpine-club-contao-login-client-bundle
  */
 
 namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\ContaoManager;
 
-use Contao\ManagerPlugin\Bundle\Config\BundleConfig;
 use Contao\ManagerPlugin\Bundle\BundlePluginInterface;
+use Contao\ManagerPlugin\Bundle\Config\BundleConfig;
 use Contao\ManagerPlugin\Bundle\Parser\ParserInterface;
-use Contao\ManagerPlugin\Routing\RoutingPluginInterface;
-use Symfony\Component\Config\Loader\LoaderResolverInterface;
-use Symfony\Component\HttpKernel\KernelInterface;
 use Contao\ManagerPlugin\Config\ConfigPluginInterface;
-use Symfony\Component\Config\Loader\LoaderInterface;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Contao\ManagerPlugin\Routing\RoutingPluginInterface;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\DependencyInjection\Compiler\AddSessionBagsPass;
+use Symfony\Component\Config\Loader\LoaderInterface;
+use Symfony\Component\Config\Loader\LoaderResolverInterface;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\HttpKernel\KernelInterface;
 
 /**
- * Class Plugin
- * @package Markocupic\SwissAlpineClubContaoLoginClientBundle\ContaoManager
+ * Class Plugin.
  */
 class Plugin implements BundlePluginInterface, RoutingPluginInterface, ConfigPluginInterface
 {
@@ -37,7 +38,7 @@ class Plugin implements BundlePluginInterface, RoutingPluginInterface, ConfigPlu
         return [
             BundleConfig::create('Markocupic\SwissAlpineClubContaoLoginClientBundle\MarkocupicSwissAlpineClubContaoLoginClientBundle')
                 ->setLoadAfter(['Contao\CoreBundle\ContaoCoreBundle'])
-                ->setLoadAfter(['Markocupic\SacEventToolBundle\MarkocupicSacEventToolBundle'])
+                ->setLoadAfter(['Markocupic\SacEventToolBundle\MarkocupicSacEventToolBundle']),
         ];
     }
 
@@ -47,27 +48,26 @@ class Plugin implements BundlePluginInterface, RoutingPluginInterface, ConfigPlu
     public function getRouteCollection(LoaderResolverInterface $resolver, KernelInterface $kernel)
     {
         return $resolver
-            ->resolve(__DIR__ . '/../Resources/config/routing.yml')
-            ->load(__DIR__ . '/../Resources/config/routing.yml');
+            ->resolve(__DIR__.'/../Resources/config/routing.yml')
+            ->load(__DIR__.'/../Resources/config/routing.yml')
+        ;
     }
 
     /**
-     * @param LoaderInterface $loader
-     * @param array $managerConfig
      * @throws \Exception
      */
-    public function registerContainerConfiguration(LoaderInterface $loader, array $managerConfig)
+    public function registerContainerConfiguration(LoaderInterface $loader, array $managerConfig): void
     {
-        $loader->load(__DIR__ . '/../Resources/config/parameters.yml');
-        $loader->load(__DIR__ . '/../Resources/config/listener.yml');
-        $loader->load(__DIR__ . '/../Resources/config/services.yml');
-        $loader->load(__DIR__ . '/../Resources/config/controller-contao-frontend-module.yml');
+        $loader->load(__DIR__.'/../Resources/config/parameters.yml');
+        $loader->load(__DIR__.'/../Resources/config/listener.yml');
+        $loader->load(__DIR__.'/../Resources/config/services.yml');
+        $loader->load(__DIR__.'/../Resources/config/controller-contao-frontend-module.yml');
 
         // Register session bag
-        $loader->load(static function (ContainerBuilder $container) {
-            $container->addCompilerPass(new AddSessionBagsPass());
-        });
+        $loader->load(
+            static function (ContainerBuilder $container): void {
+                $container->addCompilerPass(new AddSessionBagsPass());
+            }
+        );
     }
-
 }
-

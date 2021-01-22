@@ -1,18 +1,20 @@
 <?php
 
-/**
- * Swiss Alpine Club Login Client Bundle
- * OpenId Connect Login via https://sac-cas.ch for Contao Frontend and Backend
+/*
+ * This file is part of Swiss Alpine Club Contao Login Client Bundle.
  *
- * @package Markocupic\SwissAlpineClubContaoLoginClientBundle
- * @author    Marko Cupic, Oberkirch
- * @license   MIT
- * @copyright 2020 Marko Cupic
+ * (c) Marko Cupic 2021 <m.cupic@gmx.ch>
+ * @license MIT
+ * For the full copyright and license information,
+ * please view the LICENSE file that was distributed with this source code.
+ * @link https://github.com/markocupic/swiss-alpine-club-contao-login-client-bundle
  */
+
+use Contao\Environment;
 
 if (TL_MODE === 'BE')
 {
-	$GLOBALS['TL_CSS'][] = \Contao\Environment::get('path').'/bundles/markocupicswissalpineclubcontaologinclient/css/backend.css';
+	$GLOBALS['TL_CSS'][] = Environment::get('path') . '/bundles/markocupicswissalpineclubcontaologinclient/css/backend.css';
 }
 
 $GLOBALS['TL_JAVASCRIPT'][] = 'bundles/markocupicswissalpineclubcontaologinclient/js/ids-kill-session.js|static';

@@ -2,11 +2,13 @@
 
 declare(strict_types=1);
 
-/**
- * Swiss Alpine Club (SAC) Contao Login Client Bundle
- * Copyright (c) 2008-2020 Marko Cupic
- * @package swiss-alpine-club-contao-login-client-bundle
- * @author Marko Cupic m.cupic@gmx.ch, 2017-2020
+/*
+ * This file is part of Swiss Alpine Club Contao Login Client Bundle.
+ *
+ * (c) Marko Cupic 2021 <m.cupic@gmx.ch>
+ * @license MIT
+ * For the full copyright and license information,
+ * please view the LICENSE file that was distributed with this source code.
  * @link https://github.com/markocupic/swiss-alpine-club-contao-login-client-bundle
  */
 
@@ -23,6 +25,7 @@ use Contao\System;
 use Contao\User;
 use Contao\UserModel;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\User\RemoteUser;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\User\User as OidcUser;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -33,19 +36,20 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Security\Http\Event\InteractiveLoginEvent;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\User\User as OidcUser;
 
 /**
- * Class InteractiveLogin
- * @package Markocupic\SwissAlpineClubContaoLoginClientBundle\InteractiveLogin
+ * Class InteractiveLogin.
  */
 class InteractiveLogin
 {
-
-    /** @var string provider key for contao frontend secured area */
+    /**
+     * @var string provider key for contao frontend secured area
+     */
     public const SECURED_AREA_FRONTEND = 'contao_frontend';
 
-    /** @var string provider key for contao backend secured area */
+    /**
+     * @var string provider key for contao backend secured area
+     */
     public const SECURED_AREA_BACKEND = 'contao_backend';
 
     /**
@@ -85,13 +89,6 @@ class InteractiveLogin
 
     /**
      * InteractiveLogin constructor.
-     * @param ContaoFramework $framework
-     * @param UserChecker $userChecker
-     * @param Session $session
-     * @param TokenStorageInterface $tokenStorage
-     * @param EventDispatcherInterface $eventDispatcher
-     * @param RequestStack $requestStack
-     * @param null|LoggerInterface $logger
      */
     public function __construct(ContaoFramework $framework, UserChecker $userChecker, Session $session, TokenStorageInterface $tokenStorage, EventDispatcherInterface $eventDispatcher, RequestStack $requestStack, ?LoggerInterface $logger = null)
     {
@@ -107,20 +104,16 @@ class InteractiveLogin
     }
 
     /**
-     * @param OidcUser $oidcUser
      * @throws \Exception
      */
     public function login(OidcUser $oidcUser): void
     {
-        $providerKey = $oidcUser->getContaoScope() === 'frontend' ? static::SECURED_AREA_FRONTEND : static::SECURED_AREA_BACKEND;
+        $providerKey = 'frontend' === $oidcUser->getContaoScope() ? static::SECURED_AREA_FRONTEND : static::SECURED_AREA_BACKEND;
 
         $username = $oidcUser->getModel()->username;
 
-        if (!\is_string($username) && (!\is_object($username) || !method_exists($username, '__toString')))
-        {
-            throw new BadRequestHttpException(
-                sprintf('The username "%s" must be a string, "%s" given.', \gettype($username))
-            );
+        if (!\is_string($username) && (!\is_object($username) || !method_exists($username, '__toString'))) {
+            throw new BadRequestHttpException(sprintf('The username "%s" must be a string, "%s" given.', \gettype($username)));
         }
 
         $username = trim($username);
@@ -130,14 +123,11 @@ class InteractiveLogin
 
         // Check if username is valid
         // Security::MAX_USERNAME_LENGTH = 4096;
-        if (\strlen($username) > Security::MAX_USERNAME_LENGTH)
-        {
-            throw new \Exception(
-                'Invalid username.'
-            );
+        if (\strlen($username) > Security::MAX_USERNAME_LENGTH) {
+            throw new \Exception('Invalid username.');
         }
 
-        $userClass = $oidcUser->getContaoScope() === 'frontend' ? FrontendUser::class : BackendUser::class;
+        $userClass = 'frontend' === $oidcUser->getContaoScope() ? FrontendUser::class : BackendUser::class;
 
         // Retrieve user by its username
         $userProvider = new ContaoUserProvider($this->framework, $this->session, $userClass, $this->logger);
@@ -148,7 +138,7 @@ class InteractiveLogin
         $this->tokenStorage->setToken($token);
 
         // Save the token to the session
-        $this->session->set('_security_' . $providerKey, serialize($token));
+        $this->session->set('_security_'.$providerKey, serialize($token));
         $this->session->save();
 
         // Fire the login event manually
@@ -158,10 +148,8 @@ class InteractiveLogin
         /** @var RemoteUser $remoteUser */
         $remoteUser = $oidcUser->remoteUser;
 
-        if ($user instanceof FrontendUser)
-        {
-            if (null !== ($objUser = MemberModel::findByUsername($user->username)))
-            {
+        if ($user instanceof FrontendUser) {
+            if (null !== ($objUser = MemberModel::findByUsername($user->username))) {
                 $objUser->lastLogin = $objUser->currentLogin;
                 $objUser->currentLogin = time();
                 $objUser->save();
@@ -169,10 +157,8 @@ class InteractiveLogin
             $logTxt = sprintf('Frontend User "%s" [%s] has logged in with SAC OPENID CONNECT APP.', $remoteUser->get('name'), $remoteUser->get('contact_number'));
         }
 
-        if ($user instanceof BackendUser)
-        {
-            if (null !== ($objUser = UserModel::findByUsername($user->username)))
-            {
+        if ($user instanceof BackendUser) {
+            if (null !== ($objUser = UserModel::findByUsername($user->username))) {
                 $objUser->lastLogin = $objUser->currentLogin;
                 $objUser->currentLogin = time();
                 $objUser->save();
@@ -181,8 +167,7 @@ class InteractiveLogin
         }
 
         // Now the user is logged in!
-        if ($this->logger && isset($logTxt))
-        {
+        if ($this->logger && isset($logTxt)) {
             $this->logger->log(
                 LogLevel::INFO,
                 $logTxt,
@@ -195,15 +180,13 @@ class InteractiveLogin
     }
 
     /**
-     * Trigger the Contao post login hook
-     * @param User $user
+     * Trigger the Contao post login hook.
      */
     private function triggerPostLoginHook(User $user): void
     {
         $this->framework->initialize();
 
-        if (empty($GLOBALS['TL_HOOKS']['postLogin']) || !\is_array($GLOBALS['TL_HOOKS']['postLogin']))
-        {
+        if (empty($GLOBALS['TL_HOOKS']['postLogin']) || !\is_array($GLOBALS['TL_HOOKS']['postLogin'])) {
             return;
         }
 
@@ -212,8 +195,7 @@ class InteractiveLogin
         /** @var System $system */
         $system = $this->framework->getAdapter(System::class);
 
-        foreach ($GLOBALS['TL_HOOKS']['postLogin'] as $callback)
-        {
+        foreach ($GLOBALS['TL_HOOKS']['postLogin'] as $callback) {
             $system->importStatic($callback[0])->{$callback[1]}($user);
         }
     }
