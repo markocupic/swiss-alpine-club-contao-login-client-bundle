@@ -10,9 +10,7 @@
 <form action="/<?= $this->route('swiss_alpine_club_sso_login_frontend') ?>" id="sac-oidc-login-fe" method="post">
     <div class="formbody">
         <input type="hidden" name="FORM_SUBMIT" value="sac-oidc-login-be">
-        <?php if ($this->doCsrfTokenCheck): ?>
         <input type="hidden" name="REQUEST_TOKEN" value="{{request_token}}">
-        <?php endif; ?>
         <input type="hidden" name="targetPath" value="<?= $this->targetPath ?>">
         <input type="hidden" name="failurePath" value="<?= $this->failurePath ?>">
         <input type="hidden" name="alwaysUseTargetPath" value="<?= $this->alwaysUseTargetPath ?>">

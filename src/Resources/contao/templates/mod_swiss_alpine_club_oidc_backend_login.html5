@@ -9,7 +9,7 @@
 	<form action="/<?= $this->route('swiss_alpine_club_sso_login_backend') ?>" id="sac-oidc-login-be" method="post">
 		<div class="formbody">
 			<input type="hidden" name="FORM_SUBMIT" value="sac-oidc-login-be">
-			<?php if($this->doCsrfTokenCheck): ?>
+			<?php if ($this->doCsrfTokenCheck): ?>
 			<input type="hidden" name="REQUEST_TOKEN" value="<?= $this->rt ?>">
 			<?php endif; ?>
 			<input type="hidden" name="targetPath" value="<?= $this->targetPath ?>">
