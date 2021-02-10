@@ -1,3 +1,4 @@
+<?php $GLOBALS['TL_CSS'][] = 'bundles/markocupicswissalpineclubcontaologinclient/css/frontend.css'; ?>
 <!-- indexer::stop -->
 <div class="<?= $this->class ?> <?= $this->logout ? 'logout' : 'login' ?> block"<?= $this->cssID ?><?php if ($this->style): ?> style="<?= $this->style ?>"<?php endif; ?>>
 
@@ -14,7 +15,7 @@
         <input type="hidden" name="failurePath" value="<?= $this->failurePath ?>">
         <input type="hidden" name="alwaysUseTargetPath" value="<?= $this->alwaysUseTargetPath ?>">
         <input type="hidden" name="moduleId" value="<?= $this->id ?>">
-        <button class="btn btn-block btn-lg btn-danger sac-login-frontend-button"><i class="fas fa-sign-in-alt"></i>&nbsp;<?= $this->btnLbl ?></button>
+        <button class="sac-login-frontend-button sac_login_button sac_login_button_block"><?= $this->btnLbl ?></button>
     </div>
 </form>
 

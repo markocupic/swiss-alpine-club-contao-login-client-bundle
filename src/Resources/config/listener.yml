@@ -13,5 +13,6 @@ services:
     public: true
     arguments:
     - "@session"
+    - "@contao.framework"
     tags:
     - { name: kernel.event_listener, event: contao.parseBackendTemplate, method: addLoginButtonToTemplate }

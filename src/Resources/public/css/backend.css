@@ -1,27 +1,22 @@
 #mod_swiss_alpine_club_oidc_backend_login {
     padding: 0 45px 45px 45px;
 }
+
 #mod_swiss_alpine_club_oidc_backend_login .formbody {
     padding: 0;
 }
-#mod_swiss_alpine_club_oidc_backend_login .formbody .btn.sac-login-backend-button {
-    background-color: #aa0000;
-    color: white;
-    line-height: 1;
-    padding: 12px 12px;
-    display: block;
-    width: 100%;
-    border: 0;
-}
+
 #mod_swiss_alpine_club_oidc_backend_login .sac-oidc-error.backend.error {
     margin-top: 1rem;
 }
+
 #mod_swiss_alpine_club_oidc_backend_login .sac-oidc-error.backend.error .error-title {
     font-size: 0.875rem;
     color: black;
     font-weight: bold;
     margin-top: 10px;
 }
+
 #mod_swiss_alpine_club_oidc_backend_login .sac-oidc-error.backend.error p {
     font-size: 0.875rem;
     line-height: normal;
@@ -29,28 +24,59 @@
     margin-top: 10px;
     margin: 10px 0 15px 0;
 }
+
 #mod_swiss_alpine_club_oidc_backend_login .login-button-separator-container {
     margin-bottom: 32px;
 }
+
 #mod_swiss_alpine_club_oidc_backend_login .login-button-separator-container .login-button-separator {
     display: flex;
     align-items: center;
     text-align: center;
     color: #c6c6c6;
 }
+
 #mod_swiss_alpine_club_oidc_backend_login .login-button-separator-container .login-button-separator::before, #mod_swiss_alpine_club_oidc_backend_login .login-button-separator-container .login-button-separator::after {
     content: "";
     flex: 1;
     border-bottom: 1px solid #d4d4d4;
 }
+
 #mod_swiss_alpine_club_oidc_backend_login .login-button-separator-container .login-button-separator::before {
     margin-right: 0.75em;
 }
+
 #mod_swiss_alpine_club_oidc_backend_login .login-button-separator-container .login-button-separator::after {
     margin-left: 0.75em;
 }
-#mod_swiss_alpine_club_oidc_backend_login .beta {
-    font-size: 0.825rem;
+
+#mod_swiss_alpine_club_oidc_backend_login .sac_login_button {
+    padding: 12px 12px 12px 55px;
+    background-image: url('../../../bundles/markocupicswissalpineclubcontaologinclient/img/logo_sac_small.png');
+    background-repeat: no-repeat;
+    background-size: 30px;
+    background-position: 10px;
+    background-color: #fff !important;
+    border: 1px solid red;
+    font-size: 1rem !important;
+    display: inline-block;
+    color: #ff0000;
+    text-align: left;
+    vertical-align: middle;
+    text user-select: none;
+    background-color: transparent;
+    border: 1px solid #ff0000;
+    line-height: 1.5;
+    border-radius: 0;
+    transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.5s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+#mod_swiss_alpine_club_oidc_backend_login .sac_login_button_block {
     display: block;
-    margin-top: 10px;
+    width: 100%;
+}
+
+#mod_swiss_alpine_club_oidc_backend_login .sac_login_button:hover {
+    border-color: #000 !important;
+    color: #000 !important;
 }

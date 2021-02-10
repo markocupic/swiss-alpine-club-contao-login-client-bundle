@@ -222,11 +222,15 @@ class Oidc
             exit;
         }
 
-        $tokenName = System::getContainer()->getParameter('contao.csrf_token_name');
+        // Check csrf token (disabled by default)
+        $systemAdapter = $this->framework->getAdapter(System::class);
+        if($systemAdapter->getContainer->getParameter('swiss_alpine_club_contao_login_client.csrf_token_check') === 'true') {
+            $tokenName = System::getContainer()->getParameter('contao.csrf_token_name');
 
-        if (!$request->request->has('REQUEST_TOKEN') || !$this->csrfTokenManager->isTokenValid(new CsrfToken($tokenName, $request->request->get('REQUEST_TOKEN')))) {
-            $this->sendErrorMessageToBrowser('Invalid CSRF token. Please reload the page and try again.');
-            exit;
+            if (!$request->request->has('REQUEST_TOKEN') || !$this->csrfTokenManager->isTokenValid(new CsrfToken($tokenName, $request->request->get('REQUEST_TOKEN')))) {
+                $this->sendErrorMessageToBrowser('Invalid CSRF token. Please reload the page and try again.');
+                exit;
+            }
         }
     }
 

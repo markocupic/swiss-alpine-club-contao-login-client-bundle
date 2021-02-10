@@ -17,6 +17,7 @@ namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\EventListener\Contao
 use Contao\BackendTemplate;
 use Contao\Config;
 use Contao\Controller;
+use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\System;
 use Symfony\Component\HttpFoundation\Session\Session;
 
@@ -28,11 +29,17 @@ class ParseBackendTemplateListener
     private $session;
 
     /**
+     * @var ContaoFramework
+     */
+    private $framework;
+
+    /**
      * ParseBackendTemplateListener constructor.
      */
-    public function __construct(Session $session)
+    public function __construct(Session $session, ContaoFramework $framework)
     {
         $this->session = $session;
+        $this->framework = $framework;
     }
 
     /**
@@ -52,10 +59,16 @@ class ParseBackendTemplateListener
 
             $template = new BackendTemplate('mod_swiss_alpine_club_oidc_backend_login');
 
+            // Get request token (disabled by default)
             $template->rt = '';
-
-            if (preg_match('/name="REQUEST_TOKEN"\s+value=\"([^\']*?)\"/', $strContent, $matches)) {
-                $template->rt = $matches[1];
+            $template->doCsrfTokenCheck = false;
+            $systemAdapter = $this->framework->getAdapter(System::class);
+            if($systemAdapter->getContainer->getParameter('swiss_alpine_club_contao_login_client.csrf_token_check') === 'true')
+            {
+                if (preg_match('/name="REQUEST_TOKEN"\s+value=\"([^\']*?)\"/', $strContent, $matches)) {
+                    $template->rt = $matches[1];
+                    $template->doCsrfTokenCheck = true;
+                }
             }
 
             $template->targetPath = '';

@@ -1,3 +1,5 @@
+<?php $GLOBALS['TL_CSS'][] = 'bundles/markocupicswissalpineclubcontaologinclient/css/login_button.css'; ?>
+
 <div id="mod_swiss_alpine_club_oidc_backend_login">
 
 	<div class="login-button-separator-container">
@@ -7,11 +9,13 @@
 	<form action="/<?= $this->route('swiss_alpine_club_sso_login_backend') ?>" id="sac-oidc-login-be" method="post">
 		<div class="formbody">
 			<input type="hidden" name="FORM_SUBMIT" value="sac-oidc-login-be">
+			<?php if($this->doCsrfTokenCheck): ?>
 			<input type="hidden" name="REQUEST_TOKEN" value="<?= $this->rt ?>">
+			<?php endif; ?>
 			<input type="hidden" name="targetPath" value="<?= $this->targetPath ?>">
 			<input type="hidden" name="failurePath" value="<?= $this->failurePath ?>">
 			<input type="hidden" name="alwaysUseTargetPath" value="<?= $this->alwaysUseTargetPath ?>">
-			<button class="btn sac-login-backend-button"><?= $this->trans('MSC.loginWithSacSso', [], 'contao_default') ?></button>
+			<button class="btn sac-login-backend-button sac_login_button sac_login_button_block"><?= $this->trans('MSC.loginWithSacSso', [], 'contao_default') ?></button>
 		</div>
 	</form>
 
@@ -41,7 +45,4 @@
 
 	</div>
 	<?php endif; ?>
-
-	<div class="beta">Beta-Version (Testphase)</div>
-
 </div>

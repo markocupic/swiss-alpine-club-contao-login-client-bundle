@@ -1,0 +1,32 @@
+.sac_login_button {
+    padding: 30px 20px 30px 75px;
+    background-image: url('../../../bundles/markocupicswissalpineclubcontaologinclient/img/logo_sac_small.png');
+    background-repeat: no-repeat;
+    background-size: 50px;
+    background-position: 10px;
+    background-color: #fff !important;
+    border: 1px solid red;
+    font-size: 1.25rem !important;
+    display: inline-block;
+    font-weight: 600;
+    color: #ff0000;
+    text-align: left;
+    vertical-align: middle;
+    text user-select: none;
+    background-color: transparent;
+    border: 1px solid #ff0000;
+    font-size: 1rem;
+    line-height: 1.5;
+    border-radius: 0;
+    transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.5s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.sac_login_button_block {
+    display: block;
+    width: 100%;
+}
+
+.sac_login_button:hover {
+    border-color: #000 !important;
+    color: #000 !important;
+}
