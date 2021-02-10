@@ -225,7 +225,7 @@ class Oidc
         // Check csrf token (disabled by default)
         $systemAdapter = $this->framework->getAdapter(System::class);
 
-        if ('true' === $systemAdapter->getContainer->getParameter('swiss_alpine_club_contao_login_client.csrf_token_check')) {
+        if ('true' === $systemAdapter->getContainer()->getParameter('swiss_alpine_club_contao_login_client.csrf_token_check')) {
             $tokenName = System::getContainer()->getParameter('contao.csrf_token_name');
 
             if (!$request->request->has('REQUEST_TOKEN') || !$this->csrfTokenManager->isTokenValid(new CsrfToken($tokenName, $request->request->get('REQUEST_TOKEN')))) {

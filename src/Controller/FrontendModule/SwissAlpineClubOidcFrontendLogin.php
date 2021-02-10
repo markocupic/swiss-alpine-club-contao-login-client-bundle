@@ -42,6 +42,11 @@ class SwissAlpineClubOidcFrontendLogin extends AbstractFrontendModuleController
     private $session;
 
     /**
+     * @var ContaoFramework
+     */
+    private $framework;
+
+    /**
      * @var PageModel
      */
     private $page;
@@ -49,9 +54,10 @@ class SwissAlpineClubOidcFrontendLogin extends AbstractFrontendModuleController
     /**
      * SwissAlpineClubOidcFrontendLogin constructor.
      */
-    public function __construct(Session $session)
+    public function __construct(Session $session, ContaoFramework $framework)
     {
         $this->session = $session;
+        $this->framework = $framework;
     }
 
     public function __invoke(Request $request, ModuleModel $model, string $section, array $classes = null, PageModel $page = null): Response
@@ -85,6 +91,14 @@ class SwissAlpineClubOidcFrontendLogin extends AbstractFrontendModuleController
             if (!$model->redirectBack && $model->jumpTo > 0) {
                 $redirectPage = PageModel::findByPk($model->jumpTo);
                 $strRedirect = $redirectPage instanceof PageModel ? $redirectPage->getAbsoluteUrl() : $strRedirect;
+            }
+
+            // Csrf token check is disabled by default
+            $template->doCsrfTokenCheck = false;
+            $systemAdapter = $this->framework->getAdapter(System::class);
+
+            if ('true' === $systemAdapter->getContainer()->getParameter('swiss_alpine_club_contao_login_client.csrf_token_check')) {
+                $template->doCsrfTokenCheck = true;
             }
 
             // Since Contao 4.9 urls are base64 encoded
