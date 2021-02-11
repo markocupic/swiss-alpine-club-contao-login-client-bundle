@@ -17,18 +17,14 @@ namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\ContaoManager;
 use Contao\ManagerPlugin\Bundle\BundlePluginInterface;
 use Contao\ManagerPlugin\Bundle\Config\BundleConfig;
 use Contao\ManagerPlugin\Bundle\Parser\ParserInterface;
-use Contao\ManagerPlugin\Config\ConfigPluginInterface;
 use Contao\ManagerPlugin\Routing\RoutingPluginInterface;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\DependencyInjection\Compiler\AddSessionBagsPass;
-use Symfony\Component\Config\Loader\LoaderInterface;
 use Symfony\Component\Config\Loader\LoaderResolverInterface;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\KernelInterface;
 
 /**
  * Class Plugin.
  */
-class Plugin implements BundlePluginInterface, RoutingPluginInterface, ConfigPluginInterface
+class Plugin implements BundlePluginInterface, RoutingPluginInterface
 {
     /**
      * {@inheritdoc}
@@ -51,23 +47,5 @@ class Plugin implements BundlePluginInterface, RoutingPluginInterface, ConfigPlu
             ->resolve(__DIR__.'/../Resources/config/routing.yml')
             ->load(__DIR__.'/../Resources/config/routing.yml')
         ;
-    }
-
-    /**
-     * @throws \Exception
-     */
-    public function registerContainerConfiguration(LoaderInterface $loader, array $managerConfig): void
-    {
-        $loader->load(__DIR__.'/../Resources/config/parameters.yml');
-        $loader->load(__DIR__.'/../Resources/config/listener.yml');
-        $loader->load(__DIR__.'/../Resources/config/services.yml');
-        $loader->load(__DIR__.'/../Resources/config/controller-contao-frontend-module.yml');
-
-        // Register session bag
-        $loader->load(
-            static function (ContainerBuilder $container): void {
-                $container->addCompilerPass(new AddSessionBagsPass());
-            }
-        );
     }
 }
