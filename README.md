@@ -2,9 +2,9 @@
 
 Diese Erweiterung ermöglicht die Implementierung des Single Sign-On Logins des Schweizerischen Alpen Clubs (SAC) für Contao CMS.
 
-![SAC Login](src/Resources/public/img/screenshot_backend.png)
+![SAC Login](src/Resources/public/img/screenshot_backend_readme.png)
 
-![SAC Login](src/Resources/public/img/screenshot_remote_login_form.png)
+![SAC Login](src/Resources/public/img/screenshot_remote_login_form_readme.png)
 
 
 DIe Erweiterung basiert auf markocupic/sac-event-tool_bundle und thephpleague/oauth2-client. 
