@@ -15,7 +15,6 @@ declare(strict_types=1);
 namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\EventListener\Contao;
 
 use Contao\BackendTemplate;
-use Contao\Config;
 use Contao\Controller;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\System;
@@ -53,16 +52,13 @@ class ParseBackendTemplateListener
     public function addLoginButtonToTemplate($strContent, $strTemplate)
     {
         if ('be_login' === $strTemplate) {
-            /** @var Config $configAdapter */
-            $configAdapter = $this->framework->getAdapter(Config::class);
-
             /** @var System $systemAdapter */
             $systemAdapter = $this->framework->getAdapter(System::class);
 
             /** @var Controller $controllerAdapter */
             $controllerAdapter = $this->framework->getAdapter(Controller::class);
 
-            if (!$configAdapter->get('SAC_SSO_LOGIN_ENABLE_BACKEND_SSO')) {
+            if (!$systemAdapter->getContainer()->getParameter('markocupic.swiss_alpine_club_contao_login_client_bundle.enable_backend_sso')) {
                 return $strContent;
             }
 
@@ -72,9 +68,7 @@ class ParseBackendTemplateListener
             $template->rt = '';
             $template->enableCsrfTokenCheck = false;
 
-
-
-            if ('true' === $systemAdapter->getContainer()->getParameter('swiss_alpine_club_contao_login_client.enable_csrf_token_check')) {
+            if ('true' === $systemAdapter->getContainer()->getParameter('markocupic.swiss_alpine_club_contao_login_client_bundle.enable_csrf_token_check')) {
                 if (preg_match('/name="REQUEST_TOKEN"\s+value=\"([^\']*?)\"/', $strContent, $matches)) {
                     $template->rt = $matches[1];
                     $template->enableCsrfTokenCheck = true;
@@ -100,7 +94,7 @@ class ParseBackendTemplateListener
             }
 
             // Check for error messages
-            $flashBagKey = $systemAdapter->getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.flash_bag_key');
+            $flashBagKey = $systemAdapter->getContainer()->getParameter('markocupic.swiss_alpine_club_contao_login_client_bundle.session.flash_bag_key');
             $flashBag = $this->session->getFlashBag()->get($flashBagKey);
 
             if (\count($flashBag) > 0) {

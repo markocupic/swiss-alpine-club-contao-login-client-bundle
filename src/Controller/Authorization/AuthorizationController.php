@@ -14,7 +14,6 @@ declare(strict_types=1);
 
 namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\Authorization;
 
-use Contao\Config;
 use Contao\Controller;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\ModuleModel;
@@ -95,21 +94,18 @@ class AuthorizationController extends AbstractController
         /** @var System $systemAdapter */
         $systemAdapter = $this->framework->getAdapter(System::class);
 
-        /** @var Config $configAdapter */
-        $configAdapter = $this->framework->getAdapter(Config::class);
-
         /** @var ModuleModel $moduleModelAdapter */
         $moduleModelAdapter = $this->framework->getAdapter(ModuleModel::class);
 
         $contaoScope = 'frontend';
 
-        $bagName = $systemAdapter->getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.attribute_bag_name');
+        $bagName = $systemAdapter->getContainer()->getParameter('markocupic.swiss_alpine_club_contao_login_client_bundle.session.attribute_bag_name');
 
         /** @var Session $session */
         $session = $this->session->getBag($bagName);
 
         // Set redirect uri
-        $this->oidc->setProviderData(['redirectUri' => $configAdapter->get('SAC_SSO_LOGIN_REDIRECT_URI_FRONTEND')]);
+        $this->oidc->setProviderData(['redirectUri' => $systemAdapter->getContainer()->getParameter('markocupic.swiss_alpine_club_contao_login_client_bundle.redirect_uri_frontend')]);
 
         // Run the authorisation code flow
         if ($this->oidc->runOpenIdConnectFlow()) {
@@ -177,7 +173,7 @@ class AuthorizationController extends AbstractController
         } else {
             $errorPage = $session->get('failurePath');
             $arrError = $session->get('lastOidcError', []);
-            $flashBagKey = $systemAdapter->getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.flash_bag_key');
+            $flashBagKey = $systemAdapter->getContainer()->getParameter('markocupic.swiss_alpine_club_contao_login_client_bundle.session.flash_bag_key');
             $this->session->getFlashBag()->add($flashBagKey, $arrError);
             $controllerAdapter->redirect($errorPage);
         }
@@ -198,18 +194,15 @@ class AuthorizationController extends AbstractController
         /** @var System $systemAdapter */
         $systemAdapter = $this->framework->getAdapter(System::class);
 
-        /** @var Config $configAdapter */
-        $configAdapter = $this->framework->getAdapter(Config::class);
-
         $contaoScope = 'backend';
 
-        $bagName = $systemAdapter->getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.attribute_bag_name');
+        $bagName = $systemAdapter->getContainer()->getParameter('markocupic.swiss_alpine_club_contao_login_client_bundle.session.attribute_bag_name');
 
         /** @var Session $session */
         $session = $this->session->getBag($bagName);
 
         // Set redirect uri
-        $this->oidc->setProviderData(['redirectUri' => $configAdapter->get('SAC_SSO_LOGIN_REDIRECT_URI_BACKEND')]);
+        $this->oidc->setProviderData(['redirectUri' => $systemAdapter->getContainer()->getParameter('markocupic.swiss_alpine_club_contao_login_client_bundle.redirect_uri_backend')]);
 
         // Run the authorisation code flow
         if ($this->oidc->runOpenIdConnectFlow()) {
@@ -269,7 +262,7 @@ class AuthorizationController extends AbstractController
         } else {
             $errorPage = $session->get('failurePath');
             $arrError = $session->get('lastOidcError', []);
-            $flashBagKey = $systemAdapter->getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.flash_bag_key');
+            $flashBagKey = $systemAdapter->getContainer()->getParameter('markocupic.swiss_alpine_club_contao_login_client_bundle.session.flash_bag_key');
             $this->session->getFlashBag()->add($flashBagKey, $arrError);
             $controllerAdapter->redirect($errorPage);
         }
@@ -280,12 +273,12 @@ class AuthorizationController extends AbstractController
      */
     public function sendLogoutEndpointAction(): JsonResponse
     {
-        /** @var Config $configAdapter */
-        $configAdapter = $this->framework->getAdapter(Config::class);
+        /** @var System $configAdapter */
+        $systemAdapter = $this->framework->getAdapter(System::class);
 
         $data = [
             'success' => 'true',
-            'logout_endpoint_url' => $configAdapter->get('SAC_SSO_LOGIN_URL_LOGOUT'),
+            'logout_endpoint_url' => $systemAdapter->getContainer()->getParameter('markocupic.swiss_alpine_club_contao_login_client_bundle.url_logout'),
         ];
 
         return new JsonResponse($data);

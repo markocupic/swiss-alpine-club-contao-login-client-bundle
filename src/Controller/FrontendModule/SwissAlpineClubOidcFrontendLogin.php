@@ -109,8 +109,7 @@ class SwissAlpineClubOidcFrontendLogin extends AbstractFrontendModuleController
             // Csrf token check is disabled by default
             $template->enableCsrfTokenCheck = false;
 
-
-            if ('true' === $systemAdapter->getContainer()->getParameter('swiss_alpine_club_contao_login_client.enable_csrf_token_check')) {
+            if ('true' === $systemAdapter->getContainer()->getParameter('markocupic.swiss_alpine_club_contao_login_client_bundle.enable_csrf_token_check')) {
                 $template->enableCsrfTokenCheck = true;
             }
 
@@ -121,7 +120,7 @@ class SwissAlpineClubOidcFrontendLogin extends AbstractFrontendModuleController
             $template->btnLbl = empty($model->swiss_alpine_club_oidc_frontend_login_btn_lbl) ? $translator->trans('MSC.loginWithSacSso', [], 'contao_default') : $model->swiss_alpine_club_oidc_frontend_login_btn_lbl;
 
             // Check for error messages
-            $flashBagKey = $systemAdapter->getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.flash_bag_key');
+            $flashBagKey = $systemAdapter->getContainer()->getParameter('markocupic.swiss_alpine_club_contao_login_client_bundle.session.flash_bag_key');
             $flashBag = $this->session->getFlashBag()->get($flashBagKey);
 
             if (\count($flashBag) > 0) {

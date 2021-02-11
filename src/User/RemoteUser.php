@@ -107,7 +107,6 @@ class RemoteUser
         /** @var Controller $controllerAdapter */
         $controllerAdapter = $this->framework->getAdapter(Controller::class);
 
-
         if (empty($this->get('sub'))) {
             $arrError = [
                 'level' => 'warning',
@@ -116,9 +115,9 @@ class RemoteUser
                 //'explain' => $this->translator->trans('ERR.sacOidcLoginError_invalidUuid_explain', [], 'contao_default'),
             ];
 
-            $flashBagKey = $systemAdapter->getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.flash_bag_key');
+            $flashBagKey = $systemAdapter->getContainer()->getParameter('markocupic.swiss_alpine_club_contao_login_client_bundle.session.flash_bag_key');
             $this->session->getFlashBag()->add($flashBagKey, $arrError);
-            $bagName = $systemAdapter->getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.attribute_bag_name');
+            $bagName = $systemAdapter->getContainer()->getParameter('markocupic.swiss_alpine_club_contao_login_client_bundle.session.attribute_bag_name');
             $controllerAdapter->redirect($this->session->getBag($bagName)->get('failurePath'));
         }
     }
@@ -134,7 +133,6 @@ class RemoteUser
         /** @var System $systemAdapter */
         $systemAdapter = $this->framework->getAdapter(System::class);
 
-
         if (empty($this->get('contact_number')) || empty($this->get('Roles')) || empty($this->get('sub'))) {
             $arrError = [
                 'level' => 'warning',
@@ -142,9 +140,9 @@ class RemoteUser
                 'howToFix' => $this->translator->trans('ERR.sacOidcLoginError_userIsNotSacMember_howToFix', [], 'contao_default'),
                 //'explain' => $this->translator->trans('ERR.sacOidcLoginError_userIsNotSacMember_explain', [], 'contao_default'),
             ];
-            $flashBagKey = $systemAdapter->getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.flash_bag_key');
+            $flashBagKey = $systemAdapter->getContainer()->getParameter('markocupic.swiss_alpine_club_contao_login_client_bundle.session.flash_bag_key');
             $this->session->getFlashBag()->add($flashBagKey, $arrError);
-            $bagName = $systemAdapter->getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.attribute_bag_name');
+            $bagName = $systemAdapter->getContainer()->getParameter('markocupic.swiss_alpine_club_contao_login_client_bundle.session.attribute_bag_name');
             $controllerAdapter->redirect($this->session->getBag($bagName)->get('failurePath'));
         }
     }
@@ -174,9 +172,9 @@ class RemoteUser
             'howToFix' => $this->translator->trans('ERR.sacOidcLoginError_userIsNotMemberOfAllowedSection_howToFix', [], 'contao_default'),
             //'explain' => $this->translator->trans('ERR.sacOidcLoginError_userIsNotMemberOfAllowedSection_explain', [], 'contao_default'),
         ];
-        $flashBagKey = $systemAdapter->getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.flash_bag_key');
+        $flashBagKey = $systemAdapter->getContainer()->getParameter('markocupic.swiss_alpine_club_contao_login_client_bundle.session.flash_bag_key');
         $this->session->getFlashBag()->add($flashBagKey, $arrError);
-        $bagName = $systemAdapter->getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.attribute_bag_name');
+        $bagName = $systemAdapter->getContainer()->getParameter('markocupic.swiss_alpine_club_contao_login_client_bundle.session.attribute_bag_name');
         $controllerAdapter->redirect($this->session->getBag($bagName)->get('failurePath'));
     }
 
@@ -201,9 +199,9 @@ class RemoteUser
                 'howToFix' => $this->translator->trans('ERR.sacOidcLoginError_invalidEmail_howToFix', [], 'contao_default'),
                 'explain' => $this->translator->trans('ERR.sacOidcLoginError_invalidEmail_explain', [], 'contao_default'),
             ];
-            $flashBagKey = $systemAdapter->getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.flash_bag_key');
+            $flashBagKey = $systemAdapter->getContainer()->getParameter('markocupic.swiss_alpine_club_contao_login_client_bundle.session.flash_bag_key');
             $this->session->getFlashBag()->add($flashBagKey, $arrError);
-            $bagName = $systemAdapter->getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.attribute_bag_name');
+            $bagName = $systemAdapter->getContainer()->getParameter('markocupic.swiss_alpine_club_contao_login_client_bundle.session.attribute_bag_name');
             $controllerAdapter->redirect($this->session->getBag($bagName)->get('failurePath'));
         }
     }

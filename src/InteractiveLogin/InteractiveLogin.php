@@ -114,7 +114,6 @@ class InteractiveLogin
         /** @var UserModel $userModelAdapter */
         $userModelAdapter = $this->framework->getAdapter(UserModel::class);
 
-
         $providerKey = 'frontend' === $oidcUser->getContaoScope() ? static::SECURED_AREA_FRONTEND : static::SECURED_AREA_BACKEND;
 
         $username = $oidcUser->getModel()->username;
@@ -123,7 +122,7 @@ class InteractiveLogin
             throw new BadRequestHttpException(sprintf('The username "%s" must be a string, "%s" given.', \gettype($username)));
         }
 
-        $username = trim((string)$username);
+        $username = trim((string) $username);
 
         // Be sure user exists
         $oidcUser->checkUserExists();

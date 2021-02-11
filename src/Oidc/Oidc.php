@@ -105,7 +105,7 @@ class Oidc
         /** @var Request $request */
         $request = $this->requestStack->getCurrentRequest();
 
-        $bagName = $systemAdapter->getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.attribute_bag_name');
+        $bagName = $systemAdapter->getContainer()->getParameter('markocupic.swiss_alpine_club_contao_login_client_bundle.session.attribute_bag_name');
 
         /** @var Session $session */
         $session = $this->session->getBag($bagName);
@@ -191,18 +191,18 @@ class Oidc
     private function setProviderFromConfig(): void
     {
         /** @var Config $configAdapter */
-        $configAdapter = $this->framework->getAdapter(Config::class);
+        $systemAdapter = $this->framework->getAdapter(System::class);
 
         $this->providerData = [
             // The client ID assigned to you by the provider
-            'clientId' => $configAdapter->get('SAC_SSO_LOGIN_CLIENT_ID'),
+            'clientId' => $systemAdapter->getContainer()->getParameter('markocupic.swiss_alpine_club_contao_login_client_bundle.client_id'),
             // The client password assigned to you by the provider
-            'clientSecret' => $configAdapter->get('SAC_SSO_LOGIN_CLIENT_SECRET'),
+            'clientSecret' => $systemAdapter->getContainer()->getParameter('markocupic.swiss_alpine_club_contao_login_client_bundle.client_secret'),
             // Absolute Callbackurl to your system(must be registered by service provider.)
-            'redirectUri' => $configAdapter->get('SAC_SSO_LOGIN_REDIRECT_URI_BACKEND'),
-            'urlAuthorize' => $configAdapter->get('SAC_SSO_LOGIN_URL_AUTHORIZE'),
-            'urlAccessToken' => $configAdapter->get('SAC_SSO_LOGIN_URL_ACCESS_TOKEN'),
-            'urlResourceOwnerDetails' => $configAdapter->get('SAC_SSO_LOGIN_URL_RESOURCE_OWNER_DETAILS'),
+            'redirectUri' => $systemAdapter->getContainer()->getParameter('markocupic.swiss_alpine_club_contao_login_client_bundle.redirect_uri_backend'),
+            'urlAuthorize' => $systemAdapter->getContainer()->getParameter('markocupic.swiss_alpine_club_contao_login_client_bundle.url_authorize'),
+            'urlAccessToken' => $systemAdapter->getContainer()->getParameter('markocupic.swiss_alpine_club_contao_login_client_bundle.url_access_token'),
+            'urlResourceOwnerDetails' => $systemAdapter->getContainer()->getParameter('markocupic.swiss_alpine_club_contao_login_client_bundle.resource_owner_details'),
             'response_type' => 'code',
             'scopes' => ['openid'],
         ];
@@ -232,7 +232,7 @@ class Oidc
         $systemAdapter = $this->framework->getAdapter(System::class);
 
         // Check csrf token (disabled by default)
-        if ('true' === $systemAdapter->getContainer()->getParameter('swiss_alpine_club_contao_login_client.enable_csrf_token_check')) {
+        if ('true' === $systemAdapter->getContainer()->getParameter('markocupic.swiss_alpine_club_contao_login_client_bundle.enable_csrf_token_check')) {
             $tokenName = $systemAdapter->getContainer()->getParameter('contao.csrf_token_name');
 
             if (!$request->request->has('REQUEST_TOKEN') || !$this->csrfTokenManager->isTokenValid(new CsrfToken($tokenName, $request->request->get('REQUEST_TOKEN')))) {
@@ -251,22 +251,30 @@ class Oidc
             // Club ids
             'SAC_EVT_SAC_SECTION_IDS',
             // OIDC Stuff
-            'SAC_SSO_LOGIN_CLIENT_ID',
-            'SAC_SSO_LOGIN_CLIENT_SECRET',
-            'SAC_SSO_LOGIN_REDIRECT_URI_FRONTEND',
-            'SAC_SSO_LOGIN_REDIRECT_URI_BACKEND',
-            'SAC_SSO_LOGIN_URL_AUTHORIZE',
-            'SAC_SSO_LOGIN_URL_ACCESS_TOKEN',
-            'SAC_SSO_LOGIN_URL_RESOURCE_OWNER_DETAILS',
-            'SAC_SSO_LOGIN_URL_LOGOUT',
+            'markocupic.swiss_alpine_club_contao_login_client_bundle.client_id',
+            'markocupic.swiss_alpine_club_contao_login_client_bundle.client_secret',
+            'markocupic.swiss_alpine_club_contao_login_client_bundle.redirect_uri_frontend',
+            'markocupic.swiss_alpine_club_contao_login_client_bundle.redirect_uri_backend',
+            'markocupic.swiss_alpine_club_contao_login_client_bundle.url_authorize',
+            'markocupic.swiss_alpine_club_contao_login_client_bundle.url_access_token',
+            'markocupic.swiss_alpine_club_contao_login_client_bundle.resource_owner_details',
         ];
+
+        /** @var System $systemAdapter */
+        $systemAdapter = $this->framework->getAdapter(System::class);
 
         /** @var Config $configAdapter */
         $configAdapter = $this->framework->getAdapter(Config::class);
 
         foreach ($arrConfigs as $config) {
-            if (empty($configAdapter->get($config))) {
-                throw new AppCheckFailedException('Parameter tl_settings.'.$config.' not found. Please check the Contao settings');
+            if ('SAC_EVT_SAC_SECTION_IDS' === $config) {
+                if (empty($configAdapter->get($config))) {
+                    throw new AppCheckFailedException('Parameter "tl_settings.'.$config.'" not found. Please read the README.md and check the contao backend settings for the missing parameter.');
+                }
+            } else {
+                if (empty($systemAdapter->getContainer()->getParameter($config))) {
+                    throw new AppCheckFailedException('Parameter "'.$config.'" not found. Please read the README.md and check the settings in config/parameters.yml');
+                }
             }
         }
     }
