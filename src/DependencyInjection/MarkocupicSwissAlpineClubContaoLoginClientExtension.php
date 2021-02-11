@@ -14,7 +14,6 @@ declare(strict_types=1);
 
 namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\DependencyInjection;
 
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\DependencyInjection\Compiler\AddSessionBagsPass;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\Extension;
@@ -36,12 +35,5 @@ class MarkocupicSwissAlpineClubContaoLoginClientExtension extends Extension
         $loader->load('listener.yml');
         $loader->load('services.yml');
         $loader->load('controller-contao-frontend-module.yml');
-
-        // Register session bag
-        $loader->load(
-            static function (ContainerBuilder $container): void {
-                $container->addCompilerPass(new AddSessionBagsPass());
-            }
-        );
     }
 }
