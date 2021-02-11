@@ -96,13 +96,16 @@ class Oidc
         /** @var Controller $controllerAdapter */
         $controllerAdapter = $this->framework->getAdapter(Controller::class);
 
+        /** @var System $systemAdapter */
+        $systemAdapter = $this->framework->getAdapter(System::class);
+
         /** @var GenericProvider $provider */
         $provider = new GenericProvider($this->getProviderData());
 
         /** @var Request $request */
         $request = $this->requestStack->getCurrentRequest();
 
-        $bagName = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.attribute_bag_name');
+        $bagName = $systemAdapter->getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.attribute_bag_name');
 
         /** @var Session $session */
         $session = $this->session->getBag($bagName);
@@ -187,16 +190,19 @@ class Oidc
      */
     private function setProviderFromConfig(): void
     {
+        /** @var Config $configAdapter */
+        $configAdapter = $this->framework->getAdapter(Config::class);
+
         $this->providerData = [
             // The client ID assigned to you by the provider
-            'clientId' => Config::get('SAC_SSO_LOGIN_CLIENT_ID'),
+            'clientId' => $configAdapter->get('SAC_SSO_LOGIN_CLIENT_ID'),
             // The client password assigned to you by the provider
-            'clientSecret' => Config::get('SAC_SSO_LOGIN_CLIENT_SECRET'),
+            'clientSecret' => $configAdapter->get('SAC_SSO_LOGIN_CLIENT_SECRET'),
             // Absolute Callbackurl to your system(must be registered by service provider.)
-            'redirectUri' => Config::get('SAC_SSO_LOGIN_REDIRECT_URI_BACKEND'),
-            'urlAuthorize' => Config::get('SAC_SSO_LOGIN_URL_AUTHORIZE'),
-            'urlAccessToken' => Config::get('SAC_SSO_LOGIN_URL_ACCESS_TOKEN'),
-            'urlResourceOwnerDetails' => Config::get('SAC_SSO_LOGIN_URL_RESOURCE_OWNER_DETAILS'),
+            'redirectUri' => $configAdapter->get('SAC_SSO_LOGIN_REDIRECT_URI_BACKEND'),
+            'urlAuthorize' => $configAdapter->get('SAC_SSO_LOGIN_URL_AUTHORIZE'),
+            'urlAccessToken' => $configAdapter->get('SAC_SSO_LOGIN_URL_ACCESS_TOKEN'),
+            'urlResourceOwnerDetails' => $configAdapter->get('SAC_SSO_LOGIN_URL_RESOURCE_OWNER_DETAILS'),
             'response_type' => 'code',
             'scopes' => ['openid'],
         ];
@@ -222,11 +228,12 @@ class Oidc
             exit;
         }
 
-        // Check csrf token (disabled by default)
+        /** @var System $systemAdapter */
         $systemAdapter = $this->framework->getAdapter(System::class);
 
+        // Check csrf token (disabled by default)
         if ('true' === $systemAdapter->getContainer()->getParameter('swiss_alpine_club_contao_login_client.enable_csrf_token_check')) {
-            $tokenName = System::getContainer()->getParameter('contao.csrf_token_name');
+            $tokenName = $systemAdapter->getContainer()->getParameter('contao.csrf_token_name');
 
             if (!$request->request->has('REQUEST_TOKEN') || !$this->csrfTokenManager->isTokenValid(new CsrfToken($tokenName, $request->request->get('REQUEST_TOKEN')))) {
                 $this->sendErrorMessageToBrowser('Invalid CSRF token. Please reload the page and try again.');
@@ -243,7 +250,7 @@ class Oidc
         $arrConfigs = [
             // Club ids
             'SAC_EVT_SAC_SECTION_IDS',
-            //OIDC Stuff
+            // OIDC Stuff
             'SAC_SSO_LOGIN_CLIENT_ID',
             'SAC_SSO_LOGIN_CLIENT_SECRET',
             'SAC_SSO_LOGIN_REDIRECT_URI_FRONTEND',
@@ -254,8 +261,11 @@ class Oidc
             'SAC_SSO_LOGIN_URL_LOGOUT',
         ];
 
+        /** @var Config $configAdapter */
+        $configAdapter = $this->framework->getAdapter(Config::class);
+
         foreach ($arrConfigs as $config) {
-            if (empty(Config::get($config))) {
+            if (empty($configAdapter->get($config))) {
                 throw new AppCheckFailedException('Parameter tl_settings.'.$config.' not found. Please check the Contao settings');
             }
         }

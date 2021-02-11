@@ -108,6 +108,13 @@ class InteractiveLogin
      */
     public function login(OidcUser $oidcUser): void
     {
+        /** @var MemberModel $memberModelAdapter */
+        $memberModelAdapter = $this->framework->getAdapter(MemberModel::class);
+
+        /** @var UserModel $userModelAdapter */
+        $userModelAdapter = $this->framework->getAdapter(UserModel::class);
+
+
         $providerKey = 'frontend' === $oidcUser->getContaoScope() ? static::SECURED_AREA_FRONTEND : static::SECURED_AREA_BACKEND;
 
         $username = $oidcUser->getModel()->username;
@@ -116,7 +123,7 @@ class InteractiveLogin
             throw new BadRequestHttpException(sprintf('The username "%s" must be a string, "%s" given.', \gettype($username)));
         }
 
-        $username = trim($username);
+        $username = trim((string)$username);
 
         // Be sure user exists
         $oidcUser->checkUserExists();
@@ -149,7 +156,7 @@ class InteractiveLogin
         $remoteUser = $oidcUser->remoteUser;
 
         if ($user instanceof FrontendUser) {
-            if (null !== ($objUser = MemberModel::findByUsername($user->username))) {
+            if (null !== ($objUser = $memberModelAdapter->findByUsername($user->username))) {
                 $objUser->lastLogin = $objUser->currentLogin;
                 $objUser->currentLogin = time();
                 $objUser->save();
@@ -158,7 +165,7 @@ class InteractiveLogin
         }
 
         if ($user instanceof BackendUser) {
-            if (null !== ($objUser = UserModel::findByUsername($user->username))) {
+            if (null !== ($objUser = $userModelAdapter->findByUsername($user->username))) {
                 $objUser->lastLogin = $objUser->currentLogin;
                 $objUser->currentLogin = time();
                 $objUser->save();
@@ -193,10 +200,10 @@ class InteractiveLogin
         @trigger_error('Using the "postLogin" hook has been deprecated and will no longer work in Contao 5.0.', E_USER_DEPRECATED);
 
         /** @var System $system */
-        $system = $this->framework->getAdapter(System::class);
+        $systemAdapter = $this->framework->getAdapter(System::class);
 
         foreach ($GLOBALS['TL_HOOKS']['postLogin'] as $callback) {
-            $system->importStatic($callback[0])->{$callback[1]}($user);
+            $systemAdapter->importStatic($callback[0])->{$callback[1]}($user);
         }
     }
 }

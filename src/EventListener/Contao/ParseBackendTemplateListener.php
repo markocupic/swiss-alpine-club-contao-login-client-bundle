@@ -53,7 +53,16 @@ class ParseBackendTemplateListener
     public function addLoginButtonToTemplate($strContent, $strTemplate)
     {
         if ('be_login' === $strTemplate) {
-            if (!Config::get('SAC_SSO_LOGIN_ENABLE_BACKEND_SSO')) {
+            /** @var Config $configAdapter */
+            $configAdapter = $this->framework->getAdapter(Config::class);
+
+            /** @var System $systemAdapter */
+            $systemAdapter = $this->framework->getAdapter(System::class);
+
+            /** @var Controller $controllerAdapter */
+            $controllerAdapter = $this->framework->getAdapter(Controller::class);
+
+            if (!$configAdapter->get('SAC_SSO_LOGIN_ENABLE_BACKEND_SSO')) {
                 return $strContent;
             }
 
@@ -62,7 +71,8 @@ class ParseBackendTemplateListener
             // Get request token (disabled by default)
             $template->rt = '';
             $template->enableCsrfTokenCheck = false;
-            $systemAdapter = $this->framework->getAdapter(System::class);
+
+
 
             if ('true' === $systemAdapter->getContainer()->getParameter('swiss_alpine_club_contao_login_client.enable_csrf_token_check')) {
                 if (preg_match('/name="REQUEST_TOKEN"\s+value=\"([^\']*?)\"/', $strContent, $matches)) {
@@ -90,7 +100,7 @@ class ParseBackendTemplateListener
             }
 
             // Check for error messages
-            $flashBagKey = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.flash_bag_key');
+            $flashBagKey = $systemAdapter->getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.flash_bag_key');
             $flashBag = $this->session->getFlashBag()->get($flashBagKey);
 
             if (\count($flashBag) > 0) {
@@ -103,7 +113,7 @@ class ParseBackendTemplateListener
             }
 
             $searchString = '</form>';
-            $strContent = str_replace($searchString, $searchString.Controller::replaceInsertTags($template->parse()), $strContent);
+            $strContent = str_replace($searchString, $searchString.$controllerAdapter->replaceInsertTags($template->parse()), $strContent);
         }
 
         return $strContent;

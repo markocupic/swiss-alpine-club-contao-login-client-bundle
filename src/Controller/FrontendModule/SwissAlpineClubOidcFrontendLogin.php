@@ -80,35 +80,48 @@ class SwissAlpineClubOidcFrontendLogin extends AbstractFrontendModuleController
     protected function getResponse(Template $template, ModuleModel $model, Request $request): ?Response
     {
         $translator = $this->get('translator');
+
+        /** @var Environment $environmentAdapter */
+        $environmentAdapter = $this->framework->getAdapter(Environment::class);
+
+        /** @var PageModel $pageModelAdapter */
+        $pageModelAdapter = $this->framework->getAdapter(PageModel::class);
+
+        /** @var System $systemAdapter */
+        $systemAdapter = $this->framework->getAdapter(System::class);
+
+        /** @var StringUtil $stringUtilAdapter */
+        $stringUtilAdapter = $this->framework->getAdapter(StringUtil::class);
+
         // Get logged in member object
         if (($user = $this->get('security.helper')->getUser()) instanceof FrontendUser) {
             $template->loggedInAs = $translator->trans('MSC.loggedInAs', [$user->username], 'contao_default');
             $template->username = $user->username;
             $template->logout = true;
         } else {
-            $strRedirect = Environment::get('base').Environment::get('request');
+            $strRedirect = $environmentAdapter->get('base').$environmentAdapter->get('request');
 
             if (!$model->redirectBack && $model->jumpTo > 0) {
-                $redirectPage = PageModel::findByPk($model->jumpTo);
+                $redirectPage = $pageModelAdapter->findByPk($model->jumpTo);
                 $strRedirect = $redirectPage instanceof PageModel ? $redirectPage->getAbsoluteUrl() : $strRedirect;
             }
 
             // Csrf token check is disabled by default
             $template->enableCsrfTokenCheck = false;
-            $systemAdapter = $this->framework->getAdapter(System::class);
+
 
             if ('true' === $systemAdapter->getContainer()->getParameter('swiss_alpine_club_contao_login_client.enable_csrf_token_check')) {
                 $template->enableCsrfTokenCheck = true;
             }
 
             // Since Contao 4.9 urls are base64 encoded
-            $template->targetPath = StringUtil::specialchars(base64_encode($strRedirect));
-            $template->failurePath = StringUtil::specialchars(base64_encode($strRedirect));
+            $template->targetPath = $stringUtilAdapter->specialchars(base64_encode($strRedirect));
+            $template->failurePath = $stringUtilAdapter->specialchars(base64_encode($strRedirect));
             $template->login = true;
             $template->btnLbl = empty($model->swiss_alpine_club_oidc_frontend_login_btn_lbl) ? $translator->trans('MSC.loginWithSacSso', [], 'contao_default') : $model->swiss_alpine_club_oidc_frontend_login_btn_lbl;
 
             // Check for error messages
-            $flashBagKey = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.flash_bag_key');
+            $flashBagKey = $systemAdapter->getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.flash_bag_key');
             $flashBag = $this->session->getFlashBag()->get($flashBagKey);
 
             if (\count($flashBag) > 0) {

@@ -105,20 +105,27 @@ class User
      */
     public function getModel(string $strTable = ''): ?Model
     {
+        /** @var MemberModel $memberModelAdapter */
+        $memberModelAdapter = $this->framework->getAdapter(MemberModel::class);
+
+        /** @var UserModel $userModelAdapter */
+        $userModelAdapter = $this->framework->getAdapter(UserModel::class);
+
+
         if ('tl_member' === $strTable) {
-            return MemberModel::findByUsername($this->remoteUser->get('contact_number'));
+            return $memberModelAdapter->findByUsername($this->remoteUser->get('contact_number'));
         }
 
         if ('tl_user' === $strTable) {
-            return UserModel::findOneBySacMemberId($this->remoteUser->get('contact_number'));
+            return $userModelAdapter->findOneBySacMemberId($this->remoteUser->get('contact_number'));
         }
 
         if ('frontend' === $this->getContaoScope()) {
-            return MemberModel::findByUsername($this->remoteUser->get('contact_number'));
+            return $memberModelAdapter->findByUsername($this->remoteUser->get('contact_number'));
         }
 
         if ('backend' === $this->getContaoScope()) {
-            return UserModel::findOneBySacMemberId($this->remoteUser->get('contact_number'));
+            return $userModelAdapter->findOneBySacMemberId($this->remoteUser->get('contact_number'));
         }
 
         return null;
@@ -143,6 +150,12 @@ class User
      */
     public function checkUserExists(): void
     {
+        /** @var System $systemAdapter */
+        $systemAdapter = $this->framework->getAdapter(System::class);
+
+        /** @var Controller $controllerAdapter */
+        $controllerAdapter = $this->framework->getAdapter(Controller::class);
+
         $arrData = $this->remoteUser->getData();
 
         if (!isset($arrData) || empty($arrData['contact_number']) || !$this->userExists()) {
@@ -162,10 +175,10 @@ class User
                 ];
             }
 
-            $flashBagKey = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.flash_bag_key');
+            $flashBagKey = $systemAdapter->getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.flash_bag_key');
             $this->session->getFlashBag()->add($flashBagKey, $arrError);
-            $bagName = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.attribute_bag_name');
-            Controller::redirect($this->session->getBag($bagName)->get('failurePath'));
+            $bagName = $systemAdapter->getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.attribute_bag_name');
+            $controllerAdapter->redirect($this->session->getBag($bagName)->get('failurePath'));
         }
     }
 
@@ -186,6 +199,12 @@ class User
      */
     public function checkIsLoginAllowed(): void
     {
+        /** @var System $systemAdapter */
+        $systemAdapter = $this->framework->getAdapter(System::class);
+
+        /** @var Controller $controllerAdapter */
+        $controllerAdapter = $this->framework->getAdapter(Controller::class);
+
         if (($model = $this->getModel()) !== null) {
             if ('frontend' === $this->getContaoScope()) {
                 if ($model->login && !$model->disable && !$model->locked) {
@@ -206,10 +225,10 @@ class User
             //'howToFix' => $this->translator->trans('ERR.sacOidcLoginError_accountDisabled_howToFix', [], 'contao_default'),
             'explain' => $this->translator->trans('ERR.sacOidcLoginError_accountDisabled_explain', [], 'contao_default'),
         ];
-        $flashBagKey = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.flash_bag_key');
+        $flashBagKey = $systemAdapter->getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.flash_bag_key');
         $this->session->getFlashBag()->add($flashBagKey, $arrError);
-        $bagName = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.attribute_bag_name');
-        Controller::redirect($this->session->getBag($bagName)->get('failurePath'));
+        $bagName = $systemAdapter->getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.attribute_bag_name');
+        $controllerAdapter->redirect($this->session->getBag($bagName)->get('failurePath'));
     }
 
     /**
@@ -217,6 +236,19 @@ class User
      */
     public function updateFrontendUser(): void
     {
+        /** @var System $systemAdapter */
+        $systemAdapter = $this->framework->getAdapter(System::class);
+
+        /** @var Config $configAdapter */
+        $configAdapter = $this->framework->getAdapter(Config::class);
+
+        /** @var StringUtil $stringUtilAdapter */
+        $stringUtilAdapter = $this->framework->getAdapter(StringUtil::class);
+
+
+
+
+
         $arrData = $this->remoteUser->getData();
 
         $objMember = $this->getModel('tl_member');
@@ -239,13 +271,13 @@ class User
             $objMember->isSacMember = \count($this->remoteUser->getGroupMembership()) > 0 ? '1' : '';
             $objMember->tstamp = time();
             // Groups
-            $arrGroups = StringUtil::deserialize($objMember->groups, true);
-            $arrAutoGroups = StringUtil::deserialize(Config::get('SAC_SSO_LOGIN_ADD_TO_MEMBER_GROUPS'), true);
+            $arrGroups = $stringUtilAdapter->deserialize($objMember->groups, true);
+            $arrAutoGroups = $stringUtilAdapter->deserialize($configAdapter->get('SAC_SSO_LOGIN_ADD_TO_MEMBER_GROUPS'), true);
             $objMember->groups = serialize(array_merge($arrGroups, $arrAutoGroups));
 
             // Set random password
             if (empty($objMember->password)) {
-                $encoder = System::getContainer()->get('security.encoder_factory')->getEncoder(FrontendUser::class);
+                $encoder = $systemAdapter->getContainer()->get('security.encoder_factory')->getEncoder(FrontendUser::class);
                 $objMember->password = $encoder->encodePassword(substr(md5((string) random_int(900009, 111111111111)), 0, 8), null);
             }
 
@@ -261,6 +293,9 @@ class User
      */
     public function updateBackendUser(): void
     {
+        /** @var System $systemAdapter */
+        $systemAdapter = $this->framework->getAdapter(System::class);
+
         $arrData = $this->remoteUser->getData();
 
         $objUser = $this->getModel('tl_user');
@@ -284,7 +319,7 @@ class User
 
             // Set random password
             if (empty($objUser->password)) {
-                $encoder = System::getContainer()->get('security.encoder_factory')->getEncoder(BackendUser::class);
+                $encoder = $systemAdapter->getContainer()->get('security.encoder_factory')->getEncoder(BackendUser::class);
                 $objUser->password = $encoder->encodePassword(substr(md5((string) random_int(900009, 111111111111)), 0, 8), null);
             }
 
@@ -300,12 +335,15 @@ class User
      */
     public function addFrontendGroups(ModuleModel $model): void
     {
+        /** @var StringUtil $stringUtilAdapter */
+        $stringUtilAdapter = $this->framework->getAdapter(StringUtil::class);
+
         // Add groups
         $objUser = $this->getModel('tl_member');
 
         if (null !== $objUser) {
-            $arrMemberGroups = StringUtil::deserialize($objUser->groups, true);
-            $arrGroupsToAdd = StringUtil::deserialize($model->swiss_alpine_club_oidc_add_to_fe_groups, true);
+            $arrMemberGroups = $stringUtilAdapter->deserialize($objUser->groups, true);
+            $arrGroupsToAdd = $stringUtilAdapter->deserialize($model->swiss_alpine_club_oidc_add_to_fe_groups, true);
             $arrGroups = array_merge($arrMemberGroups, $arrGroupsToAdd);
             $arrGroups = array_unique($arrGroups);
             $arrGroups = array_filter($arrGroups);

@@ -101,6 +101,13 @@ class RemoteUser
      */
     public function checkHasUuid(): void
     {
+        /** @var System $systemAdapter */
+        $systemAdapter = $this->framework->getAdapter(System::class);
+
+        /** @var Controller $controllerAdapter */
+        $controllerAdapter = $this->framework->getAdapter(Controller::class);
+
+
         if (empty($this->get('sub'))) {
             $arrError = [
                 'level' => 'warning',
@@ -109,10 +116,10 @@ class RemoteUser
                 //'explain' => $this->translator->trans('ERR.sacOidcLoginError_invalidUuid_explain', [], 'contao_default'),
             ];
 
-            $flashBagKey = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.flash_bag_key');
+            $flashBagKey = $systemAdapter->getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.flash_bag_key');
             $this->session->getFlashBag()->add($flashBagKey, $arrError);
-            $bagName = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.attribute_bag_name');
-            Controller::redirect($this->session->getBag($bagName)->get('failurePath'));
+            $bagName = $systemAdapter->getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.attribute_bag_name');
+            $controllerAdapter->redirect($this->session->getBag($bagName)->get('failurePath'));
         }
     }
 
@@ -121,6 +128,13 @@ class RemoteUser
      */
     public function checkIsSacMember(): void
     {
+        /** @var Controller $controllerAdapter */
+        $controllerAdapter = $this->framework->getAdapter(Controller::class);
+
+        /** @var System $systemAdapter */
+        $systemAdapter = $this->framework->getAdapter(System::class);
+
+
         if (empty($this->get('contact_number')) || empty($this->get('Roles')) || empty($this->get('sub'))) {
             $arrError = [
                 'level' => 'warning',
@@ -128,10 +142,10 @@ class RemoteUser
                 'howToFix' => $this->translator->trans('ERR.sacOidcLoginError_userIsNotSacMember_howToFix', [], 'contao_default'),
                 //'explain' => $this->translator->trans('ERR.sacOidcLoginError_userIsNotSacMember_explain', [], 'contao_default'),
             ];
-            $flashBagKey = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.flash_bag_key');
+            $flashBagKey = $systemAdapter->getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.flash_bag_key');
             $this->session->getFlashBag()->add($flashBagKey, $arrError);
-            $bagName = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.attribute_bag_name');
-            Controller::redirect($this->session->getBag($bagName)->get('failurePath'));
+            $bagName = $systemAdapter->getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.attribute_bag_name');
+            $controllerAdapter->redirect($this->session->getBag($bagName)->get('failurePath'));
         }
     }
 
@@ -142,6 +156,12 @@ class RemoteUser
      */
     public function checkIsMemberInAllowedSection(): void
     {
+        /** @var Controller $controllerAdapter */
+        $controllerAdapter = $this->framework->getAdapter(Controller::class);
+
+        /** @var System $systemAdapter */
+        $systemAdapter = $this->framework->getAdapter(System::class);
+
         $arrMembership = $this->getGroupMembership();
 
         if (\count($arrMembership) > 0) {
@@ -154,10 +174,10 @@ class RemoteUser
             'howToFix' => $this->translator->trans('ERR.sacOidcLoginError_userIsNotMemberOfAllowedSection_howToFix', [], 'contao_default'),
             //'explain' => $this->translator->trans('ERR.sacOidcLoginError_userIsNotMemberOfAllowedSection_explain', [], 'contao_default'),
         ];
-        $flashBagKey = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.flash_bag_key');
+        $flashBagKey = $systemAdapter->getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.flash_bag_key');
         $this->session->getFlashBag()->add($flashBagKey, $arrError);
-        $bagName = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.attribute_bag_name');
-        Controller::redirect($this->session->getBag($bagName)->get('failurePath'));
+        $bagName = $systemAdapter->getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.attribute_bag_name');
+        $controllerAdapter->redirect($this->session->getBag($bagName)->get('failurePath'));
     }
 
     /**
@@ -165,17 +185,26 @@ class RemoteUser
      */
     public function checkHasValidEmail(): void
     {
-        if (empty($this->get('email')) || !Validator::isEmail($this->get('email'))) {
+        /** @var Controller $controllerAdapter */
+        $controllerAdapter = $this->framework->getAdapter(Controller::class);
+
+        /** @var System $systemAdapter */
+        $systemAdapter = $this->framework->getAdapter(System::class);
+
+        /** @var Validator $validatorAdapter */
+        $validatorAdapter = $this->framework->getAdapter(Validator::class);
+
+        if (empty($this->get('email')) || !$validatorAdapter->isEmail($this->get('email'))) {
             $arrError = [
                 'level' => 'warning',
                 'matter' => $this->translator->trans('ERR.sacOidcLoginError_invalidEmail_matter', [$this->get('vorname')], 'contao_default'),
                 'howToFix' => $this->translator->trans('ERR.sacOidcLoginError_invalidEmail_howToFix', [], 'contao_default'),
                 'explain' => $this->translator->trans('ERR.sacOidcLoginError_invalidEmail_explain', [], 'contao_default'),
             ];
-            $flashBagKey = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.flash_bag_key');
+            $flashBagKey = $systemAdapter->getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.flash_bag_key');
             $this->session->getFlashBag()->add($flashBagKey, $arrError);
-            $bagName = System::getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.attribute_bag_name');
-            Controller::redirect($this->session->getBag($bagName)->get('failurePath'));
+            $bagName = $systemAdapter->getContainer()->getParameter('swiss_alpine_club_contao_login_client.session.attribute_bag_name');
+            $controllerAdapter->redirect($this->session->getBag($bagName)->get('failurePath'));
         }
     }
 
@@ -184,9 +213,11 @@ class RemoteUser
      */
     public function getGroupMembership(): array
     {
+        $configAdapter = $this->framework->getAdapter(Config::class);
+
         $strRoles = $this->get('Roles');
         $arrMembership = [];
-        $arrClubIds = explode(',', Config::get('SAC_EVT_SAC_SECTION_IDS'));
+        $arrClubIds = explode(',', $configAdapter->get('SAC_EVT_SAC_SECTION_IDS'));
 
         if (null !== $strRoles && !empty($strRoles)) {
             foreach ($arrClubIds as $clubId) {

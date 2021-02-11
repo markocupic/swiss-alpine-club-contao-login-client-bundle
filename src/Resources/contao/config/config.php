@@ -11,6 +11,7 @@
  */
 
 use Contao\Environment;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\EventListener\Contao\ParseBackendTemplateListener;
 
 if (TL_MODE === 'BE')
 {
@@ -23,5 +24,4 @@ $GLOBALS['TL_JAVASCRIPT'][] = 'bundles/markocupicswissalpineclubcontaologinclien
 /**
  * Hooks
  */
-$GLOBALS['TL_HOOKS']['postLogout'][] = array('Markocupic\SwissAlpineClubContaoLoginClientBundle\EventListener\Contao\PostLogoutListener', 'killSession');
-$GLOBALS['TL_HOOKS']['parseBackendTemplate'][] = array('Markocupic\SwissAlpineClubContaoLoginClientBundle\EventListener\Contao\ParseBackendTemplateListener', 'addLoginButtonToTemplate');
+$GLOBALS['TL_HOOKS']['parseBackendTemplate'][] = array(ParseBackendTemplateListener::class, 'addLoginButtonToTemplate');
