@@ -1,4 +1,4 @@
-<?php $GLOBALS['TL_CSS'][] = 'bundles/markocupicswissalpineclubcontaologinclient/css/frontend.css'; ?>
+<?php $GLOBALS['TL_CSS'][] = 'bundles/markocupicswissalpineclubcontaologinclient/css/sac_login_button.css'; ?>
 <!-- indexer::stop -->
 <div class="<?= $this->class ?> <?= $this->logout ? 'logout' : 'login' ?> block"<?= $this->cssID ?><?php if ($this->style): ?> style="<?= $this->style ?>"<?php endif; ?>>
 
@@ -10,14 +10,19 @@
 <form action="/<?= $this->route('swiss_alpine_club_sso_login_frontend') ?>" id="sac-oidc-login-fe" method="post">
     <div class="formbody">
         <input type="hidden" name="FORM_SUBMIT" value="sac-oidc-login-be">
-        <?php if ($this->doCsrfTokenCheck): ?>
+        <?php if ($this->enableCsrfTokenCheck): ?>
         <input type="hidden" name="REQUEST_TOKEN" value="{{request_token}}">
         <?php endif; ?>
         <input type="hidden" name="targetPath" value="<?= $this->targetPath ?>">
         <input type="hidden" name="failurePath" value="<?= $this->failurePath ?>">
         <input type="hidden" name="alwaysUseTargetPath" value="<?= $this->alwaysUseTargetPath ?>">
         <input type="hidden" name="moduleId" value="<?= $this->id ?>">
-        <button class="sac-login-frontend-button sac_login_button sac_login_button_block"><?= $this->btnLbl ?></button>
+        <div class="sac-login-button-group sac-login-button-group-lg">
+            <div class="sac-login-button-prepend">
+                <img src="bundles/markocupicswissalpineclubcontaologinclient/img/logo_sac_small.svg" class="sac-login-button-prepend-icon">
+            </div>
+            <button type="submit"><?= $this->btnLbl ?></button>
+        </div>
     </div>
 </form>
 

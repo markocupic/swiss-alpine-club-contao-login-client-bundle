@@ -15,6 +15,7 @@ use Contao\Environment;
 if (TL_MODE === 'BE')
 {
 	$GLOBALS['TL_CSS'][] = Environment::get('path') . '/bundles/markocupicswissalpineclubcontaologinclient/css/backend.css';
+	$GLOBALS['TL_CSS'][] = Environment::get('path') . '/bundles/markocupicswissalpineclubcontaologinclient/css/sac_login_button.css';
 }
 
 $GLOBALS['TL_JAVASCRIPT'][] = 'bundles/markocupicswissalpineclubcontaologinclient/js/ids-kill-session.js|static';

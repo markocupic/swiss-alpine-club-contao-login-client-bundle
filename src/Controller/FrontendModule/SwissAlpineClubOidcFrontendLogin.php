@@ -94,11 +94,11 @@ class SwissAlpineClubOidcFrontendLogin extends AbstractFrontendModuleController
             }
 
             // Csrf token check is disabled by default
-            $template->doCsrfTokenCheck = false;
+            $template->enableCsrfTokenCheck = false;
             $systemAdapter = $this->framework->getAdapter(System::class);
 
-            if ('true' === $systemAdapter->getContainer()->getParameter('swiss_alpine_club_contao_login_client.csrf_token_check')) {
-                $template->doCsrfTokenCheck = true;
+            if ('true' === $systemAdapter->getContainer()->getParameter('swiss_alpine_club_contao_login_client.enable_csrf_token_check')) {
+                $template->enableCsrfTokenCheck = true;
             }
 
             // Since Contao 4.9 urls are base64 encoded

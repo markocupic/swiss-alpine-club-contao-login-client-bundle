@@ -61,13 +61,13 @@ class ParseBackendTemplateListener
 
             // Get request token (disabled by default)
             $template->rt = '';
-            $template->doCsrfTokenCheck = false;
+            $template->enableCsrfTokenCheck = false;
             $systemAdapter = $this->framework->getAdapter(System::class);
 
-            if ('true' === $systemAdapter->getContainer()->getParameter('swiss_alpine_club_contao_login_client.csrf_token_check')) {
+            if ('true' === $systemAdapter->getContainer()->getParameter('swiss_alpine_club_contao_login_client.enable_csrf_token_check')) {
                 if (preg_match('/name="REQUEST_TOKEN"\s+value=\"([^\']*?)\"/', $strContent, $matches)) {
                     $template->rt = $matches[1];
-                    $template->doCsrfTokenCheck = true;
+                    $template->enableCsrfTokenCheck = true;
                 }
             }
 
