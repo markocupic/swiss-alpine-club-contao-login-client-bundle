@@ -58,7 +58,7 @@ class ParseBackendTemplateListener
             /** @var Controller $controllerAdapter */
             $controllerAdapter = $this->framework->getAdapter(Controller::class);
 
-            if (!$systemAdapter->getContainer()->getParameter('markocupic.swiss_alpine_club_contao_login_client_bundle.enable_backend_sso')) {
+            if (!$systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.enable_backend_sso')) {
                 return $strContent;
             }
 
@@ -68,7 +68,7 @@ class ParseBackendTemplateListener
             $template->rt = '';
             $template->enableCsrfTokenCheck = false;
 
-            if ('true' === $systemAdapter->getContainer()->getParameter('markocupic.swiss_alpine_club_contao_login_client_bundle.enable_csrf_token_check')) {
+            if ($systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.enable_csrf_token_check')) {
                 if (preg_match('/name="REQUEST_TOKEN"\s+value=\"([^\']*?)\"/', $strContent, $matches)) {
                     $template->rt = $matches[1];
                     $template->enableCsrfTokenCheck = true;
@@ -94,7 +94,7 @@ class ParseBackendTemplateListener
             }
 
             // Check for error messages
-            $flashBagKey = $systemAdapter->getContainer()->getParameter('markocupic.swiss_alpine_club_contao_login_client_bundle.session.flash_bag_key');
+            $flashBagKey = $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.session.flash_bag_key');
             $flashBag = $this->session->getFlashBag()->get($flashBagKey);
 
             if (\count($flashBag) > 0) {

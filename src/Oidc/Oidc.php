@@ -105,7 +105,7 @@ class Oidc
         /** @var Request $request */
         $request = $this->requestStack->getCurrentRequest();
 
-        $bagName = $systemAdapter->getContainer()->getParameter('markocupic.swiss_alpine_club_contao_login_client_bundle.session.attribute_bag_name');
+        $bagName = $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.session.attribute_bag_name');
 
         /** @var Session $session */
         $session = $this->session->getBag($bagName);
@@ -195,14 +195,14 @@ class Oidc
 
         $this->providerData = [
             // The client ID assigned to you by the provider
-            'clientId' => $systemAdapter->getContainer()->getParameter('markocupic.swiss_alpine_club_contao_login_client_bundle.client_id'),
+            'clientId' => $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.client_id'),
             // The client password assigned to you by the provider
-            'clientSecret' => $systemAdapter->getContainer()->getParameter('markocupic.swiss_alpine_club_contao_login_client_bundle.client_secret'),
+            'clientSecret' => $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.client_secret'),
             // Absolute Callbackurl to your system(must be registered by service provider.)
-            'redirectUri' => $systemAdapter->getContainer()->getParameter('markocupic.swiss_alpine_club_contao_login_client_bundle.redirect_uri_backend'),
-            'urlAuthorize' => $systemAdapter->getContainer()->getParameter('markocupic.swiss_alpine_club_contao_login_client_bundle.url_authorize'),
-            'urlAccessToken' => $systemAdapter->getContainer()->getParameter('markocupic.swiss_alpine_club_contao_login_client_bundle.url_access_token'),
-            'urlResourceOwnerDetails' => $systemAdapter->getContainer()->getParameter('markocupic.swiss_alpine_club_contao_login_client_bundle.resource_owner_details'),
+            'redirectUri' => $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.redirect_uri_backend'),
+            'urlAuthorize' => $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.url_authorize'),
+            'urlAccessToken' => $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.url_access_token'),
+            'urlResourceOwnerDetails' => $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.resource_owner_details'),
             'response_type' => 'code',
             'scopes' => ['openid'],
         ];
@@ -232,7 +232,7 @@ class Oidc
         $systemAdapter = $this->framework->getAdapter(System::class);
 
         // Check csrf token (disabled by default)
-        if ('true' === $systemAdapter->getContainer()->getParameter('markocupic.swiss_alpine_club_contao_login_client_bundle.enable_csrf_token_check')) {
+        if ($systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.enable_csrf_token_check')) {
             $tokenName = $systemAdapter->getContainer()->getParameter('contao.csrf_token_name');
 
             if (!$request->request->has('REQUEST_TOKEN') || !$this->csrfTokenManager->isTokenValid(new CsrfToken($tokenName, $request->request->get('REQUEST_TOKEN')))) {
@@ -251,13 +251,13 @@ class Oidc
             // Club ids
             'SAC_EVT_SAC_SECTION_IDS',
             // OIDC Stuff
-            'markocupic.swiss_alpine_club_contao_login_client_bundle.client_id',
-            'markocupic.swiss_alpine_club_contao_login_client_bundle.client_secret',
-            'markocupic.swiss_alpine_club_contao_login_client_bundle.redirect_uri_frontend',
-            'markocupic.swiss_alpine_club_contao_login_client_bundle.redirect_uri_backend',
-            'markocupic.swiss_alpine_club_contao_login_client_bundle.url_authorize',
-            'markocupic.swiss_alpine_club_contao_login_client_bundle.url_access_token',
-            'markocupic.swiss_alpine_club_contao_login_client_bundle.resource_owner_details',
+            'markocupic_sac_sso_login.oidc.client_id',
+            'markocupic_sac_sso_login.oidc.client_secret',
+            'markocupic_sac_sso_login.oidc.redirect_uri_frontend',
+            'markocupic_sac_sso_login.oidc.redirect_uri_backend',
+            'markocupic_sac_sso_login.oidc.url_authorize',
+            'markocupic_sac_sso_login.oidc.url_access_token',
+            'markocupic_sac_sso_login.oidc.resource_owner_details',
         ];
 
         /** @var System $systemAdapter */

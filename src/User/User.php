@@ -173,9 +173,9 @@ class User
                 ];
             }
 
-            $flashBagKey = $systemAdapter->getContainer()->getParameter('markocupic.swiss_alpine_club_contao_login_client_bundle.session.flash_bag_key');
+            $flashBagKey = $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.session.flash_bag_key');
             $this->session->getFlashBag()->add($flashBagKey, $arrError);
-            $bagName = $systemAdapter->getContainer()->getParameter('markocupic.swiss_alpine_club_contao_login_client_bundle.session.attribute_bag_name');
+            $bagName = $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.session.attribute_bag_name');
             $controllerAdapter->redirect($this->session->getBag($bagName)->get('failurePath'));
         }
     }
@@ -223,9 +223,9 @@ class User
             //'howToFix' => $this->translator->trans('ERR.sacOidcLoginError_accountDisabled_howToFix', [], 'contao_default'),
             'explain' => $this->translator->trans('ERR.sacOidcLoginError_accountDisabled_explain', [], 'contao_default'),
         ];
-        $flashBagKey = $systemAdapter->getContainer()->getParameter('markocupic.swiss_alpine_club_contao_login_client_bundle.session.flash_bag_key');
+        $flashBagKey = $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.session.flash_bag_key');
         $this->session->getFlashBag()->add($flashBagKey, $arrError);
-        $bagName = $systemAdapter->getContainer()->getParameter('markocupic.swiss_alpine_club_contao_login_client_bundle.session.attribute_bag_name');
+        $bagName = $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.session.attribute_bag_name');
         $controllerAdapter->redirect($this->session->getBag($bagName)->get('failurePath'));
     }
 
@@ -263,7 +263,7 @@ class User
             $objMember->tstamp = time();
             // Groups
             $arrGroups = $stringUtilAdapter->deserialize($objMember->groups, true);
-            $arrAutoGroups = $stringUtilAdapter->deserialize($systemAdapter->getContainer()->getParameter('markocupic.swiss_alpine_club_contao_login_client_bundle.add_to_member_groups'), true);
+            $arrAutoGroups = $stringUtilAdapter->deserialize($systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.add_to_member_groups'), true);
             $objMember->groups = serialize(array_merge($arrGroups, $arrAutoGroups));
 
             // Set random password

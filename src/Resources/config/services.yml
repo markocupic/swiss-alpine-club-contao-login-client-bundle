@@ -59,8 +59,8 @@ services:
 
   Markocupic\SwissAlpineClubContaoLoginClientBundle\Session\Attribute\ArrayAttributeBag:
     arguments:
-    - '%markocupic.swiss_alpine_club_contao_login_client_bundle.session.attribute_bag_key%'
+    - '%markocupic_sac_sso_login.session.attribute_bag_key%'
     calls:
-    - ['setName', ['%markocupic.swiss_alpine_club_contao_login_client_bundle.session.attribute_bag_name%']]
+    - ['setName', ['%markocupic_sac_sso_login.session.attribute_bag_name%']]
 
 

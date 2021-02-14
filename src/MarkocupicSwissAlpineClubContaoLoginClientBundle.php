@@ -15,6 +15,7 @@ declare(strict_types=1);
 namespace Markocupic\SwissAlpineClubContaoLoginClientBundle;
 
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\DependencyInjection\Compiler\AddSessionBagsPass;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\DependencyInjection\MarkocupicSwissAlpineClubContaoLoginClientExtension;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
@@ -23,6 +24,12 @@ use Symfony\Component\HttpKernel\Bundle\Bundle;
  */
 class MarkocupicSwissAlpineClubContaoLoginClientBundle extends Bundle
 {
+    public function getContainerExtension(): MarkocupicSwissAlpineClubContaoLoginClientExtension
+    {
+        // Set alias markocupic_sac_sso_login
+        return new MarkocupicSwissAlpineClubContaoLoginClientExtension();
+    }
+
     /**
      * {@inheritdoc}
      */
