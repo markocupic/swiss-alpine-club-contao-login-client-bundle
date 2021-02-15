@@ -107,11 +107,7 @@ class SwissAlpineClubOidcFrontendLogin extends AbstractFrontendModuleController
             }
 
             // Csrf token check is disabled by default
-            $template->enableCsrfTokenCheck = false;
-
-            if ($systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.enable_csrf_token_check')) {
-                $template->enableCsrfTokenCheck = true;
-            }
+            $template->enableCsrfTokenCheck = $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.enable_csrf_token_check');
 
             // Since Contao 4.9 urls are base64 encoded
             $template->targetPath = $stringUtilAdapter->specialchars(base64_encode($strRedirect));
