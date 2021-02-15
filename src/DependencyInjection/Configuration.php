@@ -19,9 +19,11 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
 
 class Configuration implements ConfigurationInterface
 {
+    const ROOT_KEY = 'markocupic_sac_sso_login';
+
     public function getConfigTreeBuilder()
     {
-        $treeBuilder = new TreeBuilder('markocupic_sac_sso_login');
+        $treeBuilder = new TreeBuilder(self::ROOT_KEY);
 
         $treeBuilder->getRootNode()
             ->children()
