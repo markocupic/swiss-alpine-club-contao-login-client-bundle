@@ -111,7 +111,7 @@ class AuthorizationController extends AbstractController
         if ($this->oidc->runOpenIdConnectFlow()) {
             $arrData = $session->get('arrData');
 
-            $this->remoteUser->create($arrData);
+            $this->remoteUser->create($arrData, $contaoScope);
             //$this->remoteUser->create($this->remoteUser->getMockUserData(false)); // Should end in an error message
 
             // Check if uuid/sub is set
@@ -121,7 +121,9 @@ class AuthorizationController extends AbstractController
             $this->remoteUser->checkIsSacMember();
 
             // Check if user is member of an allowed section
-            $this->remoteUser->checkIsMemberInAllowedSection();
+            if ($systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.allow_frontend_login_to_defined_section_members_only')) {
+                $this->remoteUser->checkIsMemberInAllowedSection();
+            }
 
             // Check has valid email address
             // This test should be always positive,
@@ -208,7 +210,7 @@ class AuthorizationController extends AbstractController
         if ($this->oidc->runOpenIdConnectFlow()) {
             $arrData = $session->get('arrData');
 
-            $this->remoteUser->create($arrData);
+            $this->remoteUser->create($arrData, $contaoScope);
 
             // Check if uuid/sub is set
             $this->remoteUser->checkHasUuid();
@@ -217,7 +219,9 @@ class AuthorizationController extends AbstractController
             $this->remoteUser->checkIsSacMember();
 
             // Check if user is member of an allowed section
-            $this->remoteUser->checkIsMemberInAllowedSection();
+            if ($systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.allow_backend_login_to_defined_section_members_only')) {
+                $this->remoteUser->checkIsMemberInAllowedSection();
+            }
 
             // Check has valid email address
             // This test should be always positive,

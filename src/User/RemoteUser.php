@@ -14,7 +14,6 @@ declare(strict_types=1);
 
 namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\User;
 
-use Contao\Config;
 use Contao\Controller;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\System;
@@ -27,6 +26,11 @@ use Symfony\Component\Translation\TranslatorInterface;
  */
 class RemoteUser
 {
+    /**
+     * Navision section id regex.
+     */
+    const NAV_SECTION_ID_REGEX = '/NAV_MITGLIED_S(\d+)/';
+
     /**
      * @var ContaoFramework
      */
@@ -53,6 +57,11 @@ class RemoteUser
     private $translator;
 
     /**
+     * @var string backend|frontend
+     */
+    private $contaoScope;
+
+    /**
      * RemoteUser constructor.
      */
     public function __construct(ContaoFramework $framework, User $user, Session $session, TranslatorInterface $translator)
@@ -65,8 +74,13 @@ class RemoteUser
         $this->framework->initialize();
     }
 
-    public function create(array $arrData): void
+    /**
+     * @throws \Exception
+     */
+    public function create(array $arrData, string $contaoScope): void
     {
+        $this->setContaoScope($contaoScope);
+
         foreach ($arrData as $k => $v) {
             $this->data[$k] = $v;
         }
@@ -160,7 +174,7 @@ class RemoteUser
         /** @var System $systemAdapter */
         $systemAdapter = $this->framework->getAdapter(System::class);
 
-        $arrMembership = $this->getGroupMembership();
+        $arrMembership = $this->getAllowedSacSectionIds();
 
         if (\count($arrMembership) > 0) {
             return;
@@ -207,28 +221,58 @@ class RemoteUser
     }
 
     /**
-     * Return array with club ids.
+     * Return all sac sections ids a remote user belongs to.
      */
-    public function getGroupMembership(): array
+    public function getSacSectionIds(): array
     {
-        $configAdapter = $this->framework->getAdapter(Config::class);
+        $strRoles = (string) $this->get('Roles');
 
-        $strRoles = $this->get('Roles');
-        $arrMembership = [];
-        $arrClubIds = explode(',', $configAdapter->get('SAC_EVT_SAC_SECTION_IDS'));
-
-        if (null !== $strRoles && !empty($strRoles)) {
-            foreach ($arrClubIds as $clubId) {
-                // Search for NAV_MITGLIED_S00004250 or NAV_MITGLIED_S00004251, etc.
-                $pattern = '/NAV_MITGLIED_S([0])+'.$clubId.'/';
-
-                if (preg_match($pattern, $strRoles)) {
-                    $arrMembership[] = $clubId;
-                }
-            }
+        if (empty($strRoles)) {
+            return [];
         }
 
-        return $arrMembership;
+        // Search for NAV_MITGLIED_S00004250 or NAV_MITGLIED_S00004251, etc.
+        $pattern = static::NAV_SECTION_ID_REGEX;
+
+        return preg_match_all($pattern, $strRoles, $matches) ? array_unique(array_map(static function ($v) {return (int) $v; }, $matches[1])) : [];
+    }
+
+    /**
+     * Return all allowed sac sections ids a remote user belongs to.
+     */
+    public function getAllowedSacSectionIds(): array
+    {
+        /** @var System $systemAdapter */
+        $systemAdapter = $this->framework->getAdapter(System::class);
+
+        if ('frontend' === $this->contaoScope) {
+            $arrAllowedGroups = $systemAdapter
+                ->getContainer()
+                ->getParameter('markocupic_sac_sso_login.oidc.allowed_frontend_sac_section_ids');
+            ;
+        } else {
+            $arrAllowedGroups = $systemAdapter
+                ->getContainer()
+                ->getParameter('markocupic_sac_sso_login.oidc.allowed_backend_sac_section_ids');
+
+        }
+
+        $arrGroupMembership = $this->getSacSectionIds();
+
+        return array_unique(array_intersect($arrAllowedGroups, $arrGroupMembership));
+    }
+
+    /**
+     * Check if remote user is member of an sac section.
+     */
+    public function isSacMember(): bool
+    {
+        $strRoles = $this->get('Roles');
+
+        // Search for NAV_MITGLIED_S00004250 or NAV_MITGLIED_S00004251, etc.
+        $pattern = static::NAV_SECTION_ID_REGEX;
+
+        return preg_match($pattern, $strRoles) ? true : false;
     }
 
     public function getMockUserData(bool $isMember = true): array
@@ -277,5 +321,16 @@ class RemoteUser
             'email' => 'm.cupic@gmx.ch',
             'plz' => '6208',
         ];
+    }
+
+    /**
+     * @throws \Exception
+     */
+    private function setContaoScope(string $contaoScope): void
+    {
+        if ('frontend' !== $contaoScope && 'backend' !== $contaoScope) {
+            throw new \Exception('Scope should be either "backend" or "frontend".');
+        }
+        $this->contaoScope = $contaoScope;
     }
 }

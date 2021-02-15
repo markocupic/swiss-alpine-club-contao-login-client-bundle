@@ -78,10 +78,8 @@ class Oidc
         $this->csrfTokenManager = $csrfTokenManager;
         $this->translator = $translator;
 
+        // initialize Contao framework
         $this->framework->initialize();
-
-        // Check app configuration in the contao backend settings (tl_settings)
-        $this->checkConfiguration();
 
         // Set provider data from config
         $this->setProviderFromConfig();
@@ -238,43 +236,6 @@ class Oidc
             if (!$request->request->has('REQUEST_TOKEN') || !$this->csrfTokenManager->isTokenValid(new CsrfToken($tokenName, $request->request->get('REQUEST_TOKEN')))) {
                 $this->sendErrorMessageToBrowser('Invalid CSRF token. Please reload the page and try again.');
                 exit;
-            }
-        }
-    }
-
-    /**
-     * @throws AppCheckFailedException
-     */
-    private function checkConfiguration(): void
-    {
-        $arrConfigs = [
-            // Club ids
-            'SAC_EVT_SAC_SECTION_IDS',
-            // OIDC Stuff
-            'markocupic_sac_sso_login.oidc.client_id',
-            'markocupic_sac_sso_login.oidc.client_secret',
-            'markocupic_sac_sso_login.oidc.redirect_uri_frontend',
-            'markocupic_sac_sso_login.oidc.redirect_uri_backend',
-            'markocupic_sac_sso_login.oidc.url_authorize',
-            'markocupic_sac_sso_login.oidc.url_access_token',
-            'markocupic_sac_sso_login.oidc.resource_owner_details',
-        ];
-
-        /** @var System $systemAdapter */
-        $systemAdapter = $this->framework->getAdapter(System::class);
-
-        /** @var Config $configAdapter */
-        $configAdapter = $this->framework->getAdapter(Config::class);
-
-        foreach ($arrConfigs as $config) {
-            if ('SAC_EVT_SAC_SECTION_IDS' === $config) {
-                if (empty($configAdapter->get($config))) {
-                    throw new AppCheckFailedException('Parameter "tl_settings.'.$config.'" not found. Please read the README.md and check the contao backend settings for the missing parameter.');
-                }
-            } else {
-                if (empty($systemAdapter->getContainer()->getParameter($config))) {
-                    throw new AppCheckFailedException('Parameter "'.$config.'" not found. Please read the README.md and check the settings in config/parameters.yml');
-                }
             }
         }
     }

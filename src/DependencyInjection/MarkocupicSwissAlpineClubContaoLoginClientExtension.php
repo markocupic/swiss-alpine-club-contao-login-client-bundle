@@ -56,8 +56,12 @@ class MarkocupicSwissAlpineClubContaoLoginClientExtension extends Extension
         $container->setParameter($rootKey.'.oidc.url_authorize', $config['oidc']['url_authorize']);
         $container->setParameter($rootKey.'.oidc.url_access_token', $config['oidc']['url_access_token']);
         $container->setParameter($rootKey.'.oidc.resource_owner_details', $config['oidc']['resource_owner_details']);
-        $container->setParameter($rootKey.'.oidc.add_to_member_groups', $config['oidc']['add_to_member_groups']);
+        $container->setParameter($rootKey.'.oidc.add_to_frontend_user_groups', $config['oidc']['add_to_frontend_user_groups']);
         $container->setParameter($rootKey.'.oidc.url_logout', $config['oidc']['url_logout']);
+        $container->setParameter($rootKey.'.oidc.allow_frontend_login_to_defined_section_members_only', $config['oidc']['allow_frontend_login_to_defined_section_members_only']);
+        $container->setParameter($rootKey.'.oidc.allow_backend_login_to_defined_section_members_only', $config['oidc']['allow_backend_login_to_defined_section_members_only']);
+        $container->setParameter($rootKey.'.oidc.allowed_frontend_sac_section_ids', $config['oidc']['allowed_frontend_sac_section_ids']);
+        $container->setParameter($rootKey.'.oidc.allowed_backend_sac_section_ids', $config['oidc']['allowed_backend_sac_section_ids']);
         $container->setParameter($rootKey.'.oidc.redirect_uri_frontend', $config['oidc']['redirect_uri_frontend']);
         $container->setParameter($rootKey.'.oidc.redirect_uri_backend', $config['oidc']['redirect_uri_backend']);
         $container->setParameter($rootKey.'.oidc.enable_backend_sso', $config['oidc']['enable_backend_sso']);

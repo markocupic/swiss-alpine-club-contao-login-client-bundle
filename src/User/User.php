@@ -257,14 +257,29 @@ class User
             $objMember->gender = 'HERR' === $arrData['anredecode'] ? 'male' : 'female';
             $objMember->country = strtolower($arrData['land']);
             $objMember->email = $arrData['email'];
-            $objMember->sectionId = serialize($this->remoteUser->getGroupMembership());
+
+            // Allowed_sac_section_ids:
+            if ($systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.allow_frontend_login_to_defined_section_members_only')) {
+                $objMember->sectionId = serialize($this->remoteUser->getAllowedSacSectionIds());
+            } else {
+                $objMember->sectionId = serialize($this->remoteUser->getAllowedSacSectionIds());
+            }
+
             // Member has to be member of a valid sac section
-            $objMember->isSacMember = \count($this->remoteUser->getGroupMembership()) > 0 ? '1' : '';
+            if ($systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.allow_frontend_login_to_defined_section_members_only')) {
+                $objMember->isSacMember = !empty($this->remoteUser->getAllowedSacSectionIds()) ? '1' : '';
+            } else {
+                $objMember->isSacMember = $this->remoteUser->isSacMember() ? '1' : '';
+            }
+
             $objMember->tstamp = time();
             // Groups
             $arrGroups = $stringUtilAdapter->deserialize($objMember->groups, true);
-            $arrAutoGroups = $stringUtilAdapter->deserialize($systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.add_to_member_groups'), true);
-            $objMember->groups = serialize(array_merge($arrGroups, $arrAutoGroups));
+            $arrAutoGroups = $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.add_to_frontend_user_groups');
+
+            if (!empty($arrAutoGroups) && \is_array($arrAutoGroups)) {
+                $objMember->groups = serialize(array_merge($arrGroups, $arrAutoGroups));
+            }
 
             // Set random password
             if (empty($objMember->password)) {
@@ -305,7 +320,7 @@ class User
             $objUser->gender = 'HERR' === $arrData['anredecode'] ? 'male' : 'female';
             $objUser->country = strtolower($arrData['land']);
             $objUser->email = $arrData['email'];
-            $objUser->sectionId = serialize($this->remoteUser->getGroupMembership());
+            $objUser->sectionId = serialize($this->remoteUser->getAllowedSacSectionIds());
             $objUser->tstamp = time();
 
             // Set random password

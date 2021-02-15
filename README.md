@@ -14,12 +14,13 @@ Vor der Inbetriebnahme müssen mehrere Parameter in der config/parameters.yml ge
 parameters:
   # some other settings
 
+
 markocupic_sac_sso_login:
   oidc:
-    # Mandatory
-    client_id: '********'
-    client_secret:  '*******'
-    # Defaults
+    # required
+    client_id: '*****'
+    client_secret:  '*****'
+    # defaults
     url_authorize: 'https://ids01.sac-cas.ch:443/oauth2/authorize'
     url_access_token: 'https://ids01.sac-cas.ch:443/oauth2/token'
     resource_owner_details: 'https://ids01.sac-cas.ch:443/oauth2/userinfo'
@@ -27,9 +28,16 @@ markocupic_sac_sso_login:
     redirect_uri_backend: 'https://sac-pilatus.ch/ssoauth/backend'
     url_logout: 'https://ids01.sac-cas.ch/oidc/logout'
     enable_backend_sso: true
-    enable_csrf_token_check: false
-    # Optional
-    add_to_member_groups: 'a:1:{i:0;s:1:"9";}'
+    # optional
+    add_to_frontend_user_groups:
+      - 9 # SAC Sektion Pilatus Standard Mitgliedergruppe
+    allowed_sac_section_ids:
+      - 4250 # Stammsektion
+      - 4251 # OG Surental
+      - 4252 # OG Napf
+      - 4253 # OG Hochdorf
+      - 4254 # OG Rigi
+
 
 
 ```
