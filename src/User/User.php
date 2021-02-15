@@ -26,6 +26,7 @@ use Contao\System;
 use Contao\UserModel;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Session\Session;
+use Symfony\Component\Security\Core\Encoder\EncoderFactoryInterface;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Translation\TranslatorInterface;
 
@@ -45,11 +46,6 @@ class User
     private $framework;
 
     /**
-     * @var LoggerInterface
-     */
-    private $logger;
-
-    /**
      * @var Session
      */
     private $session;
@@ -60,6 +56,16 @@ class User
     private $translator;
 
     /**
+     * @var EncoderFactoryInterface
+     */
+    private $encoderFactory;
+
+    /**
+     * @var LoggerInterface
+     */
+    private $logger;
+
+    /**
      * @var string
      */
     private $contaoScope;
@@ -67,12 +73,13 @@ class User
     /**
      * User constructor.
      */
-    public function __construct(ContaoFramework $framework, Session $session, ?LoggerInterface $logger, TranslatorInterface $translator)
+    public function __construct(ContaoFramework $framework, Session $session, TranslatorInterface $translator, EncoderFactoryInterface $encoderFactory, ?LoggerInterface $logger)
     {
         $this->framework = $framework;
         $this->session = $session;
-        $this->logger = $logger;
         $this->translator = $translator;
+        $this->encoderFactory = $encoderFactory;
+        $this->logger = $logger;
 
         // Initialize Contao framework
         $this->framework->initialize();
@@ -259,14 +266,14 @@ class User
             $objMember->email = $arrData['email'];
 
             // Allowed_sac_section_ids:
-            if ($systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.allow_frontend_login_to_defined_section_members_only')) {
+            if ($systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.allow_frontend_login_to_predefined_section_members_only')) {
                 $objMember->sectionId = serialize($this->remoteUser->getAllowedSacSectionIds());
             } else {
                 $objMember->sectionId = serialize($this->remoteUser->getAllowedSacSectionIds());
             }
 
             // Member has to be member of a valid sac section
-            if ($systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.allow_frontend_login_to_defined_section_members_only')) {
+            if ($systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.allow_frontend_login_to_predefined_section_members_only')) {
                 $objMember->isSacMember = !empty($this->remoteUser->getAllowedSacSectionIds()) ? '1' : '';
             } else {
                 $objMember->isSacMember = $this->remoteUser->isSacMember() ? '1' : '';
@@ -283,7 +290,7 @@ class User
 
             // Set random password
             if (empty($objMember->password)) {
-                $encoder = $systemAdapter->getContainer()->get('security.encoder_factory')->getEncoder(FrontendUser::class);
+                $encoder = $this->encoderFactory->getEncoder(FrontendUser::class);
                 $objMember->password = $encoder->encodePassword(substr(md5((string) random_int(900009, 111111111111)), 0, 8), null);
             }
 
@@ -299,9 +306,7 @@ class User
      */
     public function updateBackendUser(): void
     {
-        /** @var System $systemAdapter */
-        $systemAdapter = $this->framework->getAdapter(System::class);
-
+       
         $arrData = $this->remoteUser->getData();
 
         $objUser = $this->getModel('tl_user');
@@ -325,7 +330,7 @@ class User
 
             // Set random password
             if (empty($objUser->password)) {
-                $encoder = $systemAdapter->getContainer()->get('security.encoder_factory')->getEncoder(BackendUser::class);
+                $encoder = $this->encoderFactory->getEncoder(BackendUser::class);
                 $objUser->password = $encoder->encodePassword(substr(md5((string) random_int(900009, 111111111111)), 0, 8), null);
             }
 

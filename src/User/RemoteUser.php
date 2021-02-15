@@ -147,7 +147,7 @@ class RemoteUser
         /** @var System $systemAdapter */
         $systemAdapter = $this->framework->getAdapter(System::class);
 
-        if (empty($this->get('contact_number')) || empty($this->get('Roles')) || empty($this->get('sub'))) {
+        if (!$this->isSacMember()) {
             $arrError = [
                 'level' => 'warning',
                 'matter' => $this->translator->trans('ERR.sacOidcLoginError_userIsNotSacMember_matter', [$this->get('vorname')], 'contao_default'),
@@ -248,13 +248,13 @@ class RemoteUser
         if ('frontend' === $this->contaoScope) {
             $arrAllowedGroups = $systemAdapter
                 ->getContainer()
-                ->getParameter('markocupic_sac_sso_login.oidc.allowed_frontend_sac_section_ids');
+                ->getParameter('markocupic_sac_sso_login.oidc.allowed_frontend_sac_section_ids')
             ;
         } else {
             $arrAllowedGroups = $systemAdapter
                 ->getContainer()
-                ->getParameter('markocupic_sac_sso_login.oidc.allowed_backend_sac_section_ids');
-
+                ->getParameter('markocupic_sac_sso_login.oidc.allowed_backend_sac_section_ids')
+            ;
         }
 
         $arrGroupMembership = $this->getSacSectionIds();
@@ -272,7 +272,7 @@ class RemoteUser
         // Search for NAV_MITGLIED_S00004250 or NAV_MITGLIED_S00004251, etc.
         $pattern = static::NAV_SECTION_ID_REGEX;
 
-        return preg_match($pattern, $strRoles) ? true : false;
+        return preg_match($pattern, $strRoles) && !empty($this->get('sub')) && !empty($this->get('contact_number')) ? true : false;
     }
 
     public function getMockUserData(bool $isMember = true): array

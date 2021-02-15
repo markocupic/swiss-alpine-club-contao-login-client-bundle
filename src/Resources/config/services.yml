@@ -35,8 +35,9 @@ services:
     arguments:
     - '@contao.framework'
     - '@session'
-    - '@monolog.logger.contao'
     - '@translator'
+    - '@security.encoder_factory'
+    - '@monolog.logger.contao'
     public: true
 
   Markocupic\SwissAlpineClubContaoLoginClientBundle\User\RemoteUser:

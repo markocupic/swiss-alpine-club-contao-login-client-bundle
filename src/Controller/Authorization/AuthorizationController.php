@@ -104,10 +104,25 @@ class AuthorizationController extends AbstractController
         /** @var Session $session */
         $session = $this->session->getBag($bagName);
 
+        $blnAutocreate = $systemAdapter
+            ->getContainer()
+            ->getParameter('markocupic_sac_sso_login.oidc.autocreate_frontend_user')
+        ;
+
+        $blnAllowLoginToSacMembersOnly = $systemAdapter
+            ->getContainer()
+            ->getParameter('markocupic_sac_sso_login.oidc.allow_frontend_login_to_sac_members_only')
+        ;
+
+        $blnAllowLoginToPredefinedSectionsOnly = $systemAdapter
+            ->getContainer()
+            ->getParameter('markocupic_sac_sso_login.oidc.allow_frontend_login_to_predefined_section_members_only')
+        ;
+
         // Set redirect uri
         $this->oidc->setProviderData(['redirectUri' => $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.redirect_uri_frontend')]);
 
-        // Run the authorisation code flow
+        // Run the authorization code flow
         if ($this->oidc->runOpenIdConnectFlow()) {
             $arrData = $session->get('arrData');
 
@@ -118,23 +133,28 @@ class AuthorizationController extends AbstractController
             $this->remoteUser->checkHasUuid();
 
             // Check if user is SAC member
-            $this->remoteUser->checkIsSacMember();
+            if ($blnAllowLoginToSacMembersOnly) {
+                $this->remoteUser->checkIsSacMember();
+            }
 
             // Check if user is member of an allowed section
-            if ($systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.allow_frontend_login_to_defined_section_members_only')) {
+            if ($blnAllowLoginToPredefinedSectionsOnly) {
                 $this->remoteUser->checkIsMemberInAllowedSection();
             }
 
             // Check has valid email address
             // This test should be always positive,
-            // because email is mandatory
+            // beacause creating an account at www.sac-cas.ch
+            // requires a valid email address
             $this->remoteUser->checkHasValidEmail();
 
             // Initialize user
             $this->user->initialize($this->remoteUser, $contaoScope);
 
             // Create User if it not exists
-            $this->user->createIfNotExists();
+            if ($blnAutocreate) {
+                $this->user->createIfNotExists();
+            }
 
             // Check if user exists
             $this->user->checkUserExists();
@@ -203,10 +223,25 @@ class AuthorizationController extends AbstractController
         /** @var Session $session */
         $session = $this->session->getBag($bagName);
 
+        $blnAutocreate = $systemAdapter
+            ->getContainer()
+            ->getParameter('markocupic_sac_sso_login.oidc.autocreate_backend_user')
+        ;
+
+        $blnAllowLoginToSacMembersOnly = $systemAdapter
+            ->getContainer()
+            ->getParameter('markocupic_sac_sso_login.oidc.allow_backend_login_to_sac_members_only')
+        ;
+
+        $blnAllowLoginToPredefinedSectionsOnly = $systemAdapter
+            ->getContainer()
+            ->getParameter('markocupic_sac_sso_login.oidc.allow_backend_login_to_predefined_section_members_only')
+        ;
+
         // Set redirect uri
         $this->oidc->setProviderData(['redirectUri' => $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.redirect_uri_backend')]);
 
-        // Run the authorisation code flow
+        // Run the authorization code flow
         if ($this->oidc->runOpenIdConnectFlow()) {
             $arrData = $session->get('arrData');
 
@@ -216,23 +251,29 @@ class AuthorizationController extends AbstractController
             $this->remoteUser->checkHasUuid();
 
             // Check if user is SAC member
-            $this->remoteUser->checkIsSacMember();
+            if ($blnAllowLoginToSacMembersOnly) {
+                $this->remoteUser->checkIsSacMember();
+            }
 
             // Check if user is member of an allowed section
-            if ($systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.allow_backend_login_to_defined_section_members_only')) {
+            if ($blnAllowLoginToPredefinedSectionsOnly) {
                 $this->remoteUser->checkIsMemberInAllowedSection();
             }
 
             // Check has valid email address
             // This test should be always positive,
-            // because email is mandatory
+            // beacause creating an account at www.sac-cas.ch
+            // requires a valid email address
             $this->remoteUser->checkHasValidEmail();
 
             // Initialize user
             $this->user->initialize($this->remoteUser, $contaoScope);
 
-            // Create User if it not exists is yet not allowed!
-            //$this->user->createIfNotExists();
+            // Create User if it not exists
+            //Not allowed for backend users!
+            if ($blnAutocreate) {
+                // $this->user->createIfNotExists();
+            }
 
             // Check if user exists
             $this->user->checkUserExists();

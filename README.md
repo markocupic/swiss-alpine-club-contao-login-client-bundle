@@ -18,8 +18,8 @@ parameters:
 markocupic_sac_sso_login:
   oidc:
     # required
-    client_id: '*****'
-    client_secret:  '*****'
+    client_id: '*******'
+    client_secret:  '**********'
     # defaults
     url_authorize: 'https://ids01.sac-cas.ch:443/oauth2/authorize'
     url_access_token: 'https://ids01.sac-cas.ch:443/oauth2/token'
@@ -31,13 +31,23 @@ markocupic_sac_sso_login:
     # optional
     add_to_frontend_user_groups:
       - 9 # SAC Sektion Pilatus Standard Mitgliedergruppe
-    allowed_sac_section_ids:
+    autocreate_frontend_user: false
+    allow_frontend_login_to_sac_members_only: true
+    allow_frontend_login_to_predefined_section_members_only: true
+    allowed_frontend_sac_section_ids:
       - 4250 # Stammsektion
       - 4251 # OG Surental
       - 4252 # OG Napf
       - 4253 # OG Hochdorf
       - 4254 # OG Rigi
-
-
+    autocreate_backend_user: false
+    allow_backend_login_to_sac_members_only: true
+    allow_backend_login_to_predefined_section_members_only: true
+    allowed_backend_sac_section_ids:
+      - 4250 # Stammsektion
+      - 4251 # OG Surental
+      - 4252 # OG Napf
+      - 4253 # OG Hochdorf
+      - 4254 # OG Rigi
 
 ```
