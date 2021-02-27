@@ -17,7 +17,7 @@
 				<div class="sac-login-button-prepend">
 					<img src="bundles/markocupicswissalpineclubcontaologinclient/img/logo_sac_small.svg" class="sac-login-button-prepend-icon">
 				</div>
-				<button type="submit"><?= $this->trans('MSC.loginWithSacSso', [], 'contao_default') ?></button>
+				<button type="submit"><?= $this->trans('MSC.loginWithSacSso', [], 'contao_default') ?> {{arrow::RIGHTWARDS_ARROW}}</button>
 			</div>
 		</div>
 	</form>

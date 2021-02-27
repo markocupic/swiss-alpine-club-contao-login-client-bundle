@@ -21,7 +21,7 @@
             <div class="sac-login-button-prepend">
                 <img src="bundles/markocupicswissalpineclubcontaologinclient/img/logo_sac_small.svg" class="sac-login-button-prepend-icon">
             </div>
-            <button type="submit"><?= $this->btnLbl ?></button>
+            <button type="submit"><?= $this->btnLbl ?> {{arrow::RIGHTWARDS_ARROW}}</button>
         </div>
     </div>
 </form>

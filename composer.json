@@ -28,7 +28,8 @@
     "contao/test-case": "^4.0",
     "phpunit/phpunit": "^8.4",
     "symfony/http-client": "4.4.*",
-    "symfony/phpunit-bridge": "4.4.*"
+    "symfony/phpunit-bridge": "4.4.*",
+    "markocupic/contao-utf8-arrows-insert-tag-bundle": "^1.0"
   },
   "autoload": {
     "psr-4": {
