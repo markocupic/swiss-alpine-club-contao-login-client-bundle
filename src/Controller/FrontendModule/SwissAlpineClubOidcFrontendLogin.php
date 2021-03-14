@@ -24,7 +24,9 @@ use Contao\PageModel;
 use Contao\StringUtil;
 use Contao\System;
 use Contao\Template;
+use Haste\Util\Url;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Security\Core\Security;
@@ -36,11 +38,6 @@ use Symfony\Component\Security\Core\Security;
  */
 class SwissAlpineClubOidcFrontendLogin extends AbstractFrontendModuleController
 {
-    /**
-     * @var Session
-     */
-    private $session;
-
     /**
      * @var ContaoFramework
      */
@@ -54,9 +51,8 @@ class SwissAlpineClubOidcFrontendLogin extends AbstractFrontendModuleController
     /**
      * SwissAlpineClubOidcFrontendLogin constructor.
      */
-    public function __construct(Session $session, ContaoFramework $framework)
+    public function __construct(ContaoFramework $framework)
     {
-        $this->session = $session;
         $this->framework = $framework;
     }
 
@@ -93,6 +89,9 @@ class SwissAlpineClubOidcFrontendLogin extends AbstractFrontendModuleController
         /** @var StringUtil $stringUtilAdapter */
         $stringUtilAdapter = $this->framework->getAdapter(StringUtil::class);
 
+        /** @var Url $urlAdapter */
+        $urlAdapter = $this->framework->getAdapter(Url::class);
+
         // Get logged in member object
         if (($user = $this->get('security.helper')->getUser()) instanceof FrontendUser) {
             $template->loggedInAs = $translator->trans('MSC.loggedInAs', [$user->username], 'contao_default');
@@ -111,24 +110,35 @@ class SwissAlpineClubOidcFrontendLogin extends AbstractFrontendModuleController
 
             // Since Contao 4.9 urls are base64 encoded
             $template->targetPath = $stringUtilAdapter->specialchars(base64_encode($strRedirect));
-            $template->failurePath = $stringUtilAdapter->specialchars(base64_encode($strRedirect));
+
+            $failurePath = $urlAdapter->addQueryString('sso_error=true', $strRedirect);
+            $template->failurePath = $stringUtilAdapter->specialchars(base64_encode($failurePath));
+
             $template->login = true;
+
             $template->btnLbl = empty($model->swiss_alpine_club_oidc_frontend_login_btn_lbl) ? $translator->trans('MSC.loginWithSacSso', [], 'contao_default') : $model->swiss_alpine_club_oidc_frontend_login_btn_lbl;
 
-            // Check for error messages
-            $flashBagKey = $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.session.flash_bag_key');
-            $flashBag = $this->session->getFlashBag()->get($flashBagKey);
+            /** @var RequestStack $requestStack */
+            $requestStack = $this->get('request_stack');
+            $request = $requestStack->getCurrentRequest();
 
-            if (\count($flashBag) > 0) {
-                $arrError = [];
+            // Check for error messages & start session only if there was an error
+            if ($request->query->has('sso_error')) {
+                $session = $this->get('session');
+                $flashBagKey = $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.session.flash_bag_key');
+                $flashBag = $session->getFlashBag()->get($flashBagKey);
 
-                foreach ($flashBag[0] as $k => $v) {
-                    if ('level' === $k) {
-                        $arrError['bs-alert-class'] = 'error' === $v ? 'danger' : $v;
+                if (\count($flashBag) > 0) {
+                    $arrError = [];
+
+                    foreach ($flashBag[0] as $k => $v) {
+                        if ('level' === $k) {
+                            $arrError['bs-alert-class'] = 'error' === $v ? 'danger' : $v;
+                        }
+                        $arrError[$k] = $v;
                     }
-                    $arrError[$k] = $v;
+                    $template->error = $arrError;
                 }
-                $template->error = $arrError;
             }
         }
 

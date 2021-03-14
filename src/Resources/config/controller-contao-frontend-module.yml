@@ -2,7 +2,6 @@ services:
 
   Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\FrontendModule\SwissAlpineClubOidcFrontendLogin:
     arguments:
-    - '@session'
     - '@contao.framework'
     calls:
     - ['setContainer', ['@Psr\Container\ContainerInterface']]

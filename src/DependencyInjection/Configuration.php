@@ -96,7 +96,7 @@ class Configuration implements ConfigurationInterface
                             ->defaultTrue()
                         ->end()
                         ->booleanNode('enable_csrf_token_check')
-                            ->defaultTrue()
+                            ->defaultFalse()
                         ->end()
                     ->end()
                 ->end() // end oidc

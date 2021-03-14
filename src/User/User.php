@@ -306,7 +306,6 @@ class User
      */
     public function updateBackendUser(): void
     {
-       
         $arrData = $this->remoteUser->getData();
 
         $objUser = $this->getModel('tl_user');
