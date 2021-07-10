@@ -149,7 +149,7 @@ class InteractiveLogin
 
         // Fire the login event manually
         $event = new InteractiveLoginEvent($this->requestStack->getCurrentRequest(), $token);
-        $this->eventDispatcher->dispatch('security.interactive_login', $event);
+        $this->eventDispatcher->dispatch($event, 'security.interactive_login', );
 
         /** @var RemoteUser $remoteUser */
         $remoteUser = $oidcUser->remoteUser;
