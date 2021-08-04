@@ -45,6 +45,7 @@ class MarkocupicSwissAlpineClubContaoLoginClientExtension extends Extension
         );
 
         $loader->load('listener.yml');
+        $loader->load('subscriber.yml');
         $loader->load('services.yml');
         $loader->load('controller-contao-frontend-module.yml');
 

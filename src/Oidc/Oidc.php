@@ -35,54 +35,56 @@ use Symfony\Component\Translation\TranslatorInterface;
  */
 class Oidc
 {
-    /**
-     * @var ContaoFramework
-     */
-    private $framework;
-
-    /**
-     * @var RequestStack
-     */
-    private $requestStack;
-
-    /**
-     * @var Session
-     */
-    private $session;
-
-    /**
-     * @var CsrfTokenManager
-     */
-    private $csrfTokenManager;
-
-    /**
-     * @var TranslatorInterface
-     */
-    private $translator;
-
-    /**
-     * @var array
-     */
-    private $providerData = [];
+    private ContaoFramework $framework;
+    private RequestStack $requestStack;
+    private CsrfTokenManager $csrfTokenManager;
+    private TranslatorInterface $translator;
+    private array $providerData = [];
 
     /**
      * Oidc constructor.
      *
      * @throws AppCheckFailedException
      */
-    public function __construct(ContaoFramework $framework, RequestStack $requestStack, Session $session, CsrfTokenManager $csrfTokenManager, TranslatorInterface $translator)
+    public function __construct(ContaoFramework $framework, RequestStack $requestStack, CsrfTokenManager $csrfTokenManager, TranslatorInterface $translator)
     {
         $this->framework = $framework;
         $this->requestStack = $requestStack;
-        $this->session = $session;
         $this->csrfTokenManager = $csrfTokenManager;
         $this->translator = $translator;
+    }
 
-        // initialize Contao framework
+    /**
+     * Service method call
+     */
+    public function initializeFramework()
+    {
+        // Initialize Contao framework
         $this->framework->initialize();
+    }
 
-        // Set provider data from config
-        $this->setProviderFromConfig();
+    /**
+     * Service method call
+     * Set provider data from config.
+     */
+    public function setProviderFromConfig(): void
+    {
+        /** @var Config $configAdapter */
+        $systemAdapter = $this->framework->getAdapter(System::class);
+
+        $this->providerData = [
+            // The client ID assigned to you by the provider
+            'clientId' => $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.client_id'),
+            // The client password assigned to you by the provider
+            'clientSecret' => $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.client_secret'),
+            // Absolute Callbackurl to your system(must be registered by service provider.)
+            'redirectUri' => $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.redirect_uri_backend'),
+            'urlAuthorize' => $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.url_authorize'),
+            'urlAccessToken' => $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.url_access_token'),
+            'urlResourceOwnerDetails' => $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.resource_owner_details'),
+            'response_type' => 'code',
+            'scopes' => ['openid'],
+        ];
     }
 
     /**
@@ -106,7 +108,7 @@ class Oidc
         $bagName = $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.session.attribute_bag_name');
 
         /** @var Session $session */
-        $session = $this->session->getBag($bagName);
+        $session = $this->requestStack->getCurrentRequest()->getSession()->getBag($bagName);
 
         // If we don't have an authorization code then get one
         if (!$request->query->has('code')) {
@@ -184,29 +186,6 @@ class Oidc
     }
 
     /**
-     * Set provider data from config.
-     */
-    private function setProviderFromConfig(): void
-    {
-        /** @var Config $configAdapter */
-        $systemAdapter = $this->framework->getAdapter(System::class);
-
-        $this->providerData = [
-            // The client ID assigned to you by the provider
-            'clientId' => $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.client_id'),
-            // The client password assigned to you by the provider
-            'clientSecret' => $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.client_secret'),
-            // Absolute Callbackurl to your system(must be registered by service provider.)
-            'redirectUri' => $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.redirect_uri_backend'),
-            'urlAuthorize' => $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.url_authorize'),
-            'urlAccessToken' => $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.url_access_token'),
-            'urlResourceOwnerDetails' => $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.resource_owner_details'),
-            'response_type' => 'code',
-            'scopes' => ['openid'],
-        ];
-    }
-
-    /**
      * @throws AppCheckFailedException
      * @throws InvalidRequestTokenException
      */
@@ -249,4 +228,6 @@ class Oidc
 
         return $response->send();
     }
+
+
 }

@@ -1,67 +1,66 @@
 services:
 
-
   Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\Authorization\AuthorizationController:
-    arguments:
-    - '@contao.framework'
-    - '@request_stack'
-    - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\User\RemoteUser'
-    - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\User\User'
-    - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\InteractiveLogin\InteractiveLogin'
-    - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\Oidc\Oidc'
     public: true
+    arguments:
+      - '@contao.framework'
+      - '@request_stack'
+      - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\User\RemoteUser'
+      - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\User\User'
+      - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\InteractiveLogin\InteractiveLogin'
+      - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\Oidc\Oidc'
 
   Markocupic\SwissAlpineClubContaoLoginClientBundle\Oidc\Oidc:
     arguments:
-    - '@contao.framework'
-    - '@request_stack'
-    - '@session'
-    - '@contao.csrf.token_manager'
-    - '@translator'
-    public: true
+      - '@contao.framework'
+      - '@request_stack'
+      - '@contao.csrf.token_manager'
+      - '@translator'
+    calls:
+      - [ initializeFramework ]
+      - [ setProviderFromConfig ]
 
   Markocupic\SwissAlpineClubContaoLoginClientBundle\InteractiveLogin\InteractiveLogin:
     arguments:
-    - '@contao.framework'
-    - '@contao.security.user_checker'
-    - '@session'
-    - '@security.token_storage'
-    - '@event_dispatcher'
-    - '@request_stack'
-    - '@monolog.logger.contao'
-    public: true
+      - '@contao.framework'
+      - '@contao.security.user_checker'
+      - '@security.token_storage'
+      - '@event_dispatcher'
+      - '@request_stack'
+      - '@monolog.logger.contao'
+    calls:
+      - [ initializeFramework ]
 
   Markocupic\SwissAlpineClubContaoLoginClientBundle\User\User:
     arguments:
-    - '@contao.framework'
-    - '@session'
-    - '@translator'
-    - '@security.encoder_factory'
-    - '@monolog.logger.contao'
-    public: true
+      - '@contao.framework'
+      - '@request_stack'
+      - '@translator'
+      - '@security.encoder_factory'
+      - '@monolog.logger.contao'
+    calls:
+      - [ initializeFramework ]
 
   Markocupic\SwissAlpineClubContaoLoginClientBundle\User\RemoteUser:
     arguments:
-    - '@contao.framework'
-    - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\User\User'
-    - '@session'
-    - '@translator'
-    public: true
+      - '@contao.framework'
+      - '@request_stack'
+      - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\User\User'
+      - '@translator'
+    calls:
+      - [ initializeFramework ]
 
   Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\PrintErrorMessage:
     arguments:
-    - '%contao.pretty_error_screens%'
-    - '@twig'
-    - '@contao.framework'
-    - '@request_stack'
-    - '@security.helper'
-    - '@?logger'
-    public: true
+      - '%contao.pretty_error_screens%'
+      - '@twig'
+      - '@contao.framework'
+      - '@request_stack'
+      - '@security.helper'
+      - '@?logger'
 
   Markocupic\SwissAlpineClubContaoLoginClientBundle\Session\Attribute\ArrayAttributeBag:
     arguments:
-    - '%markocupic_sac_sso_login.session.attribute_bag_key%'
+      - '%markocupic_sac_sso_login.session.attribute_bag_key%'
     calls:
-    - ['setName', ['%markocupic_sac_sso_login.session.attribute_bag_name%']]
-
-
+      - [ 'setName', [ '%markocupic_sac_sso_login.session.attribute_bag_name%' ] ]

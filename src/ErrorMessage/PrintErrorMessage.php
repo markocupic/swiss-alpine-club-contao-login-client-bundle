@@ -23,35 +23,13 @@ use Twig\Environment;
 
 class PrintErrorMessage
 {
-    /**
-     * @var bool
-     */
-    private $prettyErrorScreens;
 
-    /**
-     * @var Environment
-     */
-    private $twig;
-
-    /**
-     * @var ContaoFramework
-     */
-    private $framework;
-
-    /**
-     * @var RequestStack
-     */
-    private $requestStack;
-
-    /**
-     * @var Security
-     */
-    private $security;
-
-    /**
-     * @var LoggerInterface
-     */
-    private $logger;
+    private bool $prettyErrorScreens;
+    private Environment $twig;
+    private ContaoFramework $framework;
+    private RequestStack $requestStack;
+    private Security $security;
+    private ?LoggerInterface $logger = null;
 
     public function __construct(bool $prettyErrorScreens, Environment $twig, ContaoFramework $framework, RequestStack $requestStack, Security $security, LoggerInterface $logger = null)
     {

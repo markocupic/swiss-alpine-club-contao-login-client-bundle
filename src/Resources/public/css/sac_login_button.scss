@@ -1,35 +1,33 @@
 :root {
-    --sac-login-button-bg-color: #96060e;
-    --sac-login-button-bg-color-hover: #96060e;
-
+  --sac-login-button-bg-color: #96060e;
+  --sac-login-button-bg-color-hover: #96060e;
 }
 
 .sac-login-button-group {
-    width: 100% !important;
-    position: relative;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: stretch;
-}
+  width: 100% !important;
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
 
-.sac-login-button-group button:not(:disabled):not(.disabled):active {
+  button:not(:disabled):not(.disabled):active {
     color: #fff;
     background-color: var(--sac-login-button-bg-color-hover);
     background-image: none;
     border-color: var(--sac-login-button-bg-color-hover);
-}
+  }
 
-.sac-login-button-group button:hover {
+  button:hover {
     color: var(--sac-login-button-bg-color-hover);
     background: #fff;
     border-color: var(--sac-login-button-bg-color-hover);
-}
+  }
 
-.sac-login-button-group button:focus {
+  button:focus {
     outline: none !important;
-}
+  }
 
-.sac-login-button-group button {
+  button {
     font-size: 0.875rem;
     cursor: pointer;
     flex-grow: 1;
@@ -49,13 +47,13 @@
     border-radius: 0;
     overflow: visible;
     transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-}
+  }
 
-.sac-login-button-group-lg button {
+  &.sac-login-button-group-lg button {
     font-size: 1rem;
-}
+  }
 
-.sac-login-button-group > .sac-login-button-prepend {
+  > .sac-login-button-prepend {
     background-color: #ffffff;
     border: 1px solid #dddddd;
     margin-right: -1px;
@@ -68,18 +66,19 @@
     line-height: 1.5;
     text-align: center;
     white-space: nowrap;
-}
+  }
 
-.sac-login-button-group.sac-login-button-group-lg > .sac-login-button-prepend {
+  &.sac-login-button-group-lg > .sac-login-button-prepend {
     padding-left: 13px;
     padding-right: 13px;
-}
+  }
 
-.sac-login-button-group > .sac-login-button-prepend > .sac-login-button-prepend-icon {
+  > .sac-login-button-prepend > .sac-login-button-prepend-icon {
     height: 40px;
     width: auto;
-}
+  }
 
-.sac-login-button-group.sac-login-button-group-lg > .sac-login-button-prepend > .sac-login-button-prepend-icon {
+  &.sac-login-button-group-lg > .sac-login-button-prepend > .sac-login-button-prepend-icon {
     height: 50px;
+  }
 }

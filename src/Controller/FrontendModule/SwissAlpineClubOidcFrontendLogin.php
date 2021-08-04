@@ -28,7 +28,6 @@ use Haste\Util\Url;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Security\Core\Security;
 
 /**
@@ -38,15 +37,8 @@ use Symfony\Component\Security\Core\Security;
  */
 class SwissAlpineClubOidcFrontendLogin extends AbstractFrontendModuleController
 {
-    /**
-     * @var ContaoFramework
-     */
-    private $framework;
-
-    /**
-     * @var PageModel
-     */
-    private $page;
+    private ContaoFramework $framework;
+    private ?PageModel $page = null;
 
     /**
      * SwissAlpineClubOidcFrontendLogin constructor.

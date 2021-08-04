@@ -30,7 +30,6 @@ use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
@@ -52,54 +51,32 @@ class InteractiveLogin
      */
     public const SECURED_AREA_BACKEND = 'contao_backend';
 
-    /**
-     * @var ContaoFramework
-     */
-    private $framework;
-
-    /**
-     * @var UserChecker
-     */
-    private $userChecker;
-
-    /**
-     * @var Session
-     */
-    private $session;
-
-    /**
-     * @var TokenStorageInterface
-     */
-    private $tokenStorage;
-
-    /**
-     * @var EventDispatcherInterface
-     */
-    private $eventDispatcher;
-
-    /**
-     * @var RequestStack
-     */
-    private $requestStack;
-
-    /**
-     * @var LoggerInterface|null
-     */
-    private $logger;
+    private ContaoFramework $framework;
+    private UserChecker $userChecker;
+    private TokenStorageInterface $tokenStorage;
+    private EventDispatcherInterface $eventDispatcher;
+    private RequestStack $requestStack;
+    private ?LoggerInterface $logger = null;
 
     /**
      * InteractiveLogin constructor.
      */
-    public function __construct(ContaoFramework $framework, UserChecker $userChecker, Session $session, TokenStorageInterface $tokenStorage, EventDispatcherInterface $eventDispatcher, RequestStack $requestStack, ?LoggerInterface $logger = null)
+    public function __construct(ContaoFramework $framework, UserChecker $userChecker, TokenStorageInterface $tokenStorage, EventDispatcherInterface $eventDispatcher, RequestStack $requestStack, ?LoggerInterface $logger = null)
     {
         $this->framework = $framework;
         $this->userChecker = $userChecker;
-        $this->session = $session;
         $this->tokenStorage = $tokenStorage;
         $this->eventDispatcher = $eventDispatcher;
         $this->requestStack = $requestStack;
         $this->logger = $logger;
+    }
 
+    /**
+     * Service method call
+     */
+    public function initializeFramework()
+    {
+        // Initialize Contao framework
         $this->framework->initialize();
     }
 
@@ -135,8 +112,10 @@ class InteractiveLogin
 
         $userClass = 'frontend' === $oidcUser->getContaoScope() ? FrontendUser::class : BackendUser::class;
 
+        $session = $this->requestStack->getCurrentRequest()->getSession();
+
         // Retrieve user by its username
-        $userProvider = new ContaoUserProvider($this->framework, $this->session, $userClass, $this->logger);
+        $userProvider = new ContaoUserProvider($this->framework, $session, $userClass, $this->logger);
 
         $user = $userProvider->loadUserByUsername($username);
 
@@ -144,8 +123,8 @@ class InteractiveLogin
         $this->tokenStorage->setToken($token);
 
         // Save the token to the session
-        $this->session->set('_security_'.$providerKey, serialize($token));
-        $this->session->save();
+        $session->set('_security_'.$providerKey, serialize($token));
+        $session->save();
 
         // Fire the login event manually
         $event = new InteractiveLoginEvent($this->requestStack->getCurrentRequest(), $token);

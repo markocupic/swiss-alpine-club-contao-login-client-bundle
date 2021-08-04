@@ -35,35 +35,13 @@ use Symfony\Component\Routing\Annotation\Route;
  */
 class AuthorizationController extends AbstractController
 {
-    /**
-     * @var ContaoFramework
-     */
-    private $framework;
 
-    /**
-     * @var RequestStack
-     */
-    private $requestStack;
-
-    /**
-     * @var RemoteUser
-     */
-    private $remoteUser;
-
-    /**
-     * @var User
-     */
-    private $user;
-
-    /**
-     * @var InteractiveLogin
-     */
-    private $interactiveLogin;
-
-    /**
-     * @var Oidc
-     */
-    private $oidc;
+    private ContaoFramework $framework;
+    private RequestStack $requestStack;
+    private RemoteUser $remoteUser;
+    private User $user;
+    private InteractiveLogin $interactiveLogin;
+    private Oidc $oidc;
 
     /**
      * AuthorizationController constructor.

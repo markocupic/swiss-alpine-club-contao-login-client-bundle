@@ -1,0 +1,8 @@
+services:
+
+  # Add assets
+  Markocupic\SwissAlpineClubContaoLoginClientBundle\EventSubscriber\KernelRequestSubscriber:
+    arguments:
+      - '@contao.routing.scope_matcher'
+    tags:
+      - { name: kernel.event_subscriber }

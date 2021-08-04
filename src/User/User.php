@@ -25,6 +25,7 @@ use Contao\StringUtil;
 use Contao\System;
 use Contao\UserModel;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Security\Core\Encoder\EncoderFactoryInterface;
 use Symfony\Component\Security\Core\Security;
@@ -35,52 +36,32 @@ use Symfony\Component\Translation\TranslatorInterface;
  */
 class User
 {
-    /**
-     * @var RemoteUser
-     */
-    public $remoteUser;
 
-    /**
-     * @var ContaoFramework
-     */
-    private $framework;
-
-    /**
-     * @var Session
-     */
-    private $session;
-
-    /**
-     * @var TranslatorInterface
-     */
-    private $translator;
-
-    /**
-     * @var EncoderFactoryInterface
-     */
-    private $encoderFactory;
-
-    /**
-     * @var LoggerInterface
-     */
-    private $logger;
-
-    /**
-     * @var string
-     */
-    private $contaoScope;
+    private ContaoFramework $framework;
+    private RequestStack $requestStack;
+    private TranslatorInterface $translator;
+    private EncoderFactoryInterface $encoderFactory;
+    private ?LoggerInterface $logger = null;
+    public ?RemoteUser $remoteUser = null;
+    private string $contaoScope = '';
 
     /**
      * User constructor.
      */
-    public function __construct(ContaoFramework $framework, Session $session, TranslatorInterface $translator, EncoderFactoryInterface $encoderFactory, ?LoggerInterface $logger)
+    public function __construct(ContaoFramework $framework, RequestStack $requestStack, TranslatorInterface $translator, EncoderFactoryInterface $encoderFactory, ?LoggerInterface $logger)
     {
         $this->framework = $framework;
-        $this->session = $session;
+        $this->requestStack = $requestStack;
         $this->translator = $translator;
         $this->encoderFactory = $encoderFactory;
         $this->logger = $logger;
+    }
 
+    /**
+     * Service method call
+     */
+    public function initializeFramework()
+    {
         // Initialize Contao framework
         $this->framework->initialize();
     }

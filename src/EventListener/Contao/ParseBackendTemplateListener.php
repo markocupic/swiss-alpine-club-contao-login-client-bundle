@@ -17,39 +17,38 @@ namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\EventListener\Contao
 use Contao\BackendTemplate;
 use Contao\Controller;
 use Contao\CoreBundle\Framework\ContaoFramework;
+use Contao\CoreBundle\ServiceAnnotation\Hook;
 use Contao\System;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Session\Session;
 
+/**
+ * @Hook("parseBackendTemplate")
+ */
 class ParseBackendTemplateListener
 {
-    /**
-     * @var Session
-     */
-    private $session;
 
-    /**
-     * @var ContaoFramework
-     */
-    private $framework;
+    private RequestStack $requestStack;
+    private ContaoFramework $framework;
 
     /**
      * ParseBackendTemplateListener constructor.
      */
-    public function __construct(Session $session, ContaoFramework $framework)
+    public function __construct(RequestStack $requestStack, ContaoFramework $framework)
     {
-        $this->session = $session;
+        $this->requestStack = $requestStack;
         $this->framework = $framework;
     }
 
     /**
-     * Display option field in backend login.
+     * Add SSO login button to the backend login form.
      *
      * @param $strContent
      * @param $strTemplate
      *
      * @return mixed
      */
-    public function addLoginButtonToTemplate($strContent, $strTemplate)
+    public function __invoke($strContent, $strTemplate)
     {
         if ('be_login' === $strTemplate) {
             /** @var System $systemAdapter */
@@ -95,7 +94,8 @@ class ParseBackendTemplateListener
 
             // Check for error messages
             $flashBagKey = $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.session.flash_bag_key');
-            $flashBag = $this->session->getFlashBag()->get($flashBagKey);
+            $session = $this->requestStack->getCurrentRequest()->getSession();
+            $flashBag = $session->getFlashBag()->get($flashBagKey);
 
             if (\count($flashBag) > 0) {
                 $arrError = [];

@@ -18,7 +18,7 @@ use Contao\Controller;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\System;
 use Contao\Validator;
-use Symfony\Component\HttpFoundation\Session\Session;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Translation\TranslatorInterface;
 
 /**
@@ -29,50 +29,34 @@ class RemoteUser
     /**
      * Navision section id regex.
      */
-    const NAV_SECTION_ID_REGEX = '/NAV_MITGLIED_S(\d+)/';
+    public const NAV_SECTION_ID_REGEX = '/NAV_MITGLIED_S(\d+)/';
 
-    /**
-     * @var ContaoFramework
-     */
-    private $framework;
-
-    /**
-     * @var User
-     */
-    private $user;
-
-    /**
-     * @var Session
-     */
-    private $session;
-
-    /**
-     * remote user data.
-     */
-    private $data = [];
-
-    /**
-     * @var TranslatorInterface
-     */
-    private $translator;
-
-    /**
-     * @var string backend|frontend
-     */
-    private $contaoScope;
+    private ContaoFramework $framework;
+    private RequestStack $requestStack;
+    private User $user;
+    private TranslatorInterface $translator;
+    private array $data = [];
+    private string $contaoScope = '';
 
     /**
      * RemoteUser constructor.
      */
-    public function __construct(ContaoFramework $framework, User $user, Session $session, TranslatorInterface $translator)
+    public function __construct(ContaoFramework $framework, RequestStack $requestStack, User $user, TranslatorInterface $translator)
     {
         $this->framework = $framework;
+        $this->requestStack = $requestStack;
         $this->user = $user;
-        $this->session = $session;
         $this->translator = $translator;
-
+    }
+    /**
+     * Service method call
+     */
+    public function initializeFramework()
+    {
+        // Initialize Contao framework
         $this->framework->initialize();
     }
+
 
     /**
      * @throws \Exception
@@ -130,9 +114,10 @@ class RemoteUser
             ];
 
             $flashBagKey = $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.session.flash_bag_key');
-            $this->session->getFlashBag()->add($flashBagKey, $arrError);
+            $session = $this->requestStack->getCurrentRequest()->getSession();
+            $session->getFlashBag()->add($flashBagKey, $arrError);
             $bagName = $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.session.attribute_bag_name');
-            $controllerAdapter->redirect($this->session->getBag($bagName)->get('failurePath'));
+            $controllerAdapter->redirect($session->getBag($bagName)->get('failurePath'));
         }
     }
 
@@ -154,10 +139,12 @@ class RemoteUser
                 'howToFix' => $this->translator->trans('ERR.sacOidcLoginError_userIsNotSacMember_howToFix', [], 'contao_default'),
                 //'explain' => $this->translator->trans('ERR.sacOidcLoginError_userIsNotSacMember_explain', [], 'contao_default'),
             ];
+
             $flashBagKey = $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.session.flash_bag_key');
-            $this->session->getFlashBag()->add($flashBagKey, $arrError);
+            $session = $this->requestStack->getCurrentRequest()->getSession();
+            $session->getFlashBag()->add($flashBagKey, $arrError);
             $bagName = $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.session.attribute_bag_name');
-            $controllerAdapter->redirect($this->session->getBag($bagName)->get('failurePath'));
+            $controllerAdapter->redirect($session->getBag($bagName)->get('failurePath'));
         }
     }
 
@@ -187,9 +174,10 @@ class RemoteUser
             //'explain' => $this->translator->trans('ERR.sacOidcLoginError_userIsNotMemberOfAllowedSection_explain', [], 'contao_default'),
         ];
         $flashBagKey = $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.session.flash_bag_key');
-        $this->session->getFlashBag()->add($flashBagKey, $arrError);
+        $session = $this->requestStack->getCurrentRequest()->getSession();
+        $session->getFlashBag()->add($flashBagKey, $arrError);
         $bagName = $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.session.attribute_bag_name');
-        $controllerAdapter->redirect($this->session->getBag($bagName)->get('failurePath'));
+        $controllerAdapter->redirect($session->getBag($bagName)->get('failurePath'));
     }
 
     /**
@@ -214,9 +202,10 @@ class RemoteUser
                 'explain' => $this->translator->trans('ERR.sacOidcLoginError_invalidEmail_explain', [], 'contao_default'),
             ];
             $flashBagKey = $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.session.flash_bag_key');
-            $this->session->getFlashBag()->add($flashBagKey, $arrError);
+            $session = $this->requestStack->getCurrentRequest()->getSession();
+            $session->getFlashBag()->add($flashBagKey, $arrError);
             $bagName = $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.session.attribute_bag_name');
-            $controllerAdapter->redirect($this->session->getBag($bagName)->get('failurePath'));
+            $controllerAdapter->redirect($session->getBag($bagName)->get('failurePath'));
         }
     }
 
