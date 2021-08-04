@@ -3,7 +3,7 @@
 # SAC Login (OpenId Connect Login client für Contao)
 
 Diese Erweiterung für das [Contao CMS](https://contao.org) ermöglicht die Implementierung 
-des Single Sign-On Logins des ["Schweizerischen Alpen Clubs (SAC)"](https://www.sac-cas.ch).
+des Single Sign-On Logins des [Schweizerischen Alpen Clubs (SAC)](https://www.sac-cas.ch).
 
 
 SAC Mitglieder der Sektion können sich mit ihrer Mitgliedsnummer und ihrem Passwort, welches sie auf der Webseite des [SAC Zentralverbandes](https://www.sac-cas.ch) verwalten, im Front- sowie im Backend anmelden.
