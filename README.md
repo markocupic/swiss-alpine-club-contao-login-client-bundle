@@ -1,10 +1,16 @@
+![Alt text](https://github.com/markocupic/markocupic/blob/main/logo.png "logo")
+
 # SAC Login (OpenId Connect Login client für Contao)
 
-Diese Erweiterung ermöglicht die Implementierung des Single Sign-On Logins des Schweizerischen Alpen Clubs (SAC) für Contao CMS.
+Diese Erweiterung für das [Contao CMS]("https://contao.org") ermöglicht die Implementierung des Single Sign-On Logins des [Schweizerischen Alpen Clubs (SAC)]("https://sac-cas.ch").
 
-![SAC Login](src/Resources/public/img/screenshot_backend_readme.png)
 
-![SAC Login](src/Resources/public/img/screenshot_remote_login_form_readme.png)
+SAC Mitglieder der Sektion können sich mit ihrer Mitgliedsnummer und ihrem Passwort, welches sie auf der Webseite des [SAC Zentralverbandes]("https://sac-cas.ch") verwalten, im Front- sowie im Backend anmelden.
+
+
+![SAC Login](docs/img/screenshot_backend_readme.png)
+
+![SAC Login](docs/img/screenshot_remote_login_form_readme.png)
 
 
 Die Erweiterung basiert auf markocupic/sac-event-tool_bundle und thephpleague/oauth2-client. 
