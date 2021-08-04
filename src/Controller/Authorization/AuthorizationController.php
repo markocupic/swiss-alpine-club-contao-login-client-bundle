@@ -26,6 +26,7 @@ use Markocupic\SwissAlpineClubContaoLoginClientBundle\User\RemoteUser;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\User\User;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Routing\Annotation\Route;
 
@@ -40,9 +41,9 @@ class AuthorizationController extends AbstractController
     private $framework;
 
     /**
-     * @var Session
+     * @var RequestStack
      */
-    private $session;
+    private $requestStack;
 
     /**
      * @var RemoteUser
@@ -67,16 +68,14 @@ class AuthorizationController extends AbstractController
     /**
      * AuthorizationController constructor.
      */
-    public function __construct(ContaoFramework $framework, Session $session, RemoteUser $remoteUser, User $user, InteractiveLogin $interactiveLogin, Oidc $oidc)
+    public function __construct(ContaoFramework $framework, RequestStack $requestStack, RemoteUser $remoteUser, User $user, InteractiveLogin $interactiveLogin, Oidc $oidc)
     {
         $this->framework = $framework;
-        $this->session = $session;
+        $this->requestStack = $requestStack;
         $this->remoteUser = $remoteUser;
         $this->user = $user;
         $this->interactiveLogin = $interactiveLogin;
         $this->oidc = $oidc;
-
-        $this->framework->initialize();
     }
 
     /**
@@ -88,6 +87,8 @@ class AuthorizationController extends AbstractController
      */
     public function frontendUserAuthenticationAction(): void
     {
+        $this->framework->initialize();
+
         /** @var Controller $controllerAdapter */
         $controllerAdapter = $this->framework->getAdapter(Controller::class);
 
@@ -102,7 +103,7 @@ class AuthorizationController extends AbstractController
         $bagName = $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.session.attribute_bag_name');
 
         /** @var Session $session */
-        $session = $this->session->getBag($bagName);
+        $session = $this->requestStack->getCurrentRequest()->getSession()->getBag($bagName);
 
         $blnAutocreate = $systemAdapter
             ->getContainer()
@@ -196,7 +197,7 @@ class AuthorizationController extends AbstractController
             $errorPage = $session->get('failurePath');
             $arrError = $session->get('lastOidcError', []);
             $flashBagKey = $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.session.flash_bag_key');
-            $this->session->getFlashBag()->add($flashBagKey, $arrError);
+            $session->getFlashBag()->add($flashBagKey, $arrError);
             $controllerAdapter->redirect($errorPage);
         }
     }
@@ -210,6 +211,8 @@ class AuthorizationController extends AbstractController
      */
     public function backendUserAuthenticationAction(): void
     {
+        $this->framework->initialize();
+
         /** @var Controller $controllerAdapter */
         $controllerAdapter = $this->framework->getAdapter(Controller::class);
 
@@ -221,7 +224,7 @@ class AuthorizationController extends AbstractController
         $bagName = $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.session.attribute_bag_name');
 
         /** @var Session $session */
-        $session = $this->session->getBag($bagName);
+        $session = $this->requestStack->getCurrentRequest()->getSession()->getBag($bagName);
 
         $blnAutocreate = $systemAdapter
             ->getContainer()
@@ -308,7 +311,7 @@ class AuthorizationController extends AbstractController
             $errorPage = $session->get('failurePath');
             $arrError = $session->get('lastOidcError', []);
             $flashBagKey = $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.session.flash_bag_key');
-            $this->session->getFlashBag()->add($flashBagKey, $arrError);
+            $session->getFlashBag()->add($flashBagKey, $arrError);
             $controllerAdapter->redirect($errorPage);
         }
     }
@@ -318,6 +321,8 @@ class AuthorizationController extends AbstractController
      */
     public function sendLogoutEndpointAction(): JsonResponse
     {
+        $this->framework->initialize();
+
         /** @var System $configAdapter */
         $systemAdapter = $this->framework->getAdapter(System::class);
 

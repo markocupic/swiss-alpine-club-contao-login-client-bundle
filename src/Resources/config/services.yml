@@ -4,7 +4,7 @@ services:
   Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\Authorization\AuthorizationController:
     arguments:
     - '@contao.framework'
-    - '@session'
+    - '@request_stack'
     - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\User\RemoteUser'
     - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\User\User'
     - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\InteractiveLogin\InteractiveLogin'
