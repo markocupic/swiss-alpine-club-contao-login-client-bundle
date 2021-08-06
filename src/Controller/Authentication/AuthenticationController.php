@@ -12,7 +12,7 @@ declare(strict_types=1);
  * @link https://github.com/markocupic/swiss-alpine-club-contao-login-client-bundle
  */
 
-namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\Authorization;
+namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\Authentication;
 
 use Contao\Controller;
 use Contao\CoreBundle\Framework\ContaoFramework;
@@ -31,10 +31,12 @@ use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
- * Class AuthorizationController.
+ * Class AuthenticationController.
  */
-class AuthorizationController extends AbstractController
+class AuthenticationController extends AbstractController
 {
+    public const CONTAO_SCOPE_FRONTEND = 'frontend';
+    public const CONTAO_SCOPE_BACKEND = 'backend';
 
     private ContaoFramework $framework;
     private RequestStack $requestStack;
@@ -44,7 +46,7 @@ class AuthorizationController extends AbstractController
     private Oidc $oidc;
 
     /**
-     * AuthorizationController constructor.
+     * AuthenticationController constructor.
      */
     public function __construct(ContaoFramework $framework, RequestStack $requestStack, RemoteUser $remoteUser, User $user, InteractiveLogin $interactiveLogin, Oidc $oidc)
     {
@@ -61,11 +63,13 @@ class AuthorizationController extends AbstractController
      *
      * @throws AppCheckFailedException
      * @throws InvalidRequestTokenException
-     * @Route("/ssoauth/frontend", name="swiss_alpine_club_sso_login_frontend", defaults={"_scope" = "frontend", "_token_check" = false})
+     * @Route("/ssoauth/frontend", name="swiss_alpine_club_sso_login_frontend", defaults={"_scope" = self::CONTAO_SCOPE_FRONTEND, "_token_check" = false})
      */
-    public function frontendUserAuthenticationAction(): void
+    public function frontendUserAuthenticationAction($_scope): void
     {
         $this->framework->initialize();
+
+        $contaoScope = $_scope;
 
         /** @var Controller $controllerAdapter */
         $controllerAdapter = $this->framework->getAdapter(Controller::class);
@@ -75,8 +79,6 @@ class AuthorizationController extends AbstractController
 
         /** @var ModuleModel $moduleModelAdapter */
         $moduleModelAdapter = $this->framework->getAdapter(ModuleModel::class);
-
-        $contaoScope = 'frontend';
 
         $bagName = $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.session.attribute_bag_name');
 
@@ -185,19 +187,19 @@ class AuthorizationController extends AbstractController
      *
      * @throws AppCheckFailedException
      * @throws InvalidRequestTokenException
-     * @Route("/ssoauth/backend", name="swiss_alpine_club_sso_login_backend", defaults={"_scope" = "backend", "_token_check" = false})
+     * @Route("/ssoauth/backend", name="swiss_alpine_club_sso_login_backend", defaults={"_scope" = self::CONTAO_SCOPE_BACKEND, "_token_check" = false})
      */
-    public function backendUserAuthenticationAction(): void
+    public function backendUserAuthenticationAction($_scope): void
     {
         $this->framework->initialize();
+
+        $contaoScope = $_scope;
 
         /** @var Controller $controllerAdapter */
         $controllerAdapter = $this->framework->getAdapter(Controller::class);
 
         /** @var System $systemAdapter */
         $systemAdapter = $this->framework->getAdapter(System::class);
-
-        $contaoScope = 'backend';
 
         $bagName = $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.session.attribute_bag_name');
 

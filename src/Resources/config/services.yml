@@ -1,6 +1,6 @@
 services:
 
-  Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\Authorization\AuthorizationController:
+  Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\Authentication\AuthenticationController:
     public: true
     arguments:
       - '@contao.framework'
