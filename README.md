@@ -28,11 +28,12 @@ Vor der Inbetriebnahme muss die App konfiguriert werden. Erstellen Sie dazu eine
 markocupic_sac_sso_login:
   oidc:
     # required
-    client_id: '###'
-    client_secret: '###'
+    client_id: '### Get your client id form SAC Schweiz ###'
+    client_secret: '### Get your client secret form SAC Schweiz ###'
     enable_backend_sso: true
-    client_auth_endpoint_frontend: '###'
-    client_auth_endpoint_backend: '###'
+    client_auth_endpoint_frontend: '### Set your frontend login route ###'
+    client_auth_endpoint_backend: '### Set your frontend login route ###'
+    
     # defaults
     auth_provider_endpoint_authorize: 'https://ids01.sac-cas.ch:443/oauth2/authorize'
     auth_provider_endpoint_token: 'https://ids01.sac-cas.ch:443/oauth2/token'
@@ -41,26 +42,26 @@ markocupic_sac_sso_login:
 
     # optional frontend user settings
     add_to_frontend_user_groups:
-      # - 9 # Standard Mitgliedergruppe
+      - 9 # Standard Mitgliedergruppe
     autocreate_frontend_user: false
     allow_frontend_login_to_sac_members_only: true
     allow_frontend_login_to_predefined_section_members_only: true
     allowed_frontend_sac_section_ids:
-      # - 4250 # Stammsektion
-      # - 4251 # OG Surental
-      # - 4252 # OG Napf
-      # - 4253 # OG Hochdorf
-      # - 4254 # OG Rigi
+      - 4250 # Stammsektion
+      - 4251 # OG Surental
+      - 4252 # OG Napf
+      - 4253 # OG Hochdorf
+      - 4254 # OG Rigi
 
     # optional backend user settings
     autocreate_backend_user: false
     allow_backend_login_to_sac_members_only: true
     allow_backend_login_to_predefined_section_members_only: true
     allowed_backend_sac_section_ids:
-      # - 4250 # Stammsektion
-      # - 4251 # OG Surental
-      # - 4252 # OG Napf
-      # - 4253 # OG Hochdorf
-      # - 4254 # OG Rigi
+      - 4250 # Stammsektion
+      - 4251 # OG Surental
+      - 4252 # OG Napf
+      - 4253 # OG Hochdorf
+      - 4254 # OG Rigi
 
 ```
