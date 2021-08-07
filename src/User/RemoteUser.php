@@ -14,10 +14,10 @@ declare(strict_types=1);
 
 namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\User;
 
-use Contao\Controller;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\System;
 use Contao\Validator;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\Authentication\AuthenticationController;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Translation\TranslatorInterface;
 
@@ -48,15 +48,15 @@ class RemoteUser
         $this->user = $user;
         $this->translator = $translator;
     }
+
     /**
-     * Service method call
+     * Service method call.
      */
-    public function initializeFramework()
+    public function initializeFramework(): void
     {
         // Initialize Contao framework
         $this->framework->initialize();
     }
-
 
     /**
      * @throws \Exception
@@ -97,13 +97,10 @@ class RemoteUser
     /**
      * Check if remote user has a valid uuid/sub.
      */
-    public function checkHasUuid(): void
+    public function checkHasUuid(): bool
     {
         /** @var System $systemAdapter */
         $systemAdapter = $this->framework->getAdapter(System::class);
-
-        /** @var Controller $controllerAdapter */
-        $controllerAdapter = $this->framework->getAdapter(Controller::class);
 
         if (empty($this->get('sub'))) {
             $arrError = [
@@ -116,19 +113,18 @@ class RemoteUser
             $flashBagKey = $systemAdapter->getContainer()->getParameter('sac_oauth2_client.session.flash_bag_key');
             $session = $this->requestStack->getCurrentRequest()->getSession();
             $session->getFlashBag()->add($flashBagKey, $arrError);
-            $bagName = $systemAdapter->getContainer()->getParameter('sac_oauth2_client.session.attribute_bag_name');
-            $controllerAdapter->redirect($session->getBag($bagName)->get('failurePath'));
+
+            return false;
         }
+
+        return true;
     }
 
     /**
      * Check if remote user is SAC member.
      */
-    public function checkIsSacMember(): void
+    public function checkIsSacMember(): bool
     {
-        /** @var Controller $controllerAdapter */
-        $controllerAdapter = $this->framework->getAdapter(Controller::class);
-
         /** @var System $systemAdapter */
         $systemAdapter = $this->framework->getAdapter(System::class);
 
@@ -143,28 +139,25 @@ class RemoteUser
             $flashBagKey = $systemAdapter->getContainer()->getParameter('sac_oauth2_client.session.flash_bag_key');
             $session = $this->requestStack->getCurrentRequest()->getSession();
             $session->getFlashBag()->add($flashBagKey, $arrError);
-            $bagName = $systemAdapter->getContainer()->getParameter('sac_oauth2_client.session.attribute_bag_name');
-            $controllerAdapter->redirect($session->getBag($bagName)->get('failurePath'));
+
+            return false;
         }
+
+        return true;
     }
 
     /**
      * Check for allowed section membership.
-     *
-     * @return bool
      */
-    public function checkIsMemberInAllowedSection(): void
+    public function checkIsMemberInAllowedSection(): bool
     {
-        /** @var Controller $controllerAdapter */
-        $controllerAdapter = $this->framework->getAdapter(Controller::class);
-
         /** @var System $systemAdapter */
         $systemAdapter = $this->framework->getAdapter(System::class);
 
         $arrMembership = $this->getAllowedSacSectionIds();
 
         if (\count($arrMembership) > 0) {
-            return;
+            return true;
         }
 
         $arrError = [
@@ -176,18 +169,15 @@ class RemoteUser
         $flashBagKey = $systemAdapter->getContainer()->getParameter('sac_oauth2_client.session.flash_bag_key');
         $session = $this->requestStack->getCurrentRequest()->getSession();
         $session->getFlashBag()->add($flashBagKey, $arrError);
-        $bagName = $systemAdapter->getContainer()->getParameter('sac_oauth2_client.session.attribute_bag_name');
-        $controllerAdapter->redirect($session->getBag($bagName)->get('failurePath'));
+
+        return false;
     }
 
     /**
      * Check for a valid email address.
      */
-    public function checkHasValidEmail(): void
+    public function checkHasValidEmail(): bool
     {
-        /** @var Controller $controllerAdapter */
-        $controllerAdapter = $this->framework->getAdapter(Controller::class);
-
         /** @var System $systemAdapter */
         $systemAdapter = $this->framework->getAdapter(System::class);
 
@@ -204,26 +194,11 @@ class RemoteUser
             $flashBagKey = $systemAdapter->getContainer()->getParameter('sac_oauth2_client.session.flash_bag_key');
             $session = $this->requestStack->getCurrentRequest()->getSession();
             $session->getFlashBag()->add($flashBagKey, $arrError);
-            $bagName = $systemAdapter->getContainer()->getParameter('sac_oauth2_client.session.attribute_bag_name');
-            $controllerAdapter->redirect($session->getBag($bagName)->get('failurePath'));
-        }
-    }
 
-    /**
-     * Return all sac sections ids a remote user belongs to.
-     */
-    public function getSacSectionIds(): array
-    {
-        $strRoles = (string) $this->get('Roles');
-
-        if (empty($strRoles)) {
-            return [];
+            return false;
         }
 
-        // Search for NAV_MITGLIED_S00004250 or NAV_MITGLIED_S00004251, etc.
-        $pattern = static::NAV_SECTION_ID_REGEX;
-
-        return preg_match_all($pattern, $strRoles, $matches) ? array_unique(array_map(static function ($v) {return (int) $v; }, $matches[1])) : [];
+        return true;
     }
 
     /**
@@ -234,7 +209,7 @@ class RemoteUser
         /** @var System $systemAdapter */
         $systemAdapter = $this->framework->getAdapter(System::class);
 
-        if ('frontend' === $this->contaoScope) {
+        if (AuthenticationController::CONTAO_SCOPE_FRONTEND === $this->contaoScope) {
             $arrAllowedGroups = $systemAdapter
                 ->getContainer()
                 ->getParameter('sac_oauth2_client.oidc.allowed_frontend_sac_section_ids')
@@ -261,7 +236,7 @@ class RemoteUser
         // Search for NAV_MITGLIED_S00004250 or NAV_MITGLIED_S00004251, etc.
         $pattern = static::NAV_SECTION_ID_REGEX;
 
-        return preg_match($pattern, $strRoles) && !empty($this->get('sub')) && !empty($this->get('contact_number')) ? true : false;
+        return preg_match($pattern, $strRoles) && !empty($this->get('sub')) && !empty($this->get('contact_number'));
     }
 
     public function getMockUserData(bool $isMember = true): array
@@ -313,11 +288,28 @@ class RemoteUser
     }
 
     /**
+     * Return all sac sections ids a remote user belongs to.
+     */
+    private function getSacSectionIds(): array
+    {
+        $strRoles = (string) $this->get('Roles');
+
+        if (empty($strRoles)) {
+            return [];
+        }
+
+        // Search for NAV_MITGLIED_S00004250 or NAV_MITGLIED_S00004251, etc.
+        $pattern = static::NAV_SECTION_ID_REGEX;
+
+        return preg_match_all($pattern, $strRoles, $matches) ? array_unique(array_map('intval', $matches[1])) : [];
+    }
+
+    /**
      * @throws \Exception
      */
     private function setContaoScope(string $contaoScope): void
     {
-        if ('frontend' !== $contaoScope && 'backend' !== $contaoScope) {
+        if (AuthenticationController::CONTAO_SCOPE_FRONTEND !== $contaoScope && AuthenticationController::CONTAO_SCOPE_BACKEND !== $contaoScope) {
             throw new \Exception('Scope should be either "backend" or "frontend".');
         }
         $this->contaoScope = $contaoScope;

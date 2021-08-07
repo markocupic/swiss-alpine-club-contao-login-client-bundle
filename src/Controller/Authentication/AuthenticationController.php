@@ -14,7 +14,6 @@ declare(strict_types=1);
 
 namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\Authentication;
 
-use Contao\Controller;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\ModuleModel;
 use Contao\System;
@@ -26,7 +25,9 @@ use Markocupic\SwissAlpineClubContaoLoginClientBundle\User\RemoteUser;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\User\User;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Routing\Annotation\Route;
 
@@ -61,18 +62,17 @@ class AuthenticationController extends AbstractController
     /**
      * Login frontend user.
      *
+     * @param $_scope
+     *
      * @throws AppCheckFailedException
      * @throws InvalidRequestTokenException
      * @Route("/ssoauth/frontend", name="swiss_alpine_club_sso_login_frontend", defaults={"_scope" = self::CONTAO_SCOPE_FRONTEND, "_token_check" = false})
      */
-    public function frontendUserAuthenticationAction($_scope): void
+    public function frontendUserAuthenticationAction(string $_scope): RedirectResponse
     {
         $this->framework->initialize();
 
         $contaoScope = $_scope;
-
-        /** @var Controller $controllerAdapter */
-        $controllerAdapter = $this->framework->getAdapter(Controller::class);
 
         /** @var System $systemAdapter */
         $systemAdapter = $this->framework->getAdapter(System::class);
@@ -80,28 +80,26 @@ class AuthenticationController extends AbstractController
         /** @var ModuleModel $moduleModelAdapter */
         $moduleModelAdapter = $this->framework->getAdapter(ModuleModel::class);
 
+        $container = $systemAdapter->getContainer();
+
         $bagName = $systemAdapter->getContainer()->getParameter('sac_oauth2_client.session.attribute_bag_name');
+        $flashBagKey = $container->getParameter('sac_oauth2_client.session.flash_bag_key');
 
         /** @var Session $session */
         $session = $this->requestStack->getCurrentRequest()->getSession()->getBag($bagName);
 
-        $blnAutocreate = $systemAdapter
-            ->getContainer()
-            ->getParameter('sac_oauth2_client.oidc.autocreate_frontend_user')
-        ;
+        $flashBag = $this->requestStack->getCurrentRequest()->getSession()->getFlashBag();
 
-        $blnAllowLoginToSacMembersOnly = $systemAdapter
-            ->getContainer()
-            ->getParameter('sac_oauth2_client.oidc.allow_frontend_login_to_sac_members_only')
-        ;
+        $blnAutocreate = $container->getParameter('sac_oauth2_client.oidc.autocreate_frontend_user');
 
-        $blnAllowLoginToPredefinedSectionsOnly = $systemAdapter
-            ->getContainer()
-            ->getParameter('sac_oauth2_client.oidc.allow_frontend_login_to_predefined_section_members_only')
-        ;
+        $blnAllowLoginToSacMembersOnly = $container->getParameter('sac_oauth2_client.oidc.allow_frontend_login_to_sac_members_only');
+
+        $blnAllowLoginToPredefinedSectionsOnly = $container->getParameter('sac_oauth2_client.oidc.allow_frontend_login_to_predefined_section_members_only');
+
+        $blnAllowFrontendLoginIfContaoAccountIsDisabled = $container->getParameter('sac_oauth2_client.oidc.allow_frontend_login_if_contao_account_is_disabled');
 
         // Set redirect uri
-        $this->oidc->setProviderData(['redirectUri' => $systemAdapter->getContainer()->getParameter('sac_oauth2_client.oidc.client_auth_endpoint_frontend')]);
+        $this->oidc->setProviderData(['redirectUri' => $container->getParameter('sac_oauth2_client.oidc.client_auth_endpoint_frontend')]);
 
         // Run the authorization code flow
         if ($this->oidc->runOpenIdConnectFlow()) {
@@ -111,23 +109,31 @@ class AuthenticationController extends AbstractController
             //$this->remoteUser->create($this->remoteUser->getMockUserData(false)); // Should end in an error message
 
             // Check if uuid/sub is set
-            $this->remoteUser->checkHasUuid();
+            if (!$this->remoteUser->checkHasUuid()) {
+                return new RedirectResponse($session->get('failurePath'));
+            }
 
             // Check if user is SAC member
             if ($blnAllowLoginToSacMembersOnly) {
-                $this->remoteUser->checkIsSacMember();
+                if (!$this->remoteUser->checkIsSacMember()) {
+                    return new RedirectResponse($session->get('failurePath'));
+                }
             }
 
             // Check if user is member of an allowed section
             if ($blnAllowLoginToPredefinedSectionsOnly) {
-                $this->remoteUser->checkIsMemberInAllowedSection();
+                if (!$this->remoteUser->checkIsMemberInAllowedSection()) {
+                    return new RedirectResponse($session->get('failurePath'));
+                }
             }
 
             // Check has valid email address
-            // This test should be always positive,
-            // beacause creating an account at www.sac-cas.ch
+            // This test should always be positive,
+            // because creating an account at www.sac-cas.ch
             // requires a valid email address
-            $this->remoteUser->checkHasValidEmail();
+            if (!$this->remoteUser->checkHasValidEmail()) {
+                return new RedirectResponse($session->get('failurePath'));
+            }
 
             // Initialize user
             $this->user->initialize($this->remoteUser, $contaoScope);
@@ -138,7 +144,9 @@ class AuthenticationController extends AbstractController
             }
 
             // Check if user exists
-            $this->user->checkUserExists();
+            if (!$this->user->checkUserExists()) {
+                return new RedirectResponse($session->get('failurePath'));
+            }
 
             // Allow login: set tl_member.disable = ''
             $this->user->enableLogin();
@@ -150,14 +158,23 @@ class AuthenticationController extends AbstractController
             $this->user->resetLoginAttempts();
 
             // Set tl_member.login='1'
-            $this->user->activateLogin();
+            if ($allowFrontendLoginIfContaoAccountIsDisabled) {
+                $this->user->activateMemberAccount();
+            }
 
             // Update tl_member and tl_user
             $this->user->updateFrontendUser();
             $this->user->updateBackendUser();
 
-            // Check if tl_member.disable == '' & tl_member.locked == 0 & tl_member.login == '1'
-            $this->user->checkIsLoginAllowed();
+            // Check if tl_member.disable == '' or tl_member.login == '1' or tl_member.start and tl_member.stop are not in an allowed time range
+            if (!$this->user->checkIsAccountEnabled() && !$blnAllowFrontendLoginIfContaoAccountIsDisabled) {
+                return new RedirectResponse($session->get('failurePath'));
+            }
+
+            if ($flashBag->has($flashBagKey)) {
+                // User::checkIsAccountEnabled() will set a message if test was false
+                $flashBag->clear();
+            }
 
             // Log in user
             $this->interactiveLogin->login($this->user);
@@ -167,19 +184,20 @@ class AuthenticationController extends AbstractController
             $moduleModel = $moduleModelAdapter->findByPk($session->get('moduleId'));
             $this->user->addFrontendGroups($moduleModel);
 
-            $jumpToPath = $session->get('targetPath');
+            $targetPath = $session->get('targetPath');
             $session->clear();
 
-            // All ok. User has logged in
-            // Let's redirect to target page now
-            $controllerAdapter->redirect($jumpToPath);
-        } else {
-            $errorPage = $session->get('failurePath');
-            $arrError = $session->get('lastOidcError', []);
-            $flashBagKey = $systemAdapter->getContainer()->getParameter('sac_oauth2_client.session.flash_bag_key');
-            $session->getFlashBag()->add($flashBagKey, $arrError);
-            $controllerAdapter->redirect($errorPage);
+            // All ok. user has logged in
+            // Let's redirect to the target page now
+            return new RedirectResponse($targetPath);
         }
+
+        $errorPage = $session->get('failurePath');
+        $arrError = $session->get('lastOidcError', []);
+
+        $flashBag->add($flashBagKey, $arrError);
+
+        return new RedirectResponse($errorPage, Response::HTTP_UNAUTHORIZED);
     }
 
     /**
@@ -189,40 +207,35 @@ class AuthenticationController extends AbstractController
      * @throws InvalidRequestTokenException
      * @Route("/ssoauth/backend", name="swiss_alpine_club_sso_login_backend", defaults={"_scope" = self::CONTAO_SCOPE_BACKEND, "_token_check" = false})
      */
-    public function backendUserAuthenticationAction($_scope): void
+    public function backendUserAuthenticationAction(string $_scope): Response
     {
         $this->framework->initialize();
 
         $contaoScope = $_scope;
 
-        /** @var Controller $controllerAdapter */
-        $controllerAdapter = $this->framework->getAdapter(Controller::class);
-
         /** @var System $systemAdapter */
         $systemAdapter = $this->framework->getAdapter(System::class);
 
+        $container = $systemAdapter->getContainer();
+
         $bagName = $systemAdapter->getContainer()->getParameter('sac_oauth2_client.session.attribute_bag_name');
+        $flashBagKey = $container->getParameter('sac_oauth2_client.session.flash_bag_key');
 
         /** @var Session $session */
         $session = $this->requestStack->getCurrentRequest()->getSession()->getBag($bagName);
 
-        $blnAutocreate = $systemAdapter
-            ->getContainer()
-            ->getParameter('sac_oauth2_client.oidc.autocreate_backend_user')
-        ;
+        $flashBag = $this->requestStack->getCurrentRequest()->getSession()->getFlashBag();
 
-        $blnAllowLoginToSacMembersOnly = $systemAdapter
-            ->getContainer()
-            ->getParameter('sac_oauth2_client.oidc.allow_backend_login_to_sac_members_only')
-        ;
+        $blnAutocreate = $container->getParameter('sac_oauth2_client.oidc.autocreate_backend_user');
 
-        $blnAllowLoginToPredefinedSectionsOnly = $systemAdapter
-            ->getContainer()
-            ->getParameter('sac_oauth2_client.oidc.allow_backend_login_to_predefined_section_members_only')
-        ;
+        $blnAllowLoginToSacMembersOnly = $container->getParameter('sac_oauth2_client.oidc.allow_backend_login_to_sac_members_only');
+
+        $blnAllowLoginToPredefinedSectionsOnly = $container->getParameter('sac_oauth2_client.oidc.allow_backend_login_to_predefined_section_members_only');
+
+        $blnAllowBackendLoginIfContaoAccountIsDisabled = $container->getParameter('sac_oauth2_client.oidc.allow_backend_login_if_contao_account_is_disabled');
 
         // Set redirect uri
-        $this->oidc->setProviderData(['redirectUri' => $systemAdapter->getContainer()->getParameter('sac_oauth2_client.oidc.client_auth_endpoint_backend')]);
+        $this->oidc->setProviderData(['redirectUri' => $container->getParameter('sac_oauth2_client.oidc.client_auth_endpoint_backend')]);
 
         // Run the authorization code flow
         if ($this->oidc->runOpenIdConnectFlow()) {
@@ -231,35 +244,45 @@ class AuthenticationController extends AbstractController
             $this->remoteUser->create($arrData, $contaoScope);
 
             // Check if uuid/sub is set
-            $this->remoteUser->checkHasUuid();
+            if (!$this->remoteUser->checkHasUuid()) {
+                return new RedirectResponse($session->get('failurePath'));
+            }
 
             // Check if user is SAC member
             if ($blnAllowLoginToSacMembersOnly) {
-                $this->remoteUser->checkIsSacMember();
+                if (!$this->remoteUser->checkIsSacMember()) {
+                    return new RedirectResponse($session->get('failurePath'));
+                }
             }
 
             // Check if user is member of an allowed section
             if ($blnAllowLoginToPredefinedSectionsOnly) {
-                $this->remoteUser->checkIsMemberInAllowedSection();
+                if (!$this->remoteUser->checkIsMemberInAllowedSection()) {
+                    return new RedirectResponse($session->get('failurePath'));
+                }
             }
 
             // Check has valid email address
-            // This test should be always positive,
-            // beacause creating an account at www.sac-cas.ch
+            // This test should always be positive,
+            // because creating an account at www.sac-cas.ch
             // requires a valid email address
-            $this->remoteUser->checkHasValidEmail();
+            if (!$this->remoteUser->checkHasValidEmail()) {
+                return new RedirectResponse($session->get('failurePath'));
+            }
 
             // Initialize user
             $this->user->initialize($this->remoteUser, $contaoScope);
 
-            // Create User if it not exists
-            //Not allowed for backend users!
+            // Create user if it not exists
+            // Not allowed for backend users!
             if ($blnAutocreate) {
                 // $this->user->createIfNotExists();
             }
 
             // Check if user exists
-            $this->user->checkUserExists();
+            if (!$this->user->checkUserExists()) {
+                return new RedirectResponse($session->get('failurePath'));
+            }
 
             // Allow login: set tl_user.disable = ''
             //$this->user->enableLogin();
@@ -274,26 +297,34 @@ class AuthenticationController extends AbstractController
             $this->user->updateFrontendUser();
             $this->user->updateBackendUser();
 
-            // Check if tl_user.disable == '' & tl_user.locked == 0
-            $this->user->checkIsLoginAllowed();
+            // Check if tl_user.disable == '' or tl_user.login == '1' or tl_user.start and tl_user.stop are not in an allowed time range
+            if (!$this->user->checkIsAccountEnabled() && !$blnAllowBackendLoginIfContaoAccountIsDisabled) {
+                return new RedirectResponse($session->get('failurePath'));
+            }
+
+            if ($flashBag->has($flashBagKey)) {
+                // User::checkIsAccountEnabled() will set a message if test was false
+                $flashBag->clear();
+            }
 
             // Log in user
             $this->interactiveLogin->login($this->user);
 
-            $jumpToPath = $session->get('targetPath');
+            $targetPath = $session->get('targetPath');
 
             $session->clear();
 
-            // All ok. User has logged in
-            // Let's redirect to target page now
-            $controllerAdapter->redirect($jumpToPath);
-        } else {
-            $errorPage = $session->get('failurePath');
-            $arrError = $session->get('lastOidcError', []);
-            $flashBagKey = $systemAdapter->getContainer()->getParameter('sac_oauth2_client.session.flash_bag_key');
-            $session->getFlashBag()->add($flashBagKey, $arrError);
-            $controllerAdapter->redirect($errorPage);
+            // All ok. user has logged in
+            // Let's redirect to the target page now
+            return new RedirectResponse($targetPath);
         }
+
+        $errorPage = $session->get('failurePath');
+        $arrError = $session->get('lastOidcError', []);
+
+        $flashBag->add($flashBagKey, $arrError);
+
+        return new RedirectResponse($errorPage, Response::HTTP_UNAUTHORIZED);
     }
 
     /**

@@ -19,7 +19,7 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
 
 class Configuration implements ConfigurationInterface
 {
-    const ROOT_KEY = 'sac_oauth2_client';
+    public const ROOT_KEY = 'sac_oauth2_client';
 
     public function getConfigTreeBuilder()
     {
@@ -71,6 +71,9 @@ class Configuration implements ConfigurationInterface
                         ->booleanNode('allow_frontend_login_to_predefined_section_members_only')
                             ->defaultTrue()
                         ->end()
+                        ->booleanNode('allow_frontend_login_if_contao_account_is_disabled')
+                            ->defaultFalse()
+                        ->end()
                         ->arrayNode('allowed_frontend_sac_section_ids')
                             ->scalarPrototype()->end()
                             ->info('Array of SAC section ids where frontend_user has to belong to. eg. [4250,4251,4252,4253,4254]')
@@ -87,6 +90,9 @@ class Configuration implements ConfigurationInterface
                         ->end()
                         ->booleanNode('allow_backend_login_to_predefined_section_members_only')
                             ->defaultTrue()
+                        ->end()
+                        ->booleanNode('allow_backend_login_if_contao_account_is_disabled')
+                            ->defaultFalse()
                         ->end()
                         ->arrayNode('allowed_backend_sac_section_ids')
                             ->scalarPrototype()->end()

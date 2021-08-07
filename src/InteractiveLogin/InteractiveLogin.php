@@ -24,6 +24,7 @@ use Contao\MemberModel;
 use Contao\System;
 use Contao\User;
 use Contao\UserModel;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\Authentication\AuthenticationController;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\User\RemoteUser;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\User\User as OidcUser;
 use Psr\Log\LoggerInterface;
@@ -72,9 +73,9 @@ class InteractiveLogin
     }
 
     /**
-     * Service method call
+     * Service method call.
      */
-    public function initializeFramework()
+    public function initializeFramework(): void
     {
         // Initialize Contao framework
         $this->framework->initialize();
@@ -91,7 +92,7 @@ class InteractiveLogin
         /** @var UserModel $userModelAdapter */
         $userModelAdapter = $this->framework->getAdapter(UserModel::class);
 
-        $providerKey = 'frontend' === $oidcUser->getContaoScope() ? static::SECURED_AREA_FRONTEND : static::SECURED_AREA_BACKEND;
+        $providerKey = AuthenticationController::CONTAO_SCOPE_FRONTEND === $oidcUser->getContaoScope() ? static::SECURED_AREA_FRONTEND : static::SECURED_AREA_BACKEND;
 
         $username = $oidcUser->getModel()->username;
 
@@ -102,7 +103,9 @@ class InteractiveLogin
         $username = trim((string) $username);
 
         // Be sure user exists
-        $oidcUser->checkUserExists();
+        if (!$oidcUser->checkUserExists()) {
+            throw new \Exception('Could not found user with username '.$username.'.');
+        }
 
         // Check if username is valid
         // Security::MAX_USERNAME_LENGTH = 4096;
@@ -110,7 +113,7 @@ class InteractiveLogin
             throw new \Exception('Invalid username.');
         }
 
-        $userClass = 'frontend' === $oidcUser->getContaoScope() ? FrontendUser::class : BackendUser::class;
+        $userClass = AuthenticationController::CONTAO_SCOPE_FRONTEND === $oidcUser->getContaoScope() ? FrontendUser::class : BackendUser::class;
 
         $session = $this->requestStack->getCurrentRequest()->getSession();
 

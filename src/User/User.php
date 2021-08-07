@@ -15,7 +15,6 @@ declare(strict_types=1);
 namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\User;
 
 use Contao\BackendUser;
-use Contao\Controller;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\FrontendUser;
 use Contao\MemberModel;
@@ -24,9 +23,9 @@ use Contao\ModuleModel;
 use Contao\StringUtil;
 use Contao\System;
 use Contao\UserModel;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\Authentication\AuthenticationController;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Security\Core\Encoder\EncoderFactoryInterface;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Translation\TranslatorInterface;
@@ -36,13 +35,13 @@ use Symfony\Component\Translation\TranslatorInterface;
  */
 class User
 {
+    public ?RemoteUser $remoteUser = null;
 
     private ContaoFramework $framework;
     private RequestStack $requestStack;
     private TranslatorInterface $translator;
     private EncoderFactoryInterface $encoderFactory;
     private ?LoggerInterface $logger = null;
-    public ?RemoteUser $remoteUser = null;
     private string $contaoScope = '';
 
     /**
@@ -58,9 +57,9 @@ class User
     }
 
     /**
-     * Service method call
+     * Service method call.
      */
-    public function initializeFramework()
+    public function initializeFramework(): void
     {
         // Initialize Contao framework
         $this->framework->initialize();
@@ -92,25 +91,17 @@ class User
      */
     public function getModel(string $strTable = ''): ?Model
     {
-        /** @var MemberModel $memberModelAdapter */
-        $memberModelAdapter = $this->framework->getAdapter(MemberModel::class);
+        if ('tl_member' === $strTable || AuthenticationController::CONTAO_SCOPE_FRONTEND === $this->getContaoScope()) {
+            /** @var MemberModel $memberModelAdapter */
+            $memberModelAdapter = $this->framework->getAdapter(MemberModel::class);
 
-        /** @var UserModel $userModelAdapter */
-        $userModelAdapter = $this->framework->getAdapter(UserModel::class);
-
-        if ('tl_member' === $strTable) {
             return $memberModelAdapter->findByUsername($this->remoteUser->get('contact_number'));
         }
 
-        if ('tl_user' === $strTable) {
-            return $userModelAdapter->findOneBySacMemberId($this->remoteUser->get('contact_number'));
-        }
+        if ('tl_user' === $strTable || AuthenticationController::CONTAO_SCOPE_BACKEND === $this->getContaoScope()) {
+            /** @var UserModel $userModelAdapter */
+            $userModelAdapter = $this->framework->getAdapter(UserModel::class);
 
-        if ('frontend' === $this->getContaoScope()) {
-            return $memberModelAdapter->findByUsername($this->remoteUser->get('contact_number'));
-        }
-
-        if ('backend' === $this->getContaoScope()) {
             return $userModelAdapter->findOneBySacMemberId($this->remoteUser->get('contact_number'));
         }
 
@@ -122,11 +113,11 @@ class User
      */
     public function createIfNotExists(): void
     {
-        if ('frontend' === $this->getContaoScope()) {
+        if (AuthenticationController::CONTAO_SCOPE_FRONTEND === $this->getContaoScope()) {
             $this->createFrontendUserIfNotExists();
         }
 
-        if ('backend' === $this->getContaoScope()) {
+        if (AuthenticationController::CONTAO_SCOPE_BACKEND === $this->getContaoScope()) {
             throw new \Exception('Auto-Creating Backend User is not allowed.');
         }
     }
@@ -134,18 +125,15 @@ class User
     /**
      * @throws \Exception
      */
-    public function checkUserExists(): void
+    public function checkUserExists(): bool
     {
         /** @var System $systemAdapter */
         $systemAdapter = $this->framework->getAdapter(System::class);
 
-        /** @var Controller $controllerAdapter */
-        $controllerAdapter = $this->framework->getAdapter(Controller::class);
-
         $arrData = $this->remoteUser->getData();
 
         if (!isset($arrData) || empty($arrData['contact_number']) || !$this->userExists()) {
-            if ('frontend' === $this->getContaoScope()) {
+            if (AuthenticationController::CONTAO_SCOPE_FRONTEND === $this->getContaoScope()) {
                 $arrError = [
                     'level' => 'warning',
                     'matter' => $this->translator->trans('ERR.sacOidcLoginError_userDoesNotExist_matter', [$arrData['vorname']], 'contao_default'),
@@ -162,10 +150,13 @@ class User
             }
 
             $flashBagKey = $systemAdapter->getContainer()->getParameter('sac_oauth2_client.session.flash_bag_key');
-            $this->session->getFlashBag()->add($flashBagKey, $arrError);
-            $bagName = $systemAdapter->getContainer()->getParameter('sac_oauth2_client.session.attribute_bag_name');
-            $controllerAdapter->redirect($this->session->getBag($bagName)->get('failurePath'));
+            $session = $this->requestStack->getCurrentRequest()->getSession();
+            $session->getFlashBag()->add($flashBagKey, $arrError);
+
+            return false;
         }
+
+        return true;
     }
 
     /**
@@ -183,24 +174,25 @@ class User
     /**
      * @throws \Exception
      */
-    public function checkIsLoginAllowed(): void
+    public function checkIsAccountEnabled(): bool
     {
         /** @var System $systemAdapter */
         $systemAdapter = $this->framework->getAdapter(System::class);
 
-        /** @var Controller $controllerAdapter */
-        $controllerAdapter = $this->framework->getAdapter(Controller::class);
-
         if (($model = $this->getModel()) !== null) {
-            if ('frontend' === $this->getContaoScope()) {
-                if ($model->login && !$model->disable && !$model->locked) {
-                    return;
+            if (AuthenticationController::CONTAO_SCOPE_FRONTEND === $this->getContaoScope()) {
+                $disabled = !$model->login || $model->disable || ('' !== $model->start && $model->start > time()) || ('' !== $model->stop && $model->stop <= time());
+
+                if (!$disabled) {
+                    return true;
                 }
             }
 
-            if ('backend' === $this->getContaoScope()) {
-                if (!$model->disable && !$model->locked) {
-                    return;
+            if (AuthenticationController::CONTAO_SCOPE_BACKEND === $this->getContaoScope()) {
+                $disabled = $model->disable || ('' !== $model->start && $model->start > time()) || ('' !== $model->stop && $model->stop <= time());
+
+                if (!$disabled) {
+                    return true;
                 }
             }
         }
@@ -212,9 +204,10 @@ class User
             'explain' => $this->translator->trans('ERR.sacOidcLoginError_accountDisabled_explain', [], 'contao_default'),
         ];
         $flashBagKey = $systemAdapter->getContainer()->getParameter('sac_oauth2_client.session.flash_bag_key');
-        $this->session->getFlashBag()->add($flashBagKey, $arrError);
-        $bagName = $systemAdapter->getContainer()->getParameter('sac_oauth2_client.session.attribute_bag_name');
-        $controllerAdapter->redirect($this->session->getBag($bagName)->get('failurePath'));
+        $session = $this->requestStack->getCurrentRequest()->getSession();
+        $session->getFlashBag()->add($flashBagKey, $arrError);
+
+        return false;
     }
 
     /**
@@ -378,9 +371,9 @@ class User
     /**
      * @throws \Exception
      */
-    public function activateLogin(): void
+    public function activateMemberAccount(): void
     {
-        if ('frontend' !== $this->getContaoScope()) {
+        if (AuthenticationController::CONTAO_SCOPE_FRONTEND !== $this->getContaoScope()) {
             return;
         }
 
@@ -452,7 +445,10 @@ class User
      */
     private function setContaoScope(string $scope): void
     {
-        $arrScopes = ['frontend', 'backend'];
+        $arrScopes = [
+            AuthenticationController::CONTAO_SCOPE_FRONTEND,
+            AuthenticationController::CONTAO_SCOPE_BACKEND,
+        ];
 
         if (!\in_array(strtolower($scope), $arrScopes, true)) {
             throw new \Exception('Parameter "$scope" should be either "frontend" or "backend".');
