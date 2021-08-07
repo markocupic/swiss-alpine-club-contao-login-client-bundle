@@ -32,7 +32,7 @@ markocupic_sac_sso_login:
     client_secret: '### Get your client secret form SAC Schweiz ###'
     enable_backend_sso: true
     client_auth_endpoint_frontend: '### Set your frontend login route ###'
-    client_auth_endpoint_backend: '### Set your frontend login route ###'
+    client_auth_endpoint_backend: '### Set your backend login route ###'
     
     # defaults
     auth_provider_endpoint_authorize: 'https://ids01.sac-cas.ch:443/oauth2/authorize'
