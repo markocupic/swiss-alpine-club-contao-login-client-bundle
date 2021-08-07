@@ -13,7 +13,7 @@ SAC Mitglieder der Sektion können sich mit ihrer Mitgliedsnummer und ihrem Pass
 
 ## Abhängigkeiten
 Die Erweiterung basiert auf:
-- [markocupic/sac-event-tool_bundle](https://github.com/markocupic/sac-event-tool_bundle) 
+- [markocupic/sac-event-tool_bundle](https://github.com/markocupic/sac-event-tool-bundle) 
 - [thephpleague/oauth2-client](https://github.com/thephpleague/oauth2-client)
 - [codefog/contao-haste](https://github.com/codefog/contao-haste)
 
@@ -60,3 +60,5 @@ markocupic_sac_sso_login:
       # - 4254 # OG Rigi
 
 ```
+
+
