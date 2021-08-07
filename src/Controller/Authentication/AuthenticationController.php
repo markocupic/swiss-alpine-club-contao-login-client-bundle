@@ -80,28 +80,28 @@ class AuthenticationController extends AbstractController
         /** @var ModuleModel $moduleModelAdapter */
         $moduleModelAdapter = $this->framework->getAdapter(ModuleModel::class);
 
-        $bagName = $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.session.attribute_bag_name');
+        $bagName = $systemAdapter->getContainer()->getParameter('sac_oauth2_client.session.attribute_bag_name');
 
         /** @var Session $session */
         $session = $this->requestStack->getCurrentRequest()->getSession()->getBag($bagName);
 
         $blnAutocreate = $systemAdapter
             ->getContainer()
-            ->getParameter('markocupic_sac_sso_login.oidc.autocreate_frontend_user')
+            ->getParameter('sac_oauth2_client.oidc.autocreate_frontend_user')
         ;
 
         $blnAllowLoginToSacMembersOnly = $systemAdapter
             ->getContainer()
-            ->getParameter('markocupic_sac_sso_login.oidc.allow_frontend_login_to_sac_members_only')
+            ->getParameter('sac_oauth2_client.oidc.allow_frontend_login_to_sac_members_only')
         ;
 
         $blnAllowLoginToPredefinedSectionsOnly = $systemAdapter
             ->getContainer()
-            ->getParameter('markocupic_sac_sso_login.oidc.allow_frontend_login_to_predefined_section_members_only')
+            ->getParameter('sac_oauth2_client.oidc.allow_frontend_login_to_predefined_section_members_only')
         ;
 
         // Set redirect uri
-        $this->oidc->setProviderData(['redirectUri' => $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.client_auth_endpoint_frontend')]);
+        $this->oidc->setProviderData(['redirectUri' => $systemAdapter->getContainer()->getParameter('sac_oauth2_client.oidc.client_auth_endpoint_frontend')]);
 
         // Run the authorization code flow
         if ($this->oidc->runOpenIdConnectFlow()) {
@@ -176,7 +176,7 @@ class AuthenticationController extends AbstractController
         } else {
             $errorPage = $session->get('failurePath');
             $arrError = $session->get('lastOidcError', []);
-            $flashBagKey = $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.session.flash_bag_key');
+            $flashBagKey = $systemAdapter->getContainer()->getParameter('sac_oauth2_client.session.flash_bag_key');
             $session->getFlashBag()->add($flashBagKey, $arrError);
             $controllerAdapter->redirect($errorPage);
         }
@@ -201,28 +201,28 @@ class AuthenticationController extends AbstractController
         /** @var System $systemAdapter */
         $systemAdapter = $this->framework->getAdapter(System::class);
 
-        $bagName = $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.session.attribute_bag_name');
+        $bagName = $systemAdapter->getContainer()->getParameter('sac_oauth2_client.session.attribute_bag_name');
 
         /** @var Session $session */
         $session = $this->requestStack->getCurrentRequest()->getSession()->getBag($bagName);
 
         $blnAutocreate = $systemAdapter
             ->getContainer()
-            ->getParameter('markocupic_sac_sso_login.oidc.autocreate_backend_user')
+            ->getParameter('sac_oauth2_client.oidc.autocreate_backend_user')
         ;
 
         $blnAllowLoginToSacMembersOnly = $systemAdapter
             ->getContainer()
-            ->getParameter('markocupic_sac_sso_login.oidc.allow_backend_login_to_sac_members_only')
+            ->getParameter('sac_oauth2_client.oidc.allow_backend_login_to_sac_members_only')
         ;
 
         $blnAllowLoginToPredefinedSectionsOnly = $systemAdapter
             ->getContainer()
-            ->getParameter('markocupic_sac_sso_login.oidc.allow_backend_login_to_predefined_section_members_only')
+            ->getParameter('sac_oauth2_client.oidc.allow_backend_login_to_predefined_section_members_only')
         ;
 
         // Set redirect uri
-        $this->oidc->setProviderData(['redirectUri' => $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.client_auth_endpoint_backend')]);
+        $this->oidc->setProviderData(['redirectUri' => $systemAdapter->getContainer()->getParameter('sac_oauth2_client.oidc.client_auth_endpoint_backend')]);
 
         // Run the authorization code flow
         if ($this->oidc->runOpenIdConnectFlow()) {
@@ -290,7 +290,7 @@ class AuthenticationController extends AbstractController
         } else {
             $errorPage = $session->get('failurePath');
             $arrError = $session->get('lastOidcError', []);
-            $flashBagKey = $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.session.flash_bag_key');
+            $flashBagKey = $systemAdapter->getContainer()->getParameter('sac_oauth2_client.session.flash_bag_key');
             $session->getFlashBag()->add($flashBagKey, $arrError);
             $controllerAdapter->redirect($errorPage);
         }
@@ -308,7 +308,7 @@ class AuthenticationController extends AbstractController
 
         $data = [
             'success' => 'true',
-            'logout_endpoint_url' => $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.auth_provider_endpoint_logout'),
+            'logout_endpoint_url' => $systemAdapter->getContainer()->getParameter('sac_oauth2_client.oidc.auth_provider_endpoint_logout'),
         ];
 
         return new JsonResponse($data);

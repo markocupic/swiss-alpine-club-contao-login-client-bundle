@@ -74,14 +74,14 @@ class Oidc
 
         $this->providerData = [
             // The client ID assigned to you by the provider
-            'clientId' => $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.client_id'),
+            'clientId' => $systemAdapter->getContainer()->getParameter('sac_oauth2_client.oidc.client_id'),
             // The client password assigned to you by the provider
-            'clientSecret' => $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.client_secret'),
+            'clientSecret' => $systemAdapter->getContainer()->getParameter('sac_oauth2_client.oidc.client_secret'),
             // Absolute Callbackurl to your system(must be registered by service provider.)
-            'redirectUri' => $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.client_auth_endpoint_backend'),
-            'urlAuthorize' => $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.auth_provider_endpoint_authorize'),
-            'urlAccessToken' => $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.auth_provider_endpoint_token'),
-            'urlResourceOwnerDetails' => $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.auth_provider_endpoint_userinfo'),
+            'redirectUri' => $systemAdapter->getContainer()->getParameter('sac_oauth2_client.oidc.client_auth_endpoint_backend'),
+            'urlAuthorize' => $systemAdapter->getContainer()->getParameter('sac_oauth2_client.oidc.auth_provider_endpoint_authorize'),
+            'urlAccessToken' => $systemAdapter->getContainer()->getParameter('sac_oauth2_client.oidc.auth_provider_endpoint_token'),
+            'urlResourceOwnerDetails' => $systemAdapter->getContainer()->getParameter('sac_oauth2_client.oidc.auth_provider_endpoint_userinfo'),
             'response_type' => 'code',
             'scopes' => ['openid'],
         ];
@@ -105,7 +105,7 @@ class Oidc
         /** @var Request $request */
         $request = $this->requestStack->getCurrentRequest();
 
-        $bagName = $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.session.attribute_bag_name');
+        $bagName = $systemAdapter->getContainer()->getParameter('sac_oauth2_client.session.attribute_bag_name');
 
         /** @var Session $session */
         $session = $this->requestStack->getCurrentRequest()->getSession()->getBag($bagName);
@@ -209,7 +209,7 @@ class Oidc
         $systemAdapter = $this->framework->getAdapter(System::class);
 
         // Check csrf token (disabled by default)
-        if ($systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.enable_csrf_token_check')) {
+        if ($systemAdapter->getContainer()->getParameter('sac_oauth2_client.oidc.enable_csrf_token_check')) {
             $tokenName = $systemAdapter->getContainer()->getParameter('contao.csrf_token_name');
 
             if (!$request->request->has('REQUEST_TOKEN') || !$this->csrfTokenManager->isTokenValid(new CsrfToken($tokenName, $request->request->get('REQUEST_TOKEN')))) {

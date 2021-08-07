@@ -26,7 +26,7 @@ class MarkocupicSwissAlpineClubContaoLoginClientBundle extends Bundle
 {
     public function getContainerExtension(): MarkocupicSwissAlpineClubContaoLoginClientExtension
     {
-        // Set alias markocupic_sac_sso_login
+        // Set alias sac_oauth2_client
         return new MarkocupicSwissAlpineClubContaoLoginClientExtension();
     }
 

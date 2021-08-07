@@ -57,7 +57,7 @@ class ParseBackendTemplateListener
             /** @var Controller $controllerAdapter */
             $controllerAdapter = $this->framework->getAdapter(Controller::class);
 
-            if (!$systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.enable_backend_sso')) {
+            if (!$systemAdapter->getContainer()->getParameter('sac_oauth2_client.oidc.enable_backend_sso')) {
                 return $strContent;
             }
 
@@ -67,7 +67,7 @@ class ParseBackendTemplateListener
             $template->rt = '';
             $template->enableCsrfTokenCheck = false;
 
-            if ($systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.enable_csrf_token_check')) {
+            if ($systemAdapter->getContainer()->getParameter('sac_oauth2_client.oidc.enable_csrf_token_check')) {
                 if (preg_match('/name="REQUEST_TOKEN"\s+value=\"([^\']*?)\"/', $strContent, $matches)) {
                     $template->rt = $matches[1];
                     $template->enableCsrfTokenCheck = true;
@@ -93,7 +93,7 @@ class ParseBackendTemplateListener
             }
 
             // Check for error messages
-            $flashBagKey = $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.session.flash_bag_key');
+            $flashBagKey = $systemAdapter->getContainer()->getParameter('sac_oauth2_client.session.flash_bag_key');
             $session = $this->requestStack->getCurrentRequest()->getSession();
             $flashBag = $session->getFlashBag()->get($flashBagKey);
 

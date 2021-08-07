@@ -19,7 +19,7 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
 
 class Configuration implements ConfigurationInterface
 {
-    const ROOT_KEY = 'markocupic_sac_sso_login';
+    const ROOT_KEY = 'sac_oauth2_client';
 
     public function getConfigTreeBuilder()
     {

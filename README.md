@@ -26,7 +26,7 @@ Die Erweiterung basiert auf:
 Vor der Inbetriebnahme muss die App konfiguriert werden. Erstellen Sie dazu einen neuen Abschnitt in config/config.yml.
 
 ```
-markocupic_sac_sso_login:
+sac_oauth2_client:
   oidc:
     # required
     client_id: '### Get your client id form SAC Schweiz ###'

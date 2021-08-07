@@ -98,7 +98,7 @@ class SwissAlpineClubOidcFrontendLogin extends AbstractFrontendModuleController
             }
 
             // Csrf token check is disabled by default
-            $template->enableCsrfTokenCheck = $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.enable_csrf_token_check');
+            $template->enableCsrfTokenCheck = $systemAdapter->getContainer()->getParameter('sac_oauth2_client.oidc.enable_csrf_token_check');
 
             // Since Contao 4.9 urls are base64 encoded
             $template->targetPath = $stringUtilAdapter->specialchars(base64_encode($strRedirect));
@@ -117,7 +117,7 @@ class SwissAlpineClubOidcFrontendLogin extends AbstractFrontendModuleController
             // Check for error messages & start session only if there was an error
             if ($request->query->has('sso_error')) {
                 $session = $this->get('session');
-                $flashBagKey = $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.session.flash_bag_key');
+                $flashBagKey = $systemAdapter->getContainer()->getParameter('sac_oauth2_client.session.flash_bag_key');
                 $flashBag = $session->getFlashBag()->get($flashBagKey);
 
                 if (\count($flashBag) > 0) {

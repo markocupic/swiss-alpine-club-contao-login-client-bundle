@@ -1,5 +1,5 @@
 # SSO Login configuration
-markocupic_sac_sso_login:
+sac_oauth2_client:
   oidc:
     # required
     client_id: '###'
