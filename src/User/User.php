@@ -161,9 +161,9 @@ class User
                 ];
             }
 
-            $flashBagKey = $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.session.flash_bag_key');
+            $flashBagKey = $systemAdapter->getContainer()->getParameter('sac_oauth2_client.session.flash_bag_key');
             $this->session->getFlashBag()->add($flashBagKey, $arrError);
-            $bagName = $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.session.attribute_bag_name');
+            $bagName = $systemAdapter->getContainer()->getParameter('sac_oauth2_client.session.attribute_bag_name');
             $controllerAdapter->redirect($this->session->getBag($bagName)->get('failurePath'));
         }
     }
@@ -211,9 +211,9 @@ class User
             //'howToFix' => $this->translator->trans('ERR.sacOidcLoginError_accountDisabled_howToFix', [], 'contao_default'),
             'explain' => $this->translator->trans('ERR.sacOidcLoginError_accountDisabled_explain', [], 'contao_default'),
         ];
-        $flashBagKey = $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.session.flash_bag_key');
+        $flashBagKey = $systemAdapter->getContainer()->getParameter('sac_oauth2_client.session.flash_bag_key');
         $this->session->getFlashBag()->add($flashBagKey, $arrError);
-        $bagName = $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.session.attribute_bag_name');
+        $bagName = $systemAdapter->getContainer()->getParameter('sac_oauth2_client.session.attribute_bag_name');
         $controllerAdapter->redirect($this->session->getBag($bagName)->get('failurePath'));
     }
 
@@ -247,14 +247,14 @@ class User
             $objMember->email = $arrData['email'];
 
             // Allowed_sac_section_ids:
-            if ($systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.allow_frontend_login_to_predefined_section_members_only')) {
+            if ($systemAdapter->getContainer()->getParameter('sac_oauth2_client.oidc.allow_frontend_login_to_predefined_section_members_only')) {
                 $objMember->sectionId = serialize($this->remoteUser->getAllowedSacSectionIds());
             } else {
                 $objMember->sectionId = serialize($this->remoteUser->getAllowedSacSectionIds());
             }
 
             // Member has to be member of a valid sac section
-            if ($systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.allow_frontend_login_to_predefined_section_members_only')) {
+            if ($systemAdapter->getContainer()->getParameter('sac_oauth2_client.oidc.allow_frontend_login_to_predefined_section_members_only')) {
                 $objMember->isSacMember = !empty($this->remoteUser->getAllowedSacSectionIds()) ? '1' : '';
             } else {
                 $objMember->isSacMember = $this->remoteUser->isSacMember() ? '1' : '';
@@ -263,7 +263,7 @@ class User
             $objMember->tstamp = time();
             // Groups
             $arrGroups = $stringUtilAdapter->deserialize($objMember->groups, true);
-            $arrAutoGroups = $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.add_to_frontend_user_groups');
+            $arrAutoGroups = $systemAdapter->getContainer()->getParameter('sac_oauth2_client.oidc.add_to_frontend_user_groups');
 
             if (!empty($arrAutoGroups) && \is_array($arrAutoGroups)) {
                 $objMember->groups = serialize(array_merge($arrGroups, $arrAutoGroups));
