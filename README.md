@@ -7,9 +7,10 @@ des Single Sign-On Logins des [Schweizerischen Alpen Clubs (SAC)](https://www.sa
 
 SAC Mitglieder der Sektion können sich mit ihrer Mitgliedsnummer und ihrem Passwort, welches sie auf der Webseite des [SAC Zentralverbandes](https://www.sac-cas.ch) verwalten, im Front- sowie im Backend anmelden.
 
-| Backend | Frontend |
+| SAC Login Button | Login Formular Schweizerischer Alpenclub |
 |-|-|
 | ![SAC Login](docs/img/screenshot_backend_readme.png) | ![SAC Login](docs/img/screenshot_remote_login_form_readme.png) |
+| Bei Klick auf den Login Button erfolgt die Weiterleitug zum Login Formular des Schweizerischen Alpenclubs | Login Formular Schweizerischer Alpenclub |
 
 ## Abhängigkeiten
 Die Erweiterung basiert auf:
