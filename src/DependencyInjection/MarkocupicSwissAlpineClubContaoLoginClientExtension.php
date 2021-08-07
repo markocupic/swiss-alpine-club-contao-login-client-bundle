@@ -54,11 +54,11 @@ class MarkocupicSwissAlpineClubContaoLoginClientExtension extends Extension
         // Oidc stuff
         $container->setParameter($rootKey.'.oidc.client_id', $config['oidc']['client_id']);
         $container->setParameter($rootKey.'.oidc.client_secret', $config['oidc']['client_secret']);
-        $container->setParameter($rootKey.'.oidc.url_authorize', $config['oidc']['url_authorize']);
-        $container->setParameter($rootKey.'.oidc.url_access_token', $config['oidc']['url_access_token']);
-        $container->setParameter($rootKey.'.oidc.resource_owner_details', $config['oidc']['resource_owner_details']);
+        $container->setParameter($rootKey.'.oidc.auth_provider_endpoint_authorize', $config['oidc']['auth_provider_endpoint_authorize']);
+        $container->setParameter($rootKey.'.oidc.auth_provider_endpoint_token', $config['oidc']['auth_provider_endpoint_token']);
+        $container->setParameter($rootKey.'.oidc.auth_provider_endpoint_userinfo', $config['oidc']['auth_provider_endpoint_userinfo']);
         $container->setParameter($rootKey.'.oidc.add_to_frontend_user_groups', $config['oidc']['add_to_frontend_user_groups']);
-        $container->setParameter($rootKey.'.oidc.url_logout', $config['oidc']['url_logout']);
+        $container->setParameter($rootKey.'.oidc.auth_provider_endpoint_logout', $config['oidc']['auth_provider_endpoint_logout']);
         $container->setParameter($rootKey.'.oidc.autocreate_frontend_user', $config['oidc']['autocreate_frontend_user']);
         $container->setParameter($rootKey.'.oidc.allow_frontend_login_to_sac_members_only', $config['oidc']['allow_frontend_login_to_sac_members_only']);
         $container->setParameter($rootKey.'.oidc.allow_frontend_login_to_predefined_section_members_only', $config['oidc']['allow_frontend_login_to_predefined_section_members_only']);
@@ -67,8 +67,8 @@ class MarkocupicSwissAlpineClubContaoLoginClientExtension extends Extension
         $container->setParameter($rootKey.'.oidc.allow_backend_login_to_predefined_section_members_only', $config['oidc']['allow_backend_login_to_predefined_section_members_only']);
         $container->setParameter($rootKey.'.oidc.allowed_frontend_sac_section_ids', $config['oidc']['allowed_frontend_sac_section_ids']);
         $container->setParameter($rootKey.'.oidc.allowed_backend_sac_section_ids', $config['oidc']['allowed_backend_sac_section_ids']);
-        $container->setParameter($rootKey.'.oidc.auth_endpoint_frontend', $config['oidc']['auth_endpoint_frontend']);
-        $container->setParameter($rootKey.'.oidc.auth_endpoint_backend', $config['oidc']['auth_endpoint_backend']);
+        $container->setParameter($rootKey.'.oidc.client_auth_endpoint_frontend', $config['oidc']['client_auth_endpoint_frontend']);
+        $container->setParameter($rootKey.'.oidc.client_auth_endpoint_backend', $config['oidc']['client_auth_endpoint_backend']);
         $container->setParameter($rootKey.'.oidc.enable_backend_sso', $config['oidc']['enable_backend_sso']);
         $container->setParameter($rootKey.'.oidc.enable_csrf_token_check', $config['oidc']['enable_csrf_token_check']);
         // Session stuff

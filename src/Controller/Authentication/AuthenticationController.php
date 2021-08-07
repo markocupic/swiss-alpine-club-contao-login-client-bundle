@@ -101,7 +101,7 @@ class AuthenticationController extends AbstractController
         ;
 
         // Set redirect uri
-        $this->oidc->setProviderData(['redirectUri' => $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.auth_endpoint_frontend')]);
+        $this->oidc->setProviderData(['redirectUri' => $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.client_auth_endpoint_frontend')]);
 
         // Run the authorization code flow
         if ($this->oidc->runOpenIdConnectFlow()) {
@@ -222,7 +222,7 @@ class AuthenticationController extends AbstractController
         ;
 
         // Set redirect uri
-        $this->oidc->setProviderData(['redirectUri' => $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.auth_endpoint_backend')]);
+        $this->oidc->setProviderData(['redirectUri' => $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.client_auth_endpoint_backend')]);
 
         // Run the authorization code flow
         if ($this->oidc->runOpenIdConnectFlow()) {
@@ -308,7 +308,7 @@ class AuthenticationController extends AbstractController
 
         $data = [
             'success' => 'true',
-            'logout_endpoint_url' => $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.url_logout'),
+            'logout_endpoint_url' => $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.auth_provider_endpoint_logout'),
         ];
 
         return new JsonResponse($data);

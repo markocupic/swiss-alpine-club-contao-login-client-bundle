@@ -5,13 +5,13 @@ markocupic_sac_sso_login:
     client_id: '###'
     client_secret: '###'
     enable_backend_sso: true
-    auth_endpoint_frontend: '###'
-    auth_endpoint_backend: '###'
+    client_auth_endpoint_frontend: '###'
+    client_auth_endpoint_backend: '###'
     # defaults
-    url_authorize: 'https://ids01.sac-cas.ch:443/oauth2/authorize'
-    url_access_token: 'https://ids01.sac-cas.ch:443/oauth2/token'
-    resource_owner_details: 'https://ids01.sac-cas.ch:443/oauth2/userinfo'
-    url_logout: 'https://ids01.sac-cas.ch/oidc/logout'
+    auth_provider_endpoint_authorize: 'https://ids01.sac-cas.ch:443/oauth2/authorize'
+    auth_provider_endpoint_token: 'https://ids01.sac-cas.ch:443/oauth2/token'
+    auth_provider_endpoint_userinfo: 'https://ids01.sac-cas.ch:443/oauth2/userinfo'
+    auth_provider_endpoint_logout: 'https://ids01.sac-cas.ch/oidc/logout'
 
     # optional frontend user settings
     add_to_frontend_user_groups:

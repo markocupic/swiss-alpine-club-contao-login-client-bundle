@@ -78,10 +78,10 @@ class Oidc
             // The client password assigned to you by the provider
             'clientSecret' => $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.client_secret'),
             // Absolute Callbackurl to your system(must be registered by service provider.)
-            'redirectUri' => $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.auth_endpoint_backend'),
-            'urlAuthorize' => $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.url_authorize'),
-            'urlAccessToken' => $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.url_access_token'),
-            'urlResourceOwnerDetails' => $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.resource_owner_details'),
+            'redirectUri' => $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.client_auth_endpoint_backend'),
+            'urlAuthorize' => $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.auth_provider_endpoint_authorize'),
+            'urlAccessToken' => $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.auth_provider_endpoint_token'),
+            'urlResourceOwnerDetails' => $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.auth_provider_endpoint_userinfo'),
             'response_type' => 'code',
             'scopes' => ['openid'],
         ];
