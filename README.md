@@ -17,6 +17,9 @@ Die Erweiterung basiert auf:
 - [thephpleague/oauth2-client](https://github.com/thephpleague/oauth2-client)
 - [codefog/contao-haste](https://github.com/codefog/contao-haste)
 
+## Hilfe/HowTo
+[The PHP League Oauth2 client](https://oauth2-client.thephpleague.com/usage/)
+
 ## Konfiguration
 Vor der Inbetriebnahme muss die App konfiguriert werden. Erstellen Sie dazu einen neuen Abschnitt in config/config.yml.
 
