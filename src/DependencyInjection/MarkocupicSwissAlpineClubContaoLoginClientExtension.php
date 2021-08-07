@@ -67,8 +67,8 @@ class MarkocupicSwissAlpineClubContaoLoginClientExtension extends Extension
         $container->setParameter($rootKey.'.oidc.allow_backend_login_to_predefined_section_members_only', $config['oidc']['allow_backend_login_to_predefined_section_members_only']);
         $container->setParameter($rootKey.'.oidc.allowed_frontend_sac_section_ids', $config['oidc']['allowed_frontend_sac_section_ids']);
         $container->setParameter($rootKey.'.oidc.allowed_backend_sac_section_ids', $config['oidc']['allowed_backend_sac_section_ids']);
-        $container->setParameter($rootKey.'.oidc.redirect_uri_frontend', $config['oidc']['redirect_uri_frontend']);
-        $container->setParameter($rootKey.'.oidc.redirect_uri_backend', $config['oidc']['redirect_uri_backend']);
+        $container->setParameter($rootKey.'.oidc.auth_endpoint_frontend', $config['oidc']['auth_endpoint_frontend']);
+        $container->setParameter($rootKey.'.oidc.auth_endpoint_backend', $config['oidc']['auth_endpoint_backend']);
         $container->setParameter($rootKey.'.oidc.enable_backend_sso', $config['oidc']['enable_backend_sso']);
         $container->setParameter($rootKey.'.oidc.enable_csrf_token_check', $config['oidc']['enable_csrf_token_check']);
         // Session stuff

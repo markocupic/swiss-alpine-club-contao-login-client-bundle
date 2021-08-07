@@ -101,7 +101,7 @@ class AuthenticationController extends AbstractController
         ;
 
         // Set redirect uri
-        $this->oidc->setProviderData(['redirectUri' => $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.redirect_uri_frontend')]);
+        $this->oidc->setProviderData(['redirectUri' => $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.auth_endpoint_frontend')]);
 
         // Run the authorization code flow
         if ($this->oidc->runOpenIdConnectFlow()) {
@@ -222,7 +222,7 @@ class AuthenticationController extends AbstractController
         ;
 
         // Set redirect uri
-        $this->oidc->setProviderData(['redirectUri' => $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.redirect_uri_backend')]);
+        $this->oidc->setProviderData(['redirectUri' => $systemAdapter->getContainer()->getParameter('markocupic_sac_sso_login.oidc.auth_endpoint_backend')]);
 
         // Run the authorization code flow
         if ($this->oidc->runOpenIdConnectFlow()) {
