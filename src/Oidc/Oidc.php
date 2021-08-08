@@ -89,10 +89,7 @@ class Oidc
         return $request->query->has('code');
     }
 
-    /**
-     * @throws BadQueryStringException
-     * @throws InvalidRequestTokenException
-     */
+   
     public function getAuthCode(): RedirectResponse
     {
         /** @var System $systemAdapter */
@@ -128,9 +125,6 @@ class Oidc
         return new RedirectResponse($authorizationUrl);
     }
 
-    /**
-     * @throws BadQueryStringException
-     */
     public function getAccessToken(): void
     {
         /** @var System $systemAdapter */
@@ -145,15 +139,15 @@ class Oidc
         /** @var Session $session */
         $session = $this->requestStack->getCurrentRequest()->getSession()->getBag($bagName);
 
-        if (!$this->hasAuthCode()) {
-            throw new BadQueryStringException('Authorization code not found.');
-        }
-
-        if (empty($request->query->get('state')) || ($request->query->get('state') !== $session->get('oauth2state'))) {
-            throw new BadQueryStringException('Invalid OAuth2 state.');
-        }
-
         try {
+            if (!$this->hasAuthCode()) {
+                throw new BadQueryStringException('Authorization code not found.');
+            }
+
+            if (empty($request->query->get('state')) || ($request->query->get('state') !== $session->get('oauth2state'))) {
+                throw new BadQueryStringException('Invalid OAuth2 state.');
+            }
+
             // Try to get an access token using the authorization code grant.
             $accessToken = $this->provider->getAccessToken('authorization_code', [
                 'code' => $request->query->get('code'),
@@ -163,27 +157,27 @@ class Oidc
             $resourceOwner = $this->provider->getResourceOwner($accessToken);
             $arrData = $resourceOwner->toArray();
             $session->set('arrData', $arrData);
-        } catch (IdentityProviderException $e) {
+        } catch (BadQueryStringException | IdentityProviderException $e) {
             exit($e->getMessage());
         }
     }
 
-    /**
-     * @throws BadQueryStringException
-     * @throws InvalidRequestTokenException
-     */
     private function checkQueryParams(): void
     {
         $request = $this->requestStack->getCurrentRequest();
 
-        if (!$request->request->has('targetPath')) {
-            // Target path not found in the query string
-            throw new BadQueryStringException('Login Error: URI parameter "targetPath" not found.');
-        }
+        try {
+            if (!$request->request->has('targetPath')) {
+                // Target path not found in the query string
+                throw new BadQueryStringException('Login Error: URI parameter "targetPath" not found.');
+            }
 
-        if (!$request->request->has('failurePath')) {
-            // Target path not found in the query string
-            throw new BadQueryStringException('Login Error: URI parameter "failurePath" not found.');
+            if (!$request->request->has('failurePath')) {
+                // Target path not found in the query string
+                throw new BadQueryStringException('Login Error: URI parameter "failurePath" not found.');
+            }
+        } catch (BadQueryStringException $e) {
+            exit($e->getMessage());
         }
 
         /** @var System $systemAdapter */
@@ -193,8 +187,12 @@ class Oidc
         if ($systemAdapter->getContainer()->getParameter('sac_oauth2_client.oidc.enable_csrf_token_check')) {
             $tokenName = $systemAdapter->getContainer()->getParameter('contao.csrf_token_name');
 
-            if (!$request->request->has('REQUEST_TOKEN') || !$this->csrfTokenManager->isTokenValid(new CsrfToken($tokenName, $request->request->get('REQUEST_TOKEN')))) {
-                throw new InvalidRequestTokenException('Invalid CSRF token. Please reload the page and try again.');
+            try {
+                if (!$request->request->has('REQUEST_TOKEN') || !$this->csrfTokenManager->isTokenValid(new CsrfToken($tokenName, $request->request->get('REQUEST_TOKEN')))) {
+                    throw new InvalidRequestTokenException('Invalid CSRF token. Please reload the page and try again.');
+                }
+            } catch (InvalidRequestTokenException $e) {
+                exit($e->getMessage());
             }
         }
     }

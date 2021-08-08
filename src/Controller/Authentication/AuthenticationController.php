@@ -58,11 +58,13 @@ class AuthenticationController extends AbstractController
         $this->oidc = $oidc;
     }
 
+
     /**
      * Login frontend user.
      *
-     * @throws BadQueryStringException
-     * @throws InvalidRequestTokenException
+     * @param string $_scope
+     * @return RedirectResponse
+     * @throws \Exception
      *
      * @Route("/ssoauth/frontend", name="swiss_alpine_club_sso_login_frontend", defaults={"_scope" = self::CONTAO_SCOPE_FRONTEND, "_token_check" = false})
      */
@@ -198,11 +200,14 @@ class AuthenticationController extends AbstractController
         return new RedirectResponse($targetPath);
     }
 
+    
+
     /**
      * Login backend user.
      *
-     * @throws BadQueryStringException
-     * @throws InvalidRequestTokenException
+     * @param string $_scope
+     * @return RedirectResponse
+     * @throws \Exception
      *
      * @Route("/ssoauth/backend", name="swiss_alpine_club_sso_login_backend", defaults={"_scope" = self::CONTAO_SCOPE_BACKEND, "_token_check" = false})
      */
