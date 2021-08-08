@@ -23,7 +23,6 @@ use Twig\Environment;
 
 class PrintErrorMessage
 {
-
     private bool $prettyErrorScreens;
     private Environment $twig;
     private ContaoFramework $framework;

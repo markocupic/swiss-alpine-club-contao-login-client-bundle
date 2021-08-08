@@ -16,6 +16,6 @@ namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Exception;
 
 use Exception;
 
-class AppCheckFailedException extends Exception
+class BadQueryStringException extends Exception
 {
 }

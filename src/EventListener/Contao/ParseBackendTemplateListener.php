@@ -20,14 +20,12 @@ use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\CoreBundle\ServiceAnnotation\Hook;
 use Contao\System;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\HttpFoundation\Session\Session;
 
 /**
  * @Hook("parseBackendTemplate")
  */
 class ParseBackendTemplateListener
 {
-
     private RequestStack $requestStack;
     private ContaoFramework $framework;
 

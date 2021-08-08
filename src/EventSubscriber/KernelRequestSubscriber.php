@@ -21,7 +21,6 @@ use Symfony\Component\HttpKernel\KernelEvents;
 
 class KernelRequestSubscriber implements EventSubscriberInterface
 {
-
     private ScopeMatcher $scopeMatcher;
 
     public function __construct(ScopeMatcher $scopeMatcher)

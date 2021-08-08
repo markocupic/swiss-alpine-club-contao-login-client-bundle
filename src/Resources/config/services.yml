@@ -15,10 +15,8 @@ services:
       - '@contao.framework'
       - '@request_stack'
       - '@contao.csrf.token_manager'
-      - '@translator'
     calls:
       - [ initializeFramework ]
-      - [ setProviderFromConfig ]
 
   Markocupic\SwissAlpineClubContaoLoginClientBundle\InteractiveLogin\InteractiveLogin:
     arguments:
