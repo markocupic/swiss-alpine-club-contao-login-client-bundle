@@ -103,7 +103,7 @@ class SwissAlpineClubOidcFrontendLogin extends AbstractFrontendModuleController
             // Since Contao 4.9 urls are base64 encoded
             $template->targetPath = $stringUtilAdapter->specialchars(base64_encode($strRedirect));
 
-            $failurePath = $urlAdapter->addQueryString('sso_error=true', $strRedirect);
+            $failurePath = $urlAdapter->addQueryString('sso_error=true', $environmentAdapter->get('uri'));
             $template->failurePath = $stringUtilAdapter->specialchars(base64_encode($failurePath));
 
             $template->login = true;

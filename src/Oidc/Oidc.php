@@ -89,7 +89,6 @@ class Oidc
         return $request->query->has('code');
     }
 
-   
     public function getAuthCode(): RedirectResponse
     {
         /** @var System $systemAdapter */

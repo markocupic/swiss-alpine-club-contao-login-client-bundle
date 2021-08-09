@@ -26,7 +26,7 @@ window.onload = function () {
 
     // Kill session if login has been aborted due to errors
     if (document.querySelectorAll('.trigger-ids-kill-session.sac-oidc-error').length) {
-        logout('');
+        logout('',false);
     }
     else if (RegExp("^/contao\/login(.*)$", "g").test(window.location.pathname)) {
         //logout('');
@@ -36,7 +36,7 @@ window.onload = function () {
      * Get logout endpoint, logout and redirect
      * @param url
      */
-    function logout(url) {
+    function logout(url, reload = true) {
 
         url = url == '' ? '/' : url;
 
@@ -52,9 +52,13 @@ window.onload = function () {
                 credentials: 'include',
                 mode: 'no-cors'
             }).then(function (response) {
-                window.location.href = url;
+                if(reload){
+                    window.location.href = url;
+                }
             }).catch(function () {
-                window.location.href = url;
+                if(reload){
+                    window.location.href = url;
+                }
             });
         });
     }

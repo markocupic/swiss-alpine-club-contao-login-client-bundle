@@ -17,8 +17,6 @@ namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\Authentic
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\ModuleModel;
 use Contao\System;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\Exception\BadQueryStringException;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\Exception\InvalidRequestTokenException;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\InteractiveLogin\InteractiveLogin;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Oidc\Oidc;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\User\RemoteUser;
@@ -58,12 +56,9 @@ class AuthenticationController extends AbstractController
         $this->oidc = $oidc;
     }
 
-
     /**
      * Login frontend user.
      *
-     * @param string $_scope
-     * @return RedirectResponse
      * @throws \Exception
      *
      * @Route("/ssoauth/frontend", name="swiss_alpine_club_sso_login_frontend", defaults={"_scope" = self::CONTAO_SCOPE_FRONTEND, "_token_check" = false})
@@ -200,13 +195,9 @@ class AuthenticationController extends AbstractController
         return new RedirectResponse($targetPath);
     }
 
-    
-
     /**
      * Login backend user.
      *
-     * @param string $_scope
-     * @return RedirectResponse
      * @throws \Exception
      *
      * @Route("/ssoauth/backend", name="swiss_alpine_club_sso_login_backend", defaults={"_scope" = self::CONTAO_SCOPE_BACKEND, "_token_check" = false})

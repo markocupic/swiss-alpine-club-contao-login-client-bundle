@@ -21,23 +21,33 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Security;
 use Twig\Environment;
 
-class PrintErrorMessage
+class ErrorMessageManager
 {
     private bool $prettyErrorScreens;
+    private string $flashBagKey;
     private Environment $twig;
     private ContaoFramework $framework;
     private RequestStack $requestStack;
     private Security $security;
     private ?LoggerInterface $logger = null;
 
-    public function __construct(bool $prettyErrorScreens, Environment $twig, ContaoFramework $framework, RequestStack $requestStack, Security $security, LoggerInterface $logger = null)
+    public function __construct(bool $prettyErrorScreens, string $flashBagKey, Environment $twig, ContaoFramework $framework, RequestStack $requestStack, Security $security, LoggerInterface $logger = null)
     {
         $this->prettyErrorScreens = $prettyErrorScreens;
+        $this->flashBagKey = $flashBagKey;
         $this->twig = $twig;
         $this->framework = $framework;
         $this->requestStack = $requestStack;
         $this->security = $security;
         $this->logger = $logger;
+    }
+
+    /**
+     * Add an error message to the session flash bag.
+     */
+    public function add2Flash(ErrorMessage $objErrorMsg): void
+    {
+        $this->getSession()->getFlashBag()->add($this->flashBagKey, $objErrorMsg->get());
     }
 
     /**
@@ -62,5 +72,11 @@ class PrintErrorMessage
         $response = new Response($this->twig->render($view, $parameters));
         $response->send();
         exit();
+    }
+
+    private function getSession()
+    {
+        $request = $this->requestStack->getCurrentRequest();
+        return $request->getSession();
     }
 }

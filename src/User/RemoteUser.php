@@ -18,6 +18,8 @@ use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\System;
 use Contao\Validator;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\Authentication\AuthenticationController;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessage;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessageManager;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Translation\TranslatorInterface;
 
@@ -35,18 +37,20 @@ class RemoteUser
     private RequestStack $requestStack;
     private User $user;
     private TranslatorInterface $translator;
+    private ErrorMessageManager $printErrorMessage;
     private array $data = [];
     private string $contaoScope = '';
 
     /**
      * RemoteUser constructor.
      */
-    public function __construct(ContaoFramework $framework, RequestStack $requestStack, User $user, TranslatorInterface $translator)
+    public function __construct(ContaoFramework $framework, RequestStack $requestStack, User $user, TranslatorInterface $translator, ErrorMessageManager $printErrorMessage)
     {
         $this->framework = $framework;
         $this->requestStack = $requestStack;
         $this->user = $user;
         $this->translator = $translator;
+        $this->printErrorMessage = $printErrorMessage;
     }
 
     /**
@@ -100,19 +104,15 @@ class RemoteUser
     public function checkHasUuid(): bool
     {
         /** @var System $systemAdapter */
-        $systemAdapter = $this->framework->getAdapter(System::class);
-
         if (empty($this->get('sub'))) {
-            $arrError = [
-                'level' => 'warning',
-                'matter' => $this->translator->trans('ERR.sacOidcLoginError_invalidUuid_matter', [], 'contao_default'),
-                'howToFix' => $this->translator->trans('ERR.sacOidcLoginError_invalidUuid_howToFix', [], 'contao_default'),
-                //'explain' => $this->translator->trans('ERR.sacOidcLoginError_invalidUuid_explain', [], 'contao_default'),
-            ];
-
-            $flashBagKey = $systemAdapter->getContainer()->getParameter('sac_oauth2_client.session.flash_bag_key');
-            $session = $this->requestStack->getCurrentRequest()->getSession();
-            $session->getFlashBag()->add($flashBagKey, $arrError);
+            $this->printErrorMessage->add2Flash(
+                new ErrorMessage(
+                    ErrorMessage::LEVEL_WARNING,
+                    $this->translator->trans('ERR.sacOidcLoginError_invalidUuid_matter', [], 'contao_default'),
+                    $this->translator->trans('ERR.sacOidcLoginError_invalidUuid_howToFix', [], 'contao_default'),
+                    //$this->translator->trans('ERR.sacOidcLoginError_invalidUuid_explain', [], 'contao_default'),
+                )
+            );
 
             return false;
         }

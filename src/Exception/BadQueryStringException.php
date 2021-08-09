@@ -14,8 +14,14 @@ declare(strict_types=1);
 
 namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Exception;
 
+use Contao\Controller;
 use Exception;
 
 class BadQueryStringException extends Exception
 {
+
+    public function redirect()
+    {
+        Controller::redirect('contao');
+    }
 }

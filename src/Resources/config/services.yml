@@ -45,12 +45,14 @@ services:
       - '@request_stack'
       - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\User\User'
       - '@translator'
+      - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessageManager'
     calls:
       - [ initializeFramework ]
 
-  Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\PrintErrorMessage:
+  Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessageManager:
     arguments:
       - '%contao.pretty_error_screens%'
+      - '%sac_oauth2_client.session.flash_bag_key%'
       - '@twig'
       - '@contao.framework'
       - '@request_stack'

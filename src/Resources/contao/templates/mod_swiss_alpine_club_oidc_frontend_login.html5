@@ -29,7 +29,7 @@ $GLOBALS['TL_CSS'][] = 'bundles/markocupicswissalpineclubcontaologinclient/css/s
 </form>
 
 <?php if ($this->error): ?>
-<div class="trigger-ids-kill-session sac-oidc-error error alert alert-<?= $this->error['bs-alert-class'] ?> mt-4">
+<div class="trigger-ids-kill-session sac-oidc-error error alert d-flex flex-column alert-<?= $this->error['bs-alert-class'] ?> mt-4">
 
     <?php if ('' != $this->error['matter']): ?>
     <div class="errorMatterBox mb-3">
