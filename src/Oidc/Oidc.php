@@ -15,6 +15,8 @@ declare(strict_types=1);
 namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Oidc;
 
 use Contao\CoreBundle\Framework\ContaoFramework;
+use Contao\CoreBundle\Routing\ScopeMatcher;
+use Contao\Environment;
 use Contao\System;
 use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use League\OAuth2\Client\Provider\GenericProvider;
@@ -35,16 +37,18 @@ class Oidc
     private ContaoFramework $framework;
     private RequestStack $requestStack;
     private CsrfTokenManager $csrfTokenManager;
+    private ScopeMatcher $scopeMatcher;
     private ?GenericProvider $provider = null;
 
     /**
      * Oidc constructor.
      */
-    public function __construct(ContaoFramework $framework, RequestStack $requestStack, CsrfTokenManager $csrfTokenManager)
+    public function __construct(ContaoFramework $framework, RequestStack $requestStack, CsrfTokenManager $csrfTokenManager, ScopeMatcher $scopeMatcher)
     {
         $this->framework = $framework;
         $this->requestStack = $requestStack;
         $this->csrfTokenManager = $csrfTokenManager;
+        $this->scopeMatcher = $scopeMatcher;
     }
 
     /**
@@ -94,6 +98,9 @@ class Oidc
         /** @var System $systemAdapter */
         $systemAdapter = $this->framework->getAdapter(System::class);
 
+        /** @var Environment $environmentAdapter */
+        $environmentAdapter = $this->framework->getAdapter(Environment::class);
+
         /** @var Request $request */
         $request = $this->requestStack->getCurrentRequest();
 
@@ -107,7 +114,10 @@ class Oidc
         $this->checkQueryParams();
 
         $session->set('targetPath', base64_decode($request->request->get('targetPath'), true));
-        $session->set('failurePath', base64_decode($request->request->get('failurePath'), true));
+
+        $failurePath = base64_decode($request->request->get('failurePath'), true);
+        $failurePath = $this->isBackend() && $failurePath === '' ? $environmentAdapter->get('url').'/contao' : $failurePath;
+        $session->set('failurePath', $failurePath, true);
 
         if ($request->request->has('moduleId')) {
             $session->set('moduleId', $request->request->get('moduleId'));
@@ -159,6 +169,16 @@ class Oidc
         } catch (BadQueryStringException | IdentityProviderException $e) {
             exit($e->getMessage());
         }
+    }
+
+    private function isBackend(): bool
+    {
+        return $this->scopeMatcher->isBackendRequest($this->requestStack->getCurrentRequest());
+    }
+
+    private function isFrontend(): bool
+    {
+        return $this->scopeMatcher->isFrontendRequest($this->requestStack->getCurrentRequest());
     }
 
     private function checkQueryParams(): void

@@ -18,6 +18,7 @@ use Contao\BackendTemplate;
 use Contao\Controller;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\CoreBundle\ServiceAnnotation\Hook;
+use Contao\Environment;
 use Contao\System;
 use Symfony\Component\HttpFoundation\RequestStack;
 
@@ -55,6 +56,9 @@ class ParseBackendTemplateListener
             /** @var Controller $controllerAdapter */
             $controllerAdapter = $this->framework->getAdapter(Controller::class);
 
+            /** @var Environment $environmentAdapter */
+            $environmentAdapter = $this->framework->getAdapter(Environment::class);
+
             if (!$systemAdapter->getContainer()->getParameter('sac_oauth2_client.oidc.enable_backend_sso')) {
                 return $strContent;
             }
@@ -78,11 +82,12 @@ class ParseBackendTemplateListener
                 $template->targetPath = $matches[1];
             }
 
-            $template->failurePath = '';
+            $failurePath = $environmentAdapter->get('uri').'/contao';
 
             if (preg_match('/name="_failure_path"\s+value=\"([^\']*?)\"/', $strContent, $matches)) {
-                $template->failurePath = $matches[1];
+                //$failurePath = $matches[1];
             }
+            $template->failurePath = base64_encode($failurePath);
 
             $template->alwaysUseTargetPath = '';
 

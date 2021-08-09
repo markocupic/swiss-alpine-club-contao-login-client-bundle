@@ -15,6 +15,7 @@ services:
       - '@contao.framework'
       - '@request_stack'
       - '@contao.csrf.token_manager'
+      - '@contao.routing.scope_matcher'
     calls:
       - [ initializeFramework ]
 
