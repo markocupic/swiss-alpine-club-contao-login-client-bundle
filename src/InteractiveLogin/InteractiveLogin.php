@@ -97,7 +97,7 @@ class InteractiveLogin
         $username = $oidcUser->getModel()->username;
 
         if (!\is_string($username) && (!\is_object($username) || !method_exists($username, '__toString'))) {
-            throw new BadRequestHttpException(sprintf('The username "%s" must be a string, "%s" given.', \gettype($username)));
+            throw new \Exception(sprintf('The username "%s" must be a string, "%s" given.', \gettype($username)));
         }
 
         $username = trim((string) $username);

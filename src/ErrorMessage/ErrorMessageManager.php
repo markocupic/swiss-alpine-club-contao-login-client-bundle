@@ -50,33 +50,12 @@ class ErrorMessageManager
         $this->getSession()->getFlashBag()->add($this->flashBagKey, $objErrorMsg->get());
     }
 
-    /**
-     * Map an exception to an error screen.
-     */
-    public function printErrorMessage($arrMessage): Response
-    {
-        $request = $this->requestStack->getCurrentRequest();
-        $defaults = [
-            'statusCode' => '',
-            'statusName' => '',
-            'template' => '',
-            'base' => $request->getBasePath(),
-            'language' => $request->getLocale(),
-            //'adminEmail' => '&#109;&#97;&#105;&#108;&#116;&#111;&#58;' . $encoded,
-            //'exception'  => $event->getException()->getMessage(),
-        ];
 
-        $parameters = array_merge($defaults, $arrMessage);
-
-        $view = '@MarkocupicSwissAlpineClubContaoLoginClient/Error/login_error.html.twig';
-        $response = new Response($this->twig->render($view, $parameters));
-        $response->send();
-        exit();
-    }
 
     private function getSession()
     {
         $request = $this->requestStack->getCurrentRequest();
+
         return $request->getSession();
     }
 }

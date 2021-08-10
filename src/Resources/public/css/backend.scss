@@ -16,22 +16,25 @@
 
   }
 
-  .sac-oidc-error.backend.error {
-    margin-top: 1rem;
+  .sac-oidc-error.backend {
+    .errorBox {
+      margin-top: 1rem;
+      padding-top: 1rem;
 
-    .error-title {
-      font-size: .875rem;
-      color: black;
-      font-weight: bold;
-      margin-top: 10px;
-    }
+      .error-title {
+        font-size: .875rem;
+        color: black;
+        font-weight: bold;
+        margin-top: 10px;
+      }
 
-    p {
-      font-size: .875rem;
-      line-height: normal;
-      color: red;
-      margin-top: 10px;
-      margin: 10px 0 15px 0;
+      p {
+        font-size: .875rem;
+        line-height: normal;
+        color: red;
+        margin-top: 10px;
+        margin: 10px 0 15px 0;
+      }
     }
   }
 

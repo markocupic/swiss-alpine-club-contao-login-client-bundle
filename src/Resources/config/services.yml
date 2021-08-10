@@ -33,18 +33,15 @@ services:
   Markocupic\SwissAlpineClubContaoLoginClientBundle\User\User:
     arguments:
       - '@contao.framework'
-      - '@request_stack'
       - '@translator'
       - '@security.encoder_factory'
-      - '@monolog.logger.contao'
+      - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessageManager'
     calls:
       - [ initializeFramework ]
 
   Markocupic\SwissAlpineClubContaoLoginClientBundle\User\RemoteUser:
     arguments:
       - '@contao.framework'
-      - '@request_stack'
-      - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\User\User'
       - '@translator'
       - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessageManager'
     calls:

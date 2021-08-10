@@ -133,7 +133,7 @@ class AuthenticationController extends AbstractController
         // Check has valid email address
         // This test should always be positive,
         // because creating an account at www.sac-cas.ch
-        // requires a valid email address
+        // requires allready a valid email address
         if (!$this->remoteUser->checkHasValidEmail()) {
             return new RedirectResponse($session->get('failurePath'));
         }
@@ -267,7 +267,7 @@ class AuthenticationController extends AbstractController
         // Check has valid email address
         // This test should always be positive,
         // because creating an account at www.sac-cas.ch
-        // requires a valid email address
+        // requires allready a valid email address
         if (!$this->remoteUser->checkHasValidEmail()) {
             return new RedirectResponse($session->get('failurePath'));
         }

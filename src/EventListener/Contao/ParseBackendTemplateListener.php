@@ -82,7 +82,7 @@ class ParseBackendTemplateListener
                 $template->targetPath = $matches[1];
             }
 
-            $failurePath = $environmentAdapter->get('uri').'/contao';
+            $failurePath = $environmentAdapter->get('url').'/contao';
 
             if (preg_match('/name="_failure_path"\s+value=\"([^\']*?)\"/', $strContent, $matches)) {
                 //$failurePath = $matches[1];

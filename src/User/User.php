@@ -24,8 +24,8 @@ use Contao\StringUtil;
 use Contao\System;
 use Contao\UserModel;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\Authentication\AuthenticationController;
-use Psr\Log\LoggerInterface;
-use Symfony\Component\HttpFoundation\RequestStack;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessage;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessageManager;
 use Symfony\Component\Security\Core\Encoder\EncoderFactoryInterface;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Translation\TranslatorInterface;
@@ -38,22 +38,20 @@ class User
     public ?RemoteUser $remoteUser = null;
 
     private ContaoFramework $framework;
-    private RequestStack $requestStack;
     private TranslatorInterface $translator;
     private EncoderFactoryInterface $encoderFactory;
-    private ?LoggerInterface $logger = null;
+    private ErrorMessageManager $errorMessageManager;
     private string $contaoScope = '';
 
     /**
      * User constructor.
      */
-    public function __construct(ContaoFramework $framework, RequestStack $requestStack, TranslatorInterface $translator, EncoderFactoryInterface $encoderFactory, ?LoggerInterface $logger)
+    public function __construct(ContaoFramework $framework, TranslatorInterface $translator, EncoderFactoryInterface $encoderFactory, ErrorMessageManager $errorMessageManager)
     {
         $this->framework = $framework;
-        $this->requestStack = $requestStack;
         $this->translator = $translator;
         $this->encoderFactory = $encoderFactory;
-        $this->logger = $logger;
+        $this->errorMessageManager = $errorMessageManager;
     }
 
     /**
@@ -127,31 +125,26 @@ class User
      */
     public function checkUserExists(): bool
     {
-        /** @var System $systemAdapter */
-        $systemAdapter = $this->framework->getAdapter(System::class);
-
         $arrData = $this->remoteUser->getData();
 
         if (!isset($arrData) || empty($arrData['contact_number']) || !$this->userExists()) {
             if (AuthenticationController::CONTAO_SCOPE_FRONTEND === $this->getContaoScope()) {
-                $arrError = [
-                    'level' => 'warning',
-                    'matter' => $this->translator->trans('ERR.sacOidcLoginError_userDoesNotExist_matter', [$arrData['vorname']], 'contao_default'),
-                    'howToFix' => $this->translator->trans('ERR.sacOidcLoginError_userDoesNotExist_howToFix', [], 'contao_default'),
-                    'explain' => $this->translator->trans('ERR.sacOidcLoginError_userDoesNotExist_explain', [], 'contao_default'),
-                ];
+                $this->errorMessageManager->add2Flash(
+                    new ErrorMessage(
+                        ErrorMessage::LEVEL_WARNING,
+                        $this->translator->trans('ERR.sacOidcLoginError_userDoesNotExist_matter', [$arrData['vorname']], 'contao_default'),
+                        $this->translator->trans('ERR.sacOidcLoginError_userDoesNotExist_howToFix', [], 'contao_default'),
+                        $this->translator->trans('ERR.sacOidcLoginError_userDoesNotExist_explain', [], 'contao_default'),
+                    )
+                );
             } else {
-                $arrError = [
-                    'level' => 'warning',
-                    'matter' => $this->translator->trans('ERR.sacOidcLoginError_backendUserNotFound_matter', [$arrData['vorname']], 'contao_default'),
-                    //'howToFix' => $this->translator->trans('ERR.sacOidcLoginError_backendUserNotFound_howToFix', [], 'contao_default'),
-                    //'explain'  => $this->translator->trans('ERR.sacOidcLoginError_backendUserNotFound_explain', [], 'contao_default'),
-                ];
+                $this->errorMessageManager->add2Flash(
+                    new ErrorMessage(
+                        ErrorMessage::LEVEL_WARNING,
+                        $this->translator->trans('ERR.sacOidcLoginError_backendUserNotFound_matter', [$arrData['vorname']], 'contao_default'),
+                    )
+                );
             }
-
-            $flashBagKey = $systemAdapter->getContainer()->getParameter('sac_oauth2_client.session.flash_bag_key');
-            $session = $this->requestStack->getCurrentRequest()->getSession();
-            $session->getFlashBag()->add($flashBagKey, $arrError);
 
             return false;
         }
@@ -176,9 +169,6 @@ class User
      */
     public function checkIsAccountEnabled(): bool
     {
-        /** @var System $systemAdapter */
-        $systemAdapter = $this->framework->getAdapter(System::class);
-
         if (($model = $this->getModel()) !== null) {
             if (AuthenticationController::CONTAO_SCOPE_FRONTEND === $this->getContaoScope()) {
                 $disabled = !$model->login || $model->disable || ('' !== $model->start && $model->start > time()) || ('' !== $model->stop && $model->stop <= time());
@@ -197,15 +187,14 @@ class User
             }
         }
 
-        $arrError = [
-            'level' => 'warning',
-            'matter' => $this->translator->trans('ERR.sacOidcLoginError_accountDisabled_matter', [$this->remoteUser->get('vorname')], 'contao_default'),
-            //'howToFix' => $this->translator->trans('ERR.sacOidcLoginError_accountDisabled_howToFix', [], 'contao_default'),
-            'explain' => $this->translator->trans('ERR.sacOidcLoginError_accountDisabled_explain', [], 'contao_default'),
-        ];
-        $flashBagKey = $systemAdapter->getContainer()->getParameter('sac_oauth2_client.session.flash_bag_key');
-        $session = $this->requestStack->getCurrentRequest()->getSession();
-        $session->getFlashBag()->add($flashBagKey, $arrError);
+        $this->errorMessageManager->add2Flash(
+            new ErrorMessage(
+                ErrorMessage::LEVEL_WARNING,
+                $this->translator->trans('ERR.sacOidcLoginError_accountDisabled_matter', [$this->remoteUser->get('vorname')], 'contao_default'),
+                '',
+                $this->translator->trans('ERR.sacOidcLoginError_accountDisabled_explain', [], 'contao_default'),
+            )
+        );
 
         return false;
     }
