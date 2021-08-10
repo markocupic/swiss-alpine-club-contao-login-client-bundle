@@ -1,3 +1,8 @@
+body {
+  background-image: url("../../../bundles/markocupicswissalpineclubcontaologinclient/img/logo_sac_small.svg");
+  background-size: 6em auto;
+}
+
 #mod_swiss_alpine_club_oidc_backend_login {
   padding: 0 45px 45px 45px;
 }
@@ -19,15 +24,15 @@
 }
 #mod_swiss_alpine_club_oidc_backend_login .sac-oidc-error.backend .errorBox .error-title {
   font-size: 0.875rem;
-  color: black;
-  font-weight: bold;
-  margin-top: 10px;
+  color: #ff2117;
+  font-weight: 600;
+  margin-top: 10px; 
 }
 #mod_swiss_alpine_club_oidc_backend_login .sac-oidc-error.backend .errorBox p {
   font-size: 0.875rem;
   line-height: normal;
-  color: red;
-  margin-top: 10px; 
+  color: #797979;
+  margin-top: 10px;
   margin: 10px 0 15px 0;
 }
 #mod_swiss_alpine_club_oidc_backend_login .login-button-separator-container {

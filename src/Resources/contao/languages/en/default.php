@@ -20,19 +20,15 @@ $GLOBALS['TL_LANG']['MSC']['errorMatter'] = 'Fehlermeldung';
 $GLOBALS['TL_LANG']['MSC']['errorHowToFix'] = 'Was kann ich tun?';
 $GLOBALS['TL_LANG']['MSC']['errorExplain'] = 'Erklärung';
 
-$GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_invalidState_matter'] = 'Die Überprüfung Ihrer Daten vom Identity Provider hat fehlgeschlagen. Fehlercode: ungültiger state!';
-$GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_invalidState_howToFix'] = 'Bitte überprüfen Sie die Schreibweise Ihrer Benutzereingaben.';
-$GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_invalidState_explain'] = '';
-
 $GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_accountDisabled_matter'] = 'Hallo %s{{br}}Schön bist du hier. Leider hat die Überprüfung deiner vom Identity Provider an uns übermittelten Daten fehlgeschlagen.';
-$GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_accountDisabled_howToFix'] = '';
+$GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_accountDisabled_howToFix'] = 'Falls du der Meinung bist, dass es sich hier um einen Irrtum handelt, dann melde dich bei der Geschäftsstelle.';
 $GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_accountDisabled_explain'] = 'Dein Konto wurde leider deaktiviert und kann im Moment nicht verwendet werden.';
 
 $GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_userDoesNotExist_matter'] = 'Hallo %s{{br}}Schön bist du hier. Leider hat die Überprüfung deiner vom Identity Provider an uns übermittelten Daten fehlgeschlagen.';
-$GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_userDoesNotExist_howToFix'] = 'Falls du soeben/erst kürzlich eine Neumitgliedschaft beantragt hast, dann warte bitten einen Tag und versuche dich danach noch einmal hier einzuloggen.';
-$GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_userDoesNotExist_explain'] = 'Leider dauert es mindestens einen Tag bis uns von der Zentralstelle deine Mitgliedschaft bestätigt wird.';
+$GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_userDoesNotExist_howToFix'] = 'Falls du soeben/erst kürzlich eine Neumitgliedschaft beantragt hast, dann warte bitte einen Tag und versuche dich danach noch einmal hier einzuloggen.';
+$GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_userDoesNotExist_explain'] = 'Es dauert mindestens einen Tag bis die SAC Zentralstelle deine Mitgliedschaft bestätigt hat.';
 
-$GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_backendUserNotFound_matter'] = 'Hallo %s{{br}}Schön bist du hier. Leider wurde dein Konto nicht gefunden. Wenn du meinst, dass es sich um einen Fehler handelt, dann melde dich mit deinem Anliegen bei der Geschäftsstelle.';
+$GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_backendUserNotFound_matter'] = 'Hallo %s{{br}}Schön bist du hier. Leider konnte dein Konto nicht gefunden werden. Wenn du denkst, dass es sich um einen Irrtum handelt, dann melde dich mit deinem Anliegen bei der Geschäftsstelle.';
 $GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_backendUserNotFound_howToFix'] = '';
 $GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_backendUserNotFound_explain'] = '';
 
@@ -49,5 +45,5 @@ $GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_invalidUuid_howToFix'] = 'Bitte ü
 $GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_invalidUuid_explain'] = '';
 
 $GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_invalidEmail_matter'] = 'Hallo %s{{br}}Schön bist du hier. Leider hat die Überprüfung deiner vom Identity Provider an uns übermittelten Daten fehlgeschlagen.';
-$GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_invalidEmail_howToFix'] = 'Du hast noch keine gültige E-Mail-Adresse hinterlegt. Bitte logge dich auf https:://www.sac-cas.ch mit deinem Account ein und hinterlege deine E-Mail-Adresse.';
+$GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_invalidEmail_howToFix'] = 'Du hast noch keine gültige E-Mail-Adresse hinterlegt. Bitte logge dich auf https://www.sac-cas.ch mit deinem Account ein und hinterlege deine E-Mail-Adresse.';
 $GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_invalidEmail_explain'] = 'Einige Anwendungen (z.B. Event-Tool) auf diesem Portal setzen eine gültige E-Mail-Adresse voraus.';

@@ -1,3 +1,8 @@
+body {
+  background-image: url("../../../bundles/markocupicswissalpineclubcontaologinclient/img/logo_sac_small.svg");
+  background-size: 6em auto;
+}
+
 #mod_swiss_alpine_club_oidc_backend_login {
   padding: 0 45px 45px 45px;
 
@@ -23,15 +28,15 @@
 
       .error-title {
         font-size: .875rem;
-        color: black;
-        font-weight: bold;
+        color: #ff2117;
+        font-weight: 600;
         margin-top: 10px;
       }
 
       p {
         font-size: .875rem;
         line-height: normal;
-        color: red;
+        color: #797979;
         margin-top: 10px;
         margin: 10px 0 15px 0;
       }

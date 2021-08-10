@@ -20,7 +20,6 @@ use Contao\Validator;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\Authentication\AuthenticationController;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessage;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessageManager;
-use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Translation\TranslatorInterface;
 
 /**
@@ -120,9 +119,7 @@ class RemoteUser
      */
     public function checkIsSacMember(): bool
     {
-
         if (!$this->isSacMember()) {
-
             $this->errorMessageManager->add2Flash(
                 new ErrorMessage(
                     ErrorMessage::LEVEL_WARNING,
@@ -142,7 +139,6 @@ class RemoteUser
      */
     public function checkIsMemberInAllowedSection(): bool
     {
-
         $arrMembership = $this->getAllowedSacSectionIds();
 
         if (\count($arrMembership) > 0) {
@@ -165,14 +161,10 @@ class RemoteUser
      */
     public function checkHasValidEmail(): bool
     {
-
         /** @var Validator $validatorAdapter */
         $validatorAdapter = $this->framework->getAdapter(Validator::class);
 
-
-
         if (empty($this->get('email')) || !$validatorAdapter->isEmail($this->get('email'))) {
-
             $this->errorMessageManager->add2Flash(
                 new ErrorMessage(
                     ErrorMessage::LEVEL_WARNING,

@@ -27,21 +27,21 @@
 
 		<?php if ('' != $this->error['matter']): ?>
 		<div class="errorMatterBox errorBox">
-			<h7 class="error-title mt-0"><?= $this->trans('MSC.'.$this->error['level'].'Matter', [], 'contao_default') ?></h7>
+			<h1 class="error-title mt-0"><?= $this->trans('MSC.'.$this->error['level'].'Matter', [], 'contao_default') ?></h1>
 			<p class="errorMatter small"><?= $this->error['matter'] ?></p>
 		</div>
 		<?php endif; ?>
 
 		<?php if ('' != $this->error['howToFix']): ?>
 		<div class="errorHowToFixBox errorBox">
-			<h7 class="error-title mt-0"><?= $this->trans('MSC.errorHowToFix', [], 'contao_default') ?></h7>
+			<h1 class="error-title mt-0"><?= $this->trans('MSC.errorHowToFix', [], 'contao_default') ?></h1>
 			<p class="errorHowToFix small"><?= $this->error['howToFix'] ?></p>
 		</div>
 		<?php endif; ?>
 
 		<?php if ('' != $this->error['explain']): ?>
 		<div class="errorExplainBox errorBox">
-			<h7 class="error-title mt-0"><?= $this->trans('MSC.errorExplain', [], 'contao_default') ?></h7>
+			<h1 class="error-title mt-0"><?= $this->trans('MSC.errorExplain', [], 'contao_default') ?></h1>
 			<p class="errorExplain small"><?= $this->error['explain'] ?></p>
 		</div>
 		<?php endif; ?>

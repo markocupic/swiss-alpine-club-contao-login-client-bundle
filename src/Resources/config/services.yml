@@ -4,18 +4,24 @@ services:
     public: true
     arguments:
       - '@contao.framework'
+      - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\Initializer'
       - '@request_stack'
       - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\User\RemoteUser'
       - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\User\User'
       - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\InteractiveLogin\InteractiveLogin'
       - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\Oidc\Oidc'
 
+  Markocupic\SwissAlpineClubContaoLoginClientBundle\Initializer:
+    arguments:
+      - '@contao.framework'
+      - '@request_stack'
+      - '@contao.csrf.token_manager'
+
   Markocupic\SwissAlpineClubContaoLoginClientBundle\Oidc\Oidc:
     arguments:
       - '@contao.framework'
       - '@request_stack'
       - '@contao.csrf.token_manager'
-      - '@contao.routing.scope_matcher'
     calls:
       - [ initializeFramework ]
 

@@ -17,6 +17,8 @@ namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\Authentic
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\ModuleModel;
 use Contao\System;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Initialization;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Initializer;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\InteractiveLogin\InteractiveLogin;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Oidc\Oidc;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\User\RemoteUser;
@@ -37,6 +39,7 @@ class AuthenticationController extends AbstractController
     public const CONTAO_SCOPE_BACKEND = 'backend';
 
     private ContaoFramework $framework;
+    private Initializer $initializer;
     private RequestStack $requestStack;
     private RemoteUser $remoteUser;
     private User $user;
@@ -46,9 +49,10 @@ class AuthenticationController extends AbstractController
     /**
      * AuthenticationController constructor.
      */
-    public function __construct(ContaoFramework $framework, RequestStack $requestStack, RemoteUser $remoteUser, User $user, InteractiveLogin $interactiveLogin, Oidc $oidc)
+    public function __construct(ContaoFramework $framework, Initializer $initializer, RequestStack $requestStack, RemoteUser $remoteUser, User $user, InteractiveLogin $interactiveLogin, Oidc $oidc)
     {
         $this->framework = $framework;
+        $this->initializer = $initializer;
         $this->requestStack = $requestStack;
         $this->remoteUser = $remoteUser;
         $this->user = $user;
@@ -65,7 +69,7 @@ class AuthenticationController extends AbstractController
      */
     public function frontendUserAuthenticationAction(string $_scope): RedirectResponse
     {
-        $this->framework->initialize();
+        $this->initializer->initialize();
 
         $contaoScope = $_scope;
 
@@ -204,7 +208,7 @@ class AuthenticationController extends AbstractController
      */
     public function backendUserAuthenticationAction(string $_scope): RedirectResponse
     {
-        $this->framework->initialize();
+        $this->initializer->initialize();
 
         $contaoScope = $_scope;
 
@@ -338,4 +342,6 @@ class AuthenticationController extends AbstractController
 
         return new JsonResponse($data);
     }
+
+
 }

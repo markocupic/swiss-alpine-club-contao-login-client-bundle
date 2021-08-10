@@ -16,7 +16,6 @@ namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Oidc;
 
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\CoreBundle\Routing\ScopeMatcher;
-use Contao\Environment;
 use Contao\System;
 use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use League\OAuth2\Client\Provider\GenericProvider;
@@ -37,18 +36,16 @@ class Oidc
     private ContaoFramework $framework;
     private RequestStack $requestStack;
     private CsrfTokenManager $csrfTokenManager;
-    private ScopeMatcher $scopeMatcher;
     private ?GenericProvider $provider = null;
 
     /**
      * Oidc constructor.
      */
-    public function __construct(ContaoFramework $framework, RequestStack $requestStack, CsrfTokenManager $csrfTokenManager, ScopeMatcher $scopeMatcher)
+    public function __construct(ContaoFramework $framework, RequestStack $requestStack, CsrfTokenManager $csrfTokenManager)
     {
         $this->framework = $framework;
         $this->requestStack = $requestStack;
         $this->csrfTokenManager = $csrfTokenManager;
-        $this->scopeMatcher = $scopeMatcher;
     }
 
     /**
@@ -98,30 +95,11 @@ class Oidc
         /** @var System $systemAdapter */
         $systemAdapter = $this->framework->getAdapter(System::class);
 
-        /** @var Environment $environmentAdapter */
-        $environmentAdapter = $this->framework->getAdapter(Environment::class);
-
-        /** @var Request $request */
-        $request = $this->requestStack->getCurrentRequest();
-
         /** @var string $bagName */
         $bagName = $systemAdapter->getContainer()->getParameter('sac_oauth2_client.session.attribute_bag_name');
 
         /** @var Session $session */
         $session = $this->requestStack->getCurrentRequest()->getSession()->getBag($bagName);
-
-        // Validate query params
-        $this->checkQueryParams();
-
-        $session->set('targetPath', base64_decode($request->request->get('targetPath'), true));
-
-        $failurePath = base64_decode($request->request->get('failurePath'), true);
-        $failurePath = $this->isBackend() && $failurePath === '' ? $environmentAdapter->get('url').'/contao' : $failurePath;
-        $session->set('failurePath', $failurePath, true);
-
-        if ($request->request->has('moduleId')) {
-            $session->set('moduleId', $request->request->get('moduleId'));
-        }
 
         // Fetch the authorization URL from the provider; this returns the urlAuthorize option and generates and applies any necessary parameters
         // (e.g. state).
@@ -171,48 +149,5 @@ class Oidc
         }
     }
 
-    private function isBackend(): bool
-    {
-        return $this->scopeMatcher->isBackendRequest($this->requestStack->getCurrentRequest());
-    }
-
-    private function isFrontend(): bool
-    {
-        return $this->scopeMatcher->isFrontendRequest($this->requestStack->getCurrentRequest());
-    }
-
-    private function checkQueryParams(): void
-    {
-        $request = $this->requestStack->getCurrentRequest();
-
-        try {
-            if (!$request->request->has('targetPath')) {
-                // Target path not found in the query string
-                throw new BadQueryStringException('Login Error: URI parameter "targetPath" not found.');
-            }
-
-            if (!$request->request->has('failurePath')) {
-                // Target path not found in the query string
-                throw new BadQueryStringException('Login Error: URI parameter "failurePath" not found.');
-            }
-        } catch (BadQueryStringException $e) {
-            exit($e->getMessage());
-        }
-
-        /** @var System $systemAdapter */
-        $systemAdapter = $this->framework->getAdapter(System::class);
-
-        // Csrf token check (disabled by default)
-        if ($systemAdapter->getContainer()->getParameter('sac_oauth2_client.oidc.enable_csrf_token_check')) {
-            $tokenName = $systemAdapter->getContainer()->getParameter('contao.csrf_token_name');
-
-            try {
-                if (!$request->request->has('REQUEST_TOKEN') || !$this->csrfTokenManager->isTokenValid(new CsrfToken($tokenName, $request->request->get('REQUEST_TOKEN')))) {
-                    throw new InvalidRequestTokenException('Invalid CSRF token. Please reload the page and try again.');
-                }
-            } catch (InvalidRequestTokenException $e) {
-                exit($e->getMessage());
-            }
-        }
-    }
+  
 }

@@ -83,10 +83,6 @@ class ParseBackendTemplateListener
             }
 
             $failurePath = $environmentAdapter->get('url').'/contao';
-
-            if (preg_match('/name="_failure_path"\s+value=\"([^\']*?)\"/', $strContent, $matches)) {
-                //$failurePath = $matches[1];
-            }
             $template->failurePath = base64_encode($failurePath);
 
             $template->alwaysUseTargetPath = '';

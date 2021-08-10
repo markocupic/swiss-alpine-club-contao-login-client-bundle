@@ -19,8 +19,7 @@ use Exception;
 
 class BadQueryStringException extends Exception
 {
-
-    public function redirect()
+    public function redirect(): void
     {
         Controller::redirect('contao');
     }

@@ -17,7 +17,6 @@ namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Security;
 use Twig\Environment;
 
@@ -49,8 +48,6 @@ class ErrorMessageManager
     {
         $this->getSession()->getFlashBag()->add($this->flashBagKey, $objErrorMsg->get());
     }
-
-
 
     private function getSession()
     {
