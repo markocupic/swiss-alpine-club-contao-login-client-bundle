@@ -171,7 +171,7 @@ class User
     {
         if (($model = $this->getModel()) !== null) {
             if (AuthenticationController::CONTAO_SCOPE_FRONTEND === $this->getContaoScope()) {
-                $disabled = !$model->login || $model->disable || ('' !== $model->start && $model->start > time()) || ('' !== $model->stop && $model->stop <= time());
+                $disabled = $model->disable || ('' !== $model->start && $model->start > time()) || ('' !== $model->stop && $model->stop <= time());
 
                 if (!$disabled) {
                     return true;

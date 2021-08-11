@@ -17,7 +17,6 @@ namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\Authentic
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\ModuleModel;
 use Contao\System;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\Initialization;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Initializer;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\InteractiveLogin\InteractiveLogin;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Oidc\Oidc;
@@ -165,15 +164,13 @@ class AuthenticationController extends AbstractController
         $this->user->resetLoginAttempts();
 
         // Set tl_member.login='1'
-        if ($blnAllowFrontendLoginIfContaoAccountIsDisabled) {
-            $this->user->activateMemberAccount();
-        }
+        $this->user->activateMemberAccount();
 
         // Update tl_member and tl_user
         $this->user->updateFrontendUser();
         $this->user->updateBackendUser();
 
-        // Check if tl_member.disable == '' or tl_member.login == '1' or tl_member.start and tl_member.stop are not in an allowed time range
+        // Check if tl_member.disable == '' or tl_member.start and tl_member.stop are not in an allowed time range
         if (!$this->user->checkIsAccountEnabled() && !$blnAllowFrontendLoginIfContaoAccountIsDisabled) {
             return new RedirectResponse($session->get('failurePath'));
         }
@@ -342,6 +339,4 @@ class AuthenticationController extends AbstractController
 
         return new JsonResponse($data);
     }
-
-
 }
