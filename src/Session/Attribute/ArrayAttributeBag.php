@@ -21,6 +21,7 @@ use Symfony\Component\HttpFoundation\Session\Attribute\AttributeBag;
  */
 class ArrayAttributeBag extends AttributeBag implements \ArrayAccess
 {
+
     public function offsetExists($offset): bool
     {
         return $this->has($offset);
