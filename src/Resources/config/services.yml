@@ -1,6 +1,8 @@
 services:
 
   Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\Authentication\AuthenticationController:
+    calls:
+      - [ 'setContainer', [ '@Psr\Container\ContainerInterface' ] ]
     public: true
     arguments:
       - '@contao.framework'
