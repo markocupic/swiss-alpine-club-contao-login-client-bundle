@@ -10,6 +10,7 @@ services:
       - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\User\User'
       - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\InteractiveLogin\InteractiveLogin'
       - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\Oidc\Oidc'
+      - '@monolog.logger.contao'
 
   Markocupic\SwissAlpineClubContaoLoginClientBundle\Initializer:
     arguments:

@@ -5,8 +5,8 @@ declare(strict_types=1);
 /*
  * This file is part of Swiss Alpine Club Contao Login Client Bundle.
  *
- * (c) Marko Cupic 2021 <m.cupic@gmx.ch>
- * @license MIT
+ * (c) Marko Cupic 2022 <m.cupic@gmx.ch>
+ * @license GPL-3.0-or-later
  * For the full copyright and license information,
  * please view the LICENSE file that was distributed with this source code.
  * @link https://github.com/markocupic/swiss-alpine-club-contao-login-client-bundle
@@ -51,7 +51,7 @@ class MarkocupicSwissAlpineClubContaoLoginClientExtension extends Extension
 
         $rootKey = $this->getAlias();
 
-        // Oidc stuff
+        $container->setParameter($rootKey.'.oidc.debug_mode', $config['oidc']['debug_mode']);
         $container->setParameter($rootKey.'.oidc.client_id', $config['oidc']['client_id']);
         $container->setParameter($rootKey.'.oidc.client_secret', $config['oidc']['client_secret']);
         $container->setParameter($rootKey.'.oidc.auth_provider_endpoint_authorize', $config['oidc']['auth_provider_endpoint_authorize']);

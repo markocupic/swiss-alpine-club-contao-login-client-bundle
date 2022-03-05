@@ -5,8 +5,8 @@ declare(strict_types=1);
 /*
  * This file is part of Swiss Alpine Club Contao Login Client Bundle.
  *
- * (c) Marko Cupic 2021 <m.cupic@gmx.ch>
- * @license MIT
+ * (c) Marko Cupic 2022 <m.cupic@gmx.ch>
+ * @license GPL-3.0-or-later
  * For the full copyright and license information,
  * please view the LICENSE file that was distributed with this source code.
  * @link https://github.com/markocupic/swiss-alpine-club-contao-login-client-bundle
@@ -15,6 +15,7 @@ declare(strict_types=1);
 namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\Authentication;
 
 use Contao\CoreBundle\Framework\ContaoFramework;
+use Contao\CoreBundle\Monolog\ContaoContext;
 use Contao\ModuleModel;
 use Contao\System;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Initializer;
@@ -22,6 +23,7 @@ use Markocupic\SwissAlpineClubContaoLoginClientBundle\InteractiveLogin\Interacti
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Oidc\Oidc;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\User\RemoteUser;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\User\User;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -36,6 +38,7 @@ class AuthenticationController extends AbstractController
 {
     public const CONTAO_SCOPE_FRONTEND = 'frontend';
     public const CONTAO_SCOPE_BACKEND = 'backend';
+    private const OPENID_CONNECT_DEBUG_LOG = 'OPENID_CONNECT_DEBUG_LOG';
 
     private ContaoFramework $framework;
     private Initializer $initializer;
@@ -44,11 +47,12 @@ class AuthenticationController extends AbstractController
     private User $user;
     private InteractiveLogin $interactiveLogin;
     private Oidc $oidc;
+    private ?LoggerInterface $logger = null;
 
     /**
      * AuthenticationController constructor.
      */
-    public function __construct(ContaoFramework $framework, Initializer $initializer, RequestStack $requestStack, RemoteUser $remoteUser, User $user, InteractiveLogin $interactiveLogin, Oidc $oidc)
+    public function __construct(ContaoFramework $framework, Initializer $initializer, RequestStack $requestStack, RemoteUser $remoteUser, User $user, InteractiveLogin $interactiveLogin, Oidc $oidc, ?LoggerInterface $logger = null)
     {
         $this->framework = $framework;
         $this->initializer = $initializer;
@@ -57,6 +61,7 @@ class AuthenticationController extends AbstractController
         $this->user = $user;
         $this->interactiveLogin = $interactiveLogin;
         $this->oidc = $oidc;
+        $this->logger = $logger;
     }
 
     /**
@@ -80,6 +85,7 @@ class AuthenticationController extends AbstractController
 
         $container = $systemAdapter->getContainer();
 
+        $isDebugMode = $systemAdapter->getContainer()->getParameter('sac_oauth2_client.oidc.debug_mode');
         $bagName = $systemAdapter->getContainer()->getParameter('sac_oauth2_client.session.attribute_bag_name');
         $flashBagKey = $container->getParameter('sac_oauth2_client.session.flash_bag_key');
 
@@ -110,6 +116,13 @@ class AuthenticationController extends AbstractController
         $this->oidc->getAccessToken();
 
         $arrData = $session->get('arrData');
+
+        if ($isDebugMode)
+        {
+            // Log resource owners details
+            $text =sprintf('SAC oauth2 debug %s login. ROLES: %s DATA ALL: %s', $contaoScope, $arrData['Roles'], json_encode($arrData));
+            $this->log($text, __METHOD__, self::OPENID_CONNECT_DEBUG_LOG);
+        }
 
         $this->remoteUser->create($arrData, $contaoScope);
         //$this->remoteUser->create($this->remoteUser->getMockUserData(false)); // Should end in an error message
@@ -214,6 +227,7 @@ class AuthenticationController extends AbstractController
 
         $container = $systemAdapter->getContainer();
 
+        $isDebugMode = $systemAdapter->getContainer()->getParameter('sac_oauth2_client.oidc.debug_mode');
         $bagName = $systemAdapter->getContainer()->getParameter('sac_oauth2_client.session.attribute_bag_name');
         $flashBagKey = $container->getParameter('sac_oauth2_client.session.flash_bag_key');
 
@@ -243,6 +257,13 @@ class AuthenticationController extends AbstractController
         $this->oidc->getAccessToken();
 
         $arrData = $session->get('arrData');
+
+        if ($isDebugMode)
+        {
+            // Log resource owners details
+            $text =sprintf('SAC oauth2 debug %s login. ROLES: %s DATA ALL: %s', $contaoScope, $arrData['Roles'], json_encode($arrData));
+            $this->log($text, __METHOD__, self::OPENID_CONNECT_DEBUG_LOG);
+        }
 
         $this->remoteUser->create($arrData, $contaoScope);
 
@@ -338,5 +359,14 @@ class AuthenticationController extends AbstractController
         ];
 
         return new JsonResponse($data);
+    }
+
+    private function log(string $text, string $method, string $context){
+        if (null !== $this->logger) {
+            $this->logger->info(
+                $text,
+                ['contao' => new ContaoContext($method, $context, null)]
+            );
+        }
     }
 }

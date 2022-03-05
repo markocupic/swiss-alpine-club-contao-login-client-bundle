@@ -5,8 +5,8 @@ declare(strict_types=1);
 /*
  * This file is part of Swiss Alpine Club Contao Login Client Bundle.
  *
- * (c) Marko Cupic 2021 <m.cupic@gmx.ch>
- * @license MIT
+ * (c) Marko Cupic 2022 <m.cupic@gmx.ch>
+ * @license GPL-3.0-or-later
  * For the full copyright and license information,
  * please view the LICENSE file that was distributed with this source code.
  * @link https://github.com/markocupic/swiss-alpine-club-contao-login-client-bundle
@@ -30,6 +30,10 @@ class Configuration implements ConfigurationInterface
                 ->arrayNode('oidc')
                     ->addDefaultsIfNotSet()
                     ->children()
+                        ->booleanNode('debug_mode')
+                            ->defaultFalse()
+                            ->info('If set to true, the details about the resource owner will be logged (contao log).')
+                        ->end()
                         ->scalarNode('client_id')
                             ->cannotBeEmpty()
                             ->defaultValue('***')

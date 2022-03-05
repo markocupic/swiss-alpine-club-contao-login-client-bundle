@@ -36,6 +36,7 @@ sac_oauth2_client:
     client_auth_endpoint_backend: '### Set your backend login route ###'
     
     # defaults
+    debug_mode: false # Log resource owners details (Contao backend log)
     auth_provider_endpoint_authorize: 'https://ids01.sac-cas.ch:443/oauth2/authorize'
     auth_provider_endpoint_token: 'https://ids01.sac-cas.ch:443/oauth2/token'
     auth_provider_endpoint_userinfo: 'https://ids01.sac-cas.ch:443/oauth2/userinfo'
