@@ -119,7 +119,7 @@ class AuthenticationController extends AbstractController
 
         if ($isDebugMode) {
             // Log resource owners details
-            $text = sprintf('SAC oauth2 debug %s login. SAC MEMBER ID: %s - ROLES: %s - DATA ALL: %s', $contaoScope, $arrData['contact_number'], $arrData['Roles'], json_encode($arrData));
+            $text = sprintf('SAC oauth2 debug %s login. NAME: %s - SAC MEMBER ID: %s - ROLES: %s - DATA ALL: %s', $contaoScope, $arrData['name'], $arrData['contact_number'], $arrData['Roles'], json_encode($arrData));
             $this->log($text, __METHOD__, self::OPENID_CONNECT_DEBUG_LOG);
         }
 
@@ -259,7 +259,7 @@ class AuthenticationController extends AbstractController
 
         if ($isDebugMode) {
             // Log resource owners details
-            $text = sprintf('SAC oauth2 debug %s login. SAC MEMBER ID: %s - ROLES: %s - DATA ALL: %s', $contaoScope, $arrData['contact_number'], $arrData['Roles'], json_encode($arrData));
+            $text = sprintf('SAC oauth2 debug %s login. NAME: %s - SAC MEMBER ID: %s - ROLES: %s - DATA ALL: %s', $contaoScope, $arrData['name'], $arrData['contact_number'], $arrData['Roles'], json_encode($arrData));
             $this->log($text, __METHOD__, self::OPENID_CONNECT_DEBUG_LOG);
         }
 
