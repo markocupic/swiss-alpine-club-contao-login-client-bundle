@@ -52,7 +52,7 @@ class AuthenticationController extends AbstractController
     /**
      * AuthenticationController constructor.
      */
-    public function __construct(ContaoFramework $framework, Initializer $initializer, RequestStack $requestStack, RemoteUser $remoteUser, User $user, InteractiveLogin $interactiveLogin, Oidc $oidc, ?LoggerInterface $logger = null)
+    public function __construct(ContaoFramework $framework, Initializer $initializer, RequestStack $requestStack, RemoteUser $remoteUser, User $user, InteractiveLogin $interactiveLogin, Oidc $oidc, LoggerInterface $logger = null)
     {
         $this->framework = $framework;
         $this->initializer = $initializer;
@@ -117,10 +117,9 @@ class AuthenticationController extends AbstractController
 
         $arrData = $session->get('arrData');
 
-        if ($isDebugMode)
-        {
+        if ($isDebugMode) {
             // Log resource owners details
-            $text =sprintf('SAC oauth2 debug %s login. ROLES: %s DATA ALL: %s', $contaoScope, $arrData['Roles'], json_encode($arrData));
+            $text = sprintf('SAC oauth2 debug %s login. SAC MEMBER ID: %s - ROLES: %s - DATA ALL: %s', $contaoScope, $arrData['contact_number'], $arrData['Roles'], json_encode($arrData));
             $this->log($text, __METHOD__, self::OPENID_CONNECT_DEBUG_LOG);
         }
 
@@ -258,10 +257,9 @@ class AuthenticationController extends AbstractController
 
         $arrData = $session->get('arrData');
 
-        if ($isDebugMode)
-        {
+        if ($isDebugMode) {
             // Log resource owners details
-            $text =sprintf('SAC oauth2 debug %s login. ROLES: %s DATA ALL: %s', $contaoScope, $arrData['Roles'], json_encode($arrData));
+            $text = sprintf('SAC oauth2 debug %s login. SAC MEMBER ID: %s - ROLES: %s - DATA ALL: %s', $contaoScope, $arrData['contact_number'], $arrData['Roles'], json_encode($arrData));
             $this->log($text, __METHOD__, self::OPENID_CONNECT_DEBUG_LOG);
         }
 
@@ -361,7 +359,8 @@ class AuthenticationController extends AbstractController
         return new JsonResponse($data);
     }
 
-    private function log(string $text, string $method, string $context){
+    private function log(string $text, string $method, string $context): void
+    {
         if (null !== $this->logger) {
             $this->logger->info(
                 $text,
