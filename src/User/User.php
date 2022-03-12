@@ -5,7 +5,7 @@ declare(strict_types=1);
 /*
  * This file is part of Swiss Alpine Club Contao Login Client Bundle.
  *
- * (c) Marko Cupic 2022 <m.cupic@gmx.ch>
+ * (c) Marko Cupic 2021 <m.cupic@gmx.ch>
  * @license MIT
  * For the full copyright and license information,
  * please view the LICENSE file that was distributed with this source code.
@@ -23,10 +23,10 @@ use Contao\ModuleModel;
 use Contao\StringUtil;
 use Contao\System;
 use Contao\UserModel;
+use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\Authentication\AuthenticationController;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessage;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessageManager;
-use Symfony\Component\Security\Core\Encoder\EncoderFactoryInterface;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
@@ -39,18 +39,18 @@ class User
 
     private ContaoFramework $framework;
     private TranslatorInterface $translator;
-    private EncoderFactoryInterface $encoderFactory;
+    private PasswordHasherFactoryInterface $hasherFactory;
     private ErrorMessageManager $errorMessageManager;
     private string $contaoScope = '';
 
     /**
      * User constructor.
      */
-    public function __construct(ContaoFramework $framework, TranslatorInterface $translator, EncoderFactoryInterface $encoderFactory, ErrorMessageManager $errorMessageManager)
+    public function __construct(ContaoFramework $framework, TranslatorInterface $translator, PasswordHasherFactoryInterface $hasherFactory, ErrorMessageManager $errorMessageManager)
     {
         $this->framework = $framework;
         $this->translator = $translator;
-        $this->encoderFactory = $encoderFactory;
+        $this->hasherFactory = $hasherFactory;
         $this->errorMessageManager = $errorMessageManager;
     }
 
@@ -243,6 +243,7 @@ class User
             }
 
             $objMember->tstamp = time();
+
             // Groups
             $arrGroups = $stringUtilAdapter->deserialize($objMember->groups, true);
             $arrAutoGroups = $systemAdapter->getContainer()->getParameter('sac_oauth2_client.oidc.add_to_frontend_user_groups');
@@ -253,8 +254,8 @@ class User
 
             // Set random password
             if (empty($objMember->password)) {
-                $encoder = $this->encoderFactory->getEncoder(FrontendUser::class);
-                $objMember->password = $encoder->encodePassword(substr(md5((string) random_int(900009, 111111111111)), 0, 8), null);
+                $encoder = $this->hasherFactory->getPasswordHasher(FrontendUser::class);
+                $objMember->password = $encoder->hash(substr(md5((string) random_int(900009, 111111111111)), 0, 8), null);
             }
 
             // Save
@@ -292,7 +293,7 @@ class User
 
             // Set random password
             if (empty($objUser->password)) {
-                $encoder = $this->encoderFactory->getEncoder(BackendUser::class);
+                $encoder = $this->hasherFactory->getEncoder(BackendUser::class);
                 $objUser->password = $encoder->encodePassword(substr(md5((string) random_int(900009, 111111111111)), 0, 8), null);
             }
 

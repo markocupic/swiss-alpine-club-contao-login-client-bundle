@@ -1,8 +1,6 @@
 services:
 
   Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\Authentication\AuthenticationController:
-    calls:
-      - [ 'setContainer', [ '@Psr\Container\ContainerInterface' ] ]
     public: true
     arguments:
       - '@contao.framework'
@@ -13,6 +11,8 @@ services:
       - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\InteractiveLogin\InteractiveLogin'
       - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\Oidc\Oidc'
       - '@monolog.logger.contao'
+    calls:
+      - [ 'setContainer', [ '@Psr\Container\ContainerInterface' ] ]
 
   Markocupic\SwissAlpineClubContaoLoginClientBundle\Initializer:
     arguments:
@@ -43,7 +43,7 @@ services:
     arguments:
       - '@contao.framework'
       - '@translator'
-      - '@security.encoder_factory'
+      - '@security.password_hasher_factory'
       - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessageManager'
     calls:
       - [ initializeFramework ]
