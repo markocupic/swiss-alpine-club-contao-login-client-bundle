@@ -5,7 +5,7 @@ declare(strict_types=1);
 /*
  * This file is part of Swiss Alpine Club Contao Login Client Bundle.
  *
- * (c) Marko Cupic 2021 <m.cupic@gmx.ch>
+ * (c) Marko Cupic 2022 <m.cupic@gmx.ch>
  * @license MIT
  * For the full copyright and license information,
  * please view the LICENSE file that was distributed with this source code.
@@ -15,8 +15,8 @@ declare(strict_types=1);
 namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\EventListener\Contao;
 
 use Contao\BackendTemplate;
-use Contao\Controller;
 use Contao\CoreBundle\Framework\ContaoFramework;
+use Contao\CoreBundle\InsertTag\InsertTagParser;
 use Contao\CoreBundle\ServiceAnnotation\Hook;
 use Contao\Environment;
 use Contao\System;
@@ -52,9 +52,6 @@ class ParseBackendTemplateListener
         if ('be_login' === $strTemplate) {
             /** @var System $systemAdapter */
             $systemAdapter = $this->framework->getAdapter(System::class);
-
-            /** @var Controller $controllerAdapter */
-            $controllerAdapter = $this->framework->getAdapter(Controller::class);
 
             /** @var Environment $environmentAdapter */
             $environmentAdapter = $this->framework->getAdapter(Environment::class);
@@ -102,11 +99,29 @@ class ParseBackendTemplateListener
                 foreach ($flashBag[0] as $k => $v) {
                     $arrError[$k] = $v;
                 }
+
                 $template->error = $arrError;
             }
 
-            $searchString = '</form>';
-            $strContent = str_replace($searchString, $searchString.$controllerAdapter->replaceInsertTags($template->parse()), $strContent);
+            $template->hideContaoLogin = $systemAdapter->getContainer()->getParameter('sac_oauth2_client.backend.hide_contao_login');
+
+            $strAppendBefore = '<form';
+
+            /** @var InsertTagParser $parser */
+            $parser = $systemAdapter->getContainer()->get('contao.insert_tag.parser');
+
+            // Parse SSO Login form
+            $ssoLoginForm = $parser->replaceInline($template->parse());
+
+            // Prepend sso login form to contao login form
+            $strContent = str_replace($strAppendBefore, $ssoLoginForm.$strAppendBefore, $strContent);
+
+            // Hide Contao login form
+            $blnHideContaoLogin = $systemAdapter->getContainer()->getParameter('sac_oauth2_client.backend.hide_contao_login');
+
+            if (true === $blnHideContaoLogin) {
+                $strContent = preg_replace('/<form class="tl_login_form"[^>]*>(.*?)<\/form>/is', '', $strContent);
+            }
         }
 
         return $strContent;

@@ -1,10 +1,14 @@
+.tl_login_form .formbody{
+  padding-top: 0;
+}
+
 body {
   background-image: url("../../../bundles/markocupicswissalpineclubcontaologinclient/img/logo_sac_small.svg");
   background-size: 6em auto;
 }
 
 #mod_swiss_alpine_club_oidc_backend_login {
-  padding: 0 45px 45px 45px;
+  padding: 45px 45px 45px 45px;
 
   .formbody {
     padding: 0;
@@ -44,6 +48,7 @@ body {
   }
 
   .login-button-separator-container {
+    margin-top: 20px;
     margin-bottom: 20px;
 
     .login-button-separator {

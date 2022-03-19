@@ -1,9 +1,5 @@
 <div id="mod_swiss_alpine_club_oidc_backend_login">
 
-	<div class="login-button-separator-container">
-		<div class="login-button-separator">oder</div>
-	</div>
-
 	<form action="/<?= $this->route('swiss_alpine_club_sso_login_backend') ?>" id="sac-oidc-login-be" method="post">
 		<div class="formbody">
 			<input type="hidden" name="FORM_SUBMIT" value="sac-oidc-login-be">
@@ -47,5 +43,14 @@
 		<?php endif; ?>
 
 	</div>
+
 	<?php endif; ?>
+	<?php if (!$this->hideContaoLogin): ?>
+	<div class="login-button-separator-container">
+		<div class="login-button-separator">oder</div>
+	</div>
+	<?php endif; ?>
+
+	<div style="font-size: 11px; color:red; line-height:20px">Das Contao Login wird ab April 2022 deaktiviert. Das Login ins Contao Backend wir in Zukunft nur noch mit dem SAC Login möglich sein.</div>
+
 </div>

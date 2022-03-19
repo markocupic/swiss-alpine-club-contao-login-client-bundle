@@ -27,6 +27,8 @@ Vor der Inbetriebnahme muss die App konfiguriert werden. Erstellen Sie dazu eine
 
 ```
 sac_oauth2_client:
+  backend:
+    hide_contao_login: true ### Default to false
   oidc:
     # required
     client_id: '### Get your client id form SAC Schweiz ###'

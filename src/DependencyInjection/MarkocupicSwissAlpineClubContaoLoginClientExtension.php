@@ -77,5 +77,8 @@ class MarkocupicSwissAlpineClubContaoLoginClientExtension extends Extension
         $container->setParameter($rootKey.'.session.attribute_bag_key', $config['session']['attribute_bag_key']);
         $container->setParameter($rootKey.'.session.attribute_bag_name', $config['session']['attribute_bag_name']);
         $container->setParameter($rootKey.'.session.flash_bag_key', $config['session']['flash_bag_key']);
+        // Backend settings
+        $container->setParameter($rootKey.'.backend.hide_contao_login', $config['backend']['hide_contao_login']);
+
     }
 }

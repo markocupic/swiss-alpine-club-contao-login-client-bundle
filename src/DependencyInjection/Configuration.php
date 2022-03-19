@@ -127,6 +127,14 @@ class Configuration implements ConfigurationInterface
                         ->end()
                     ->end()
                 ->end() // session
+                ->arrayNode('backend')
+                    ->addDefaultsIfNotSet()
+                    ->children()
+                        ->booleanNode('hide_contao_login')
+                            ->defaultFalse()
+                        ->end()
+                    ->end()
+                ->end()
             ->end()
         ;
 
