@@ -50,7 +50,7 @@
 		<div class="login-button-separator">oder</div>
 	</div>
 	<?php endif; ?>
-
-	<div style="font-size: 11px; color:red; line-height:20px">Das Contao Login wird ab April 2022 deaktiviert. Das Login ins Contao Backend wir in Zukunft nur noch mit dem SAC Login möglich sein.</div>
+	
+	<div style="font-size: 11px; color:red; line-height:20px">Das Contao-Login wird ab April 2022 deaktiviert, und der Zugang zum Contao-Backend wird nur noch mit dem SAC-Login möglich sein.</div>
 
 </div>
