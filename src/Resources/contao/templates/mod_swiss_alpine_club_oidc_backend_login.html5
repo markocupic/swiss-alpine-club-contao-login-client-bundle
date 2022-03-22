@@ -1,5 +1,7 @@
 <div id="mod_swiss_alpine_club_oidc_backend_login">
 
+	<h1>SAC Pilatus Backend</h1>
+
 	<form action="/<?= $this->route('swiss_alpine_club_sso_login_backend') ?>" id="sac-oidc-login-be" method="post">
 		<div class="formbody">
 			<input type="hidden" name="FORM_SUBMIT" value="sac-oidc-login-be">
@@ -45,6 +47,9 @@
 	</div>
 
 	<?php endif; ?>
+	
+	<br><a href="/" class="footer_preview">Zum Frontend ›</a>
+	
 	<?php if (!$this->hideContaoLogin): ?>
 	<div class="login-button-separator-container">
 		<div class="login-button-separator">oder</div>
