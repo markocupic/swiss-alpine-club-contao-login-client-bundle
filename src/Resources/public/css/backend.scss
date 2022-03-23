@@ -1,4 +1,4 @@
-.tl_login_form .formbody{
+.tl_login_form .formbody {
   padding-top: 0;
 }
 
@@ -21,6 +21,12 @@ body {
       display: block;
       width: 100%;
       border: 0;
+    }
+
+    .sac-login-fe-link {
+      margin-top: 1rem;
+      display: flex;
+      justify-content: end;
     }
 
   }

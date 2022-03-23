@@ -22,6 +22,11 @@ body {
   width: 100%;
   border: 0;
 }
+#mod_swiss_alpine_club_oidc_backend_login .formbody .sac-login-fe-link {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: end;
+}
 #mod_swiss_alpine_club_oidc_backend_login .sac-oidc-error.backend .errorBox {
   margin-top: 1rem;
   padding-top: 1rem;
