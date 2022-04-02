@@ -8,7 +8,12 @@ body {
 }
 
 #mod_swiss_alpine_club_oidc_backend_login {
-  padding: 45px 45px 45px 45px;
+  padding: 45px;
+  @media (min-width: 1160px) {
+    & {
+      padding-bottom: 0;
+    }
+  }
 
   .formbody {
     padding: 0;

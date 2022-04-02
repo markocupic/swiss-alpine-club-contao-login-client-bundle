@@ -1,14 +1,14 @@
 .tl_login_form .formbody {
   padding-top: 0;
 }
-
+ 
 body {
   background-image: url("../../../bundles/markocupicswissalpineclubcontaologinclient/img/logo_sac_small.svg");
   background-size: 6em auto;
 }
 
 #mod_swiss_alpine_club_oidc_backend_login {
-  padding: 45px 45px 45px 45px;
+  padding: 45px;
 }
 #mod_swiss_alpine_club_oidc_backend_login .formbody {
   padding: 0;
