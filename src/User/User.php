@@ -215,8 +215,8 @@ class User
         $objMember = $this->getModel('tl_member');
 
         if (null !== $objMember) {
-            $objMember->mobile = $this->beautifyPhoneNumber($arrData['telefonmobil']);
-            $objMember->phone = $this->beautifyPhoneNumber($arrData['telefonp']);
+            $objMember->mobile = $this->beautifyPhoneNumber((string) $arrData['telefonmobil']);
+            $objMember->phone = $this->beautifyPhoneNumber((string) $arrData['telefonp']);
             $objMember->uuid = $arrData['sub'];
             $objMember->lastname = $arrData['familienname'];
             $objMember->firstname = $arrData['vorname'];
@@ -275,8 +275,8 @@ class User
         $objUser = $this->getModel('tl_user');
 
         if (null !== $objUser) {
-            $objUser->mobile = $this->beautifyPhoneNumber($arrData['telefonmobil']);
-            $objUser->phone = $this->beautifyPhoneNumber($arrData['telefonp']);
+            $objUser->mobile = $this->beautifyPhoneNumber((string) $arrData['telefonmobil']);
+            $objUser->phone = $this->beautifyPhoneNumber((string) $arrData['telefonp']);
             $objUser->uuid = $arrData['sub'];
             $objUser->lastname = $arrData['familienname'];
             $objUser->firstname = $arrData['vorname'];
@@ -398,12 +398,7 @@ class User
         }
     }
 
-    /**
-     * @param string $strNumber
-     *
-     * @return string|array<string>|null
-     */
-    public static function beautifyPhoneNumber($strNumber = '')
+    public static function beautifyPhoneNumber(string $strNumber = ''): string
     {
         if ('' !== $strNumber) {
             // Remove whitespaces
