@@ -5,7 +5,7 @@ declare(strict_types=1);
 /*
  * This file is part of Swiss Alpine Club Contao Login Client Bundle.
  *
- * (c) Marko Cupic 2021 <m.cupic@gmx.ch>
+ * (c) Marko Cupic 2022 <m.cupic@gmx.ch>
  * @license MIT
  * For the full copyright and license information,
  * please view the LICENSE file that was distributed with this source code.
@@ -15,7 +15,6 @@ declare(strict_types=1);
 namespace Markocupic\SwissAlpineClubContaoLoginClientBundle;
 
 use Contao\CoreBundle\Framework\ContaoFramework;
-use Contao\CoreBundle\Routing\ScopeMatcher;
 use Contao\System;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Exception\BadQueryStringException;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Exception\InvalidRequestTokenException;
@@ -31,11 +30,6 @@ class Initializer
     private RequestStack $requestStack;
     private CsrfTokenManager $csrfTokenManager;
 
-    /**
-     * @param ContaoFramework $framework
-     * @param RequestStack $requestStack
-     * @param CsrfTokenManager $csrfTokenManager
-     */
     public function __construct(ContaoFramework $framework, RequestStack $requestStack, CsrfTokenManager $csrfTokenManager)
     {
         $this->framework = $framework;
@@ -74,8 +68,6 @@ class Initializer
 
         $this->checkSession();
     }
-
-
 
     private function checkSession(): void
     {

@@ -13,7 +13,6 @@ return function (ContainerConfigurator $containerConfigurator): void {
 
         MethodChainingIndentationFixer::class => [
             '*/DependencyInjection/Configuration.php',
-
         ],
     ]);
 };

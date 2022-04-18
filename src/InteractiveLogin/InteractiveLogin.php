@@ -5,7 +5,7 @@ declare(strict_types=1);
 /*
  * This file is part of Swiss Alpine Club Contao Login Client Bundle.
  *
- * (c) Marko Cupic 2021 <m.cupic@gmx.ch>
+ * (c) Marko Cupic 2022 <m.cupic@gmx.ch>
  * @license MIT
  * For the full copyright and license information,
  * please view the LICENSE file that was distributed with this source code.
@@ -41,14 +41,8 @@ use Symfony\Component\Security\Http\Event\InteractiveLoginEvent;
  */
 class InteractiveLogin
 {
-    /**
-     * @var string provider key for contao frontend secured area
-     */
     public const SECURED_AREA_FRONTEND = 'contao_frontend';
 
-    /**
-     * @var string provider key for contao backend secured area
-     */
     public const SECURED_AREA_BACKEND = 'contao_backend';
 
     private ContaoFramework $framework;
@@ -61,7 +55,7 @@ class InteractiveLogin
     /**
      * InteractiveLogin constructor.
      */
-    public function __construct(ContaoFramework $framework, UserChecker $userChecker, TokenStorageInterface $tokenStorage, EventDispatcherInterface $eventDispatcher, RequestStack $requestStack, ?LoggerInterface $logger = null)
+    public function __construct(ContaoFramework $framework, UserChecker $userChecker, TokenStorageInterface $tokenStorage, EventDispatcherInterface $eventDispatcher, RequestStack $requestStack, LoggerInterface $logger = null)
     {
         $this->framework = $framework;
         $this->userChecker = $userChecker;
