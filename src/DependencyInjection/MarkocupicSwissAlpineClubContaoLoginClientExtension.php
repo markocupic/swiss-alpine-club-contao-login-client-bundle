@@ -27,7 +27,7 @@ class MarkocupicSwissAlpineClubContaoLoginClientExtension extends Extension
     /**
      * {@inheritdoc}
      */
-    public function getAlias()
+    public function getAlias(): string
     {
         // Default root key would be markocupic_swiss_alpine_club_contao_login_client
         return Configuration::ROOT_KEY;
