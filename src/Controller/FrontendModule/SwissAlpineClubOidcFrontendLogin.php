@@ -29,6 +29,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Security;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * Class SwissAlpineClubOidcFrontendLogin.
@@ -38,37 +39,20 @@ use Symfony\Component\Security\Core\Security;
 class SwissAlpineClubOidcFrontendLogin extends AbstractFrontendModuleController
 {
     private ContaoFramework $framework;
-    private ?PageModel $page = null;
+    private Security $security;
+    private RequestStack $requestStack;
+    private TranslatorInterface $translator;
 
-    /**
-     * SwissAlpineClubOidcFrontendLogin constructor.
-     */
-    public function __construct(ContaoFramework $framework)
+    public function __construct(ContaoFramework $framework, Security $security, RequestStack $requestStack, TranslatorInterface $translator)
     {
         $this->framework = $framework;
+        $this->security = $security;
+        $this->requestStack = $requestStack;
+        $this->translator = $translator;
     }
 
-    public function __invoke(Request $request, ModuleModel $model, string $section, array $classes = null, PageModel $page = null): Response
+    protected function getResponse(Template $template, ModuleModel $model, Request $request): Response|null
     {
-        $this->page = $page;
-
-        return parent::__invoke($request, $model, $section, $classes);
-    }
-
-    public static function getSubscribedServices(): array
-    {
-        $services = parent::getSubscribedServices();
-
-        $services['contao.framework'] = ContaoFramework::class;
-        $services['security.helper'] = Security::class;
-
-        return $services;
-    }
-
-    protected function getResponse(Template $template, ModuleModel $model, Request $request): ?Response
-    {
-        $translator = $this->get('translator');
-
         /** @var Environment $environmentAdapter */
         $environmentAdapter = $this->framework->getAdapter(Environment::class);
 
@@ -85,8 +69,8 @@ class SwissAlpineClubOidcFrontendLogin extends AbstractFrontendModuleController
         $urlAdapter = $this->framework->getAdapter(Url::class);
 
         // Get logged in member object
-        if (($user = $this->get('security.helper')->getUser()) instanceof FrontendUser) {
-            $template->loggedInAs = $translator->trans('MSC.loggedInAs', [$user->username], 'contao_default');
+        if (($user = $this->security->getUser()) instanceof FrontendUser) {
+            $template->loggedInAs = $this->translator->trans('MSC.loggedInAs', [$user->username], 'contao_default');
             $template->username = $user->username;
             $template->logout = true;
         } else {
@@ -108,15 +92,13 @@ class SwissAlpineClubOidcFrontendLogin extends AbstractFrontendModuleController
 
             $template->login = true;
 
-            $template->btnLbl = empty($model->swiss_alpine_club_oidc_frontend_login_btn_lbl) ? $translator->trans('MSC.loginWithSacSso', [], 'contao_default') : $model->swiss_alpine_club_oidc_frontend_login_btn_lbl;
+            $template->btnLbl = empty($model->swiss_alpine_club_oidc_frontend_login_btn_lbl) ? $this->translator->trans('MSC.loginWithSacSso', [], 'contao_default') : $model->swiss_alpine_club_oidc_frontend_login_btn_lbl;
 
-            /** @var RequestStack $requestStack */
-            $requestStack = $this->get('request_stack');
-            $request = $requestStack->getCurrentRequest();
+            $request = $this->requestStack->getCurrentRequest();
 
             // Check for error messages & start session only if there was an error
             if ($request->query->has('sso_error')) {
-                $session = $this->get('session');
+                $session = $request->getSession();
                 $flashBagKey = $systemAdapter->getContainer()->getParameter('sac_oauth2_client.session.flash_bag_key');
                 $flashBag = $session->getFlashBag()->get($flashBagKey);
 
