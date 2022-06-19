@@ -47,7 +47,7 @@ class AuthenticationController extends AbstractController
     private User $user;
     private InteractiveLogin $interactiveLogin;
     private Oidc $oidc;
-    private ?LoggerInterface $logger = null;
+    private LoggerInterface|null $logger;
 
     /**
      * AuthenticationController constructor.
@@ -131,7 +131,7 @@ class AuthenticationController extends AbstractController
             return new RedirectResponse($session->get('failurePath'));
         }
 
-        // Check if user is SAC member
+        // Check if user is a SAC member
         if ($blnAllowLoginToSacMembersOnly) {
             if (!$this->remoteUser->checkIsSacMember()) {
                 return new RedirectResponse($session->get('failurePath'));
@@ -147,8 +147,8 @@ class AuthenticationController extends AbstractController
 
         // Check has valid email address
         // This test should always be positive,
-        // because creating an account at www.sac-cas.ch
-        // requires allready a valid email address
+        // because creating an account at https://www.sac-cas.ch
+        // requires already a valid email address
         if (!$this->remoteUser->checkHasValidEmail()) {
             return new RedirectResponse($session->get('failurePath'));
         }
@@ -156,7 +156,7 @@ class AuthenticationController extends AbstractController
         // Initialize user
         $this->user->initialize($this->remoteUser, $contaoScope);
 
-        // Create User if it not exists
+        // Create user if it doesn't exist.
         if ($blnAutocreate) {
             $this->user->createIfNotExists();
         }
@@ -169,10 +169,10 @@ class AuthenticationController extends AbstractController
         // Allow login: set tl_member.disable = ''
         $this->user->enableLogin();
 
-        // Set tl_member.locked=0
+        // Set tl_member.locked = 0
         $this->user->unlock();
 
-        // Set tl_member.loginAttempts=0
+        // Set tl_member.loginAttempts = 0
         $this->user->resetLoginAttempts();
 
         // Set tl_member.login='1'
@@ -203,8 +203,8 @@ class AuthenticationController extends AbstractController
         $targetPath = $session->get('targetPath');
         $session->clear();
 
-        // All ok. user has logged in
-        // Let's redirect to the target page now
+        // All ok. User has successfully logged in.
+        // Let's redirect to the target page now.
         return new RedirectResponse($targetPath);
     }
 
@@ -270,7 +270,7 @@ class AuthenticationController extends AbstractController
             return new RedirectResponse($session->get('failurePath'));
         }
 
-        // Check if user is SAC member
+        // Check if user is a SAC member
         if ($blnAllowLoginToSacMembersOnly) {
             if (!$this->remoteUser->checkIsSacMember()) {
                 return new RedirectResponse($session->get('failurePath'));
@@ -286,8 +286,8 @@ class AuthenticationController extends AbstractController
 
         // Check has valid email address
         // This test should always be positive,
-        // because creating an account at www.sac-cas.ch
-        // requires allready a valid email address
+        // because creating an account at https://www.sac-cas.ch
+        // requires already a valid email address
         if (!$this->remoteUser->checkHasValidEmail()) {
             return new RedirectResponse($session->get('failurePath'));
         }
@@ -295,7 +295,7 @@ class AuthenticationController extends AbstractController
         // Initialize user
         $this->user->initialize($this->remoteUser, $contaoScope);
 
-        // Create user if it not exists
+        // Create user, if it doesn't exist.
         // Not allowed to backend users!
         if ($blnAutocreate) {
             // $this->user->createIfNotExists();
@@ -309,10 +309,10 @@ class AuthenticationController extends AbstractController
         // Allow login: set tl_user.disable = ''
         //$this->user->enableLogin();
 
-        // Set tl_user.locked=0
+        // Set tl_user.locked = 0
         $this->user->unlock();
 
-        // Set tl_user.loginAttempts=0
+        // Set tl_user.loginAttempts = 0
         $this->user->resetLoginAttempts();
 
         // Update tl_member and tl_user
@@ -336,8 +336,8 @@ class AuthenticationController extends AbstractController
 
         $session->clear();
 
-        // All ok. user has logged in
-        // Let's redirect to the target page now
+        // All ok. User has successfully logged in.
+        // Let's redirect to the target page now.
         return new RedirectResponse($targetPath);
     }
 
