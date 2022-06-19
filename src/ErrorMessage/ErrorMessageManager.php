@@ -28,7 +28,7 @@ class ErrorMessageManager
     private ContaoFramework $framework;
     private RequestStack $requestStack;
     private Security $security;
-    private ?LoggerInterface $logger = null;
+    private LoggerInterface|null $logger = null;
 
     public function __construct(bool $prettyErrorScreens, string $flashBagKey, Environment $twig, ContaoFramework $framework, RequestStack $requestStack, Security $security, LoggerInterface $logger = null)
     {

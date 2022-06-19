@@ -33,7 +33,7 @@ class Oidc
     private ContaoFramework $framework;
     private RequestStack $requestStack;
     private CsrfTokenManager $csrfTokenManager;
-    private ?GenericProvider $provider = null;
+    private GenericProvider|null $provider = null;
 
     /**
      * Oidc constructor.

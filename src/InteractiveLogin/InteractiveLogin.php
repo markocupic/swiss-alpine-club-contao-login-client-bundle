@@ -50,7 +50,7 @@ class InteractiveLogin
     private TokenStorageInterface $tokenStorage;
     private EventDispatcherInterface $eventDispatcher;
     private RequestStack $requestStack;
-    private ?LoggerInterface $logger = null;
+    private LoggerInterface|null $logger = null;
 
     /**
      * InteractiveLogin constructor.
@@ -124,7 +124,7 @@ class InteractiveLogin
 
         // Fire the login event manually
         $event = new InteractiveLoginEvent($this->requestStack->getCurrentRequest(), $token);
-        $this->eventDispatcher->dispatch($event, 'security.interactive_login', );
+        $this->eventDispatcher->dispatch($event, 'security.interactive_login');
 
         /** @var RemoteUser $remoteUser */
         $remoteUser = $oidcUser->remoteUser;
