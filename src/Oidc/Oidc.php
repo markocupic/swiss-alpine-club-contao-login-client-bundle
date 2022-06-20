@@ -23,7 +23,6 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Session\Session;
-use Symfony\Component\Security\Csrf\CsrfTokenManager;
 
 /**
  * Class Oidc.
@@ -32,17 +31,12 @@ class Oidc
 {
     private ContaoFramework $framework;
     private RequestStack $requestStack;
-    private CsrfTokenManager $csrfTokenManager;
     private GenericProvider|null $provider = null;
 
-    /**
-     * Oidc constructor.
-     */
-    public function __construct(ContaoFramework $framework, RequestStack $requestStack, CsrfTokenManager $csrfTokenManager)
+    public function __construct(ContaoFramework $framework, RequestStack $requestStack)
     {
         $this->framework = $framework;
         $this->requestStack = $requestStack;
-        $this->csrfTokenManager = $csrfTokenManager;
     }
 
     /**

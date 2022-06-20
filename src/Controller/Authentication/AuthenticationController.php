@@ -49,9 +49,6 @@ class AuthenticationController extends AbstractController
     private Oidc $oidc;
     private LoggerInterface|null $logger;
 
-    /**
-     * AuthenticationController constructor.
-     */
     public function __construct(ContaoFramework $framework, Initializer $initializer, RequestStack $requestStack, RemoteUser $remoteUser, User $user, InteractiveLogin $interactiveLogin, Oidc $oidc, LoggerInterface $logger = null)
     {
         $this->framework = $framework;
@@ -175,7 +172,7 @@ class AuthenticationController extends AbstractController
         // Set tl_member.loginAttempts = 0
         $this->user->resetLoginAttempts();
 
-        // Set tl_member.login='1'
+        // Set tl_member.login = '1'
         $this->user->activateMemberAccount();
 
         // Update tl_member and tl_user

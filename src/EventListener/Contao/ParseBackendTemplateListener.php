@@ -30,9 +30,7 @@ class ParseBackendTemplateListener
     private RequestStack $requestStack;
     private ContaoFramework $framework;
 
-    /**
-     * ParseBackendTemplateListener constructor.
-     */
+
     public function __construct(RequestStack $requestStack, ContaoFramework $framework)
     {
         $this->requestStack = $requestStack;
@@ -47,7 +45,7 @@ class ParseBackendTemplateListener
      *
      * @return mixed
      */
-    public function __invoke($strContent, $strTemplate)
+    public function __invoke($strContent, $strTemplate): string
     {
         if ('be_login' === $strTemplate) {
             /** @var System $systemAdapter */

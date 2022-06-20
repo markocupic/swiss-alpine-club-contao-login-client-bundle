@@ -43,9 +43,7 @@ class User
     private ErrorMessageManager $errorMessageManager;
     private string $contaoScope = '';
 
-    /**
-     * User constructor.
-     */
+
     public function __construct(ContaoFramework $framework, TranslatorInterface $translator, PasswordHasherFactoryInterface $hasherFactory, ErrorMessageManager $errorMessageManager)
     {
         $this->framework = $framework;
@@ -293,8 +291,8 @@ class User
 
             // Set random password
             if (empty($objUser->password)) {
-                $encoder = $this->hasherFactory->getEncoder(BackendUser::class);
-                $objUser->password = $encoder->encodePassword(substr(md5((string) random_int(900009, 111111111111)), 0, 8), null);
+                $passwordHasher = $this->hasherFactory->getPasswordHasher(BackendUser::class);
+                $objUser->password = $passwordHasher->hash(substr(md5((string) random_int(900009, 111111111111)), 0, 8), null);
             }
 
             // Save
@@ -328,6 +326,7 @@ class User
 
     /**
      * @param $username
+     * @return bool
      */
     public function isValidUsername($username): bool
     {
@@ -416,7 +415,6 @@ class User
             $pattern = '/^([0]{1})([0-9]{2})([0-9]{3})([0-9]{2})([0-9]{2})$/';
 
             if (preg_match($pattern, $strNumber)) {
-                $pattern = '/^([0]{1})([0-9]{2})([0-9]{3})([0-9]{2})([0-9]{2})$/';
                 $replace = '$1$2 $3 $4 $5';
                 $strNumber = preg_replace($pattern, $replace, $strNumber);
             }

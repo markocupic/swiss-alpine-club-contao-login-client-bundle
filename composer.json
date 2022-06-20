@@ -22,7 +22,7 @@
     "league/oauth2-client": "^2.6.1",
     "contao/core-bundle": "^4.13",
     "codefog/contao-haste": "^4.20",
-    "markocupic/sac-event-tool-bundle": "*"
+    "markocupic/swiss-alpine-club-contao-login-client-bundle": "*"
   },
   "require-dev": {
     "contao/easy-coding-standard": "^5.0",

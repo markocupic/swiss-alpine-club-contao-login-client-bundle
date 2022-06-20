@@ -33,6 +33,9 @@ class MarkocupicSwissAlpineClubContaoLoginClientExtension extends Extension
         return Configuration::ROOT_KEY;
     }
 
+    /**
+     * @throws \Exception
+     */
     public function load(array $configs, ContainerBuilder $container): void
     {
         $configuration = new Configuration();

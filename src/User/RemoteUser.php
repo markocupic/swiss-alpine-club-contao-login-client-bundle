@@ -38,9 +38,6 @@ class RemoteUser
     private array $data = [];
     private string $contaoScope = '';
 
-    /**
-     * RemoteUser constructor.
-     */
     public function __construct(ContaoFramework $framework, TranslatorInterface $translator, ErrorMessageManager $errorMessageManager)
     {
         $this->framework = $framework;
@@ -69,20 +66,12 @@ class RemoteUser
         }
     }
 
-    /**
-     * @return array
-     */
-    public function getData()
+    public function getData(): array
     {
         return $this->data;
     }
 
-    /**
-     * @param $key
-     *
-     * @return mixed|null
-     */
-    public function get($key)
+    public function get(string $key): string|null
     {
         $arrData = $this->getData();
 
@@ -206,7 +195,7 @@ class RemoteUser
     }
 
     /**
-     * Check if remote user is member of an sac section.
+     * Check if remote user is member of a sac section.
      */
     public function isSacMember(): bool
     {

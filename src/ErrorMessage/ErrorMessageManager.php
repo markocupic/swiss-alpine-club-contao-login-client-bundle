@@ -14,31 +14,17 @@ declare(strict_types=1);
 
 namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage;
 
-use Contao\CoreBundle\Framework\ContaoFramework;
-use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\Security\Core\Security;
-use Twig\Environment;
 
 class ErrorMessageManager
 {
-    private bool $prettyErrorScreens;
     private string $flashBagKey;
-    private Environment $twig;
-    private ContaoFramework $framework;
     private RequestStack $requestStack;
-    private Security $security;
-    private LoggerInterface|null $logger = null;
 
-    public function __construct(bool $prettyErrorScreens, string $flashBagKey, Environment $twig, ContaoFramework $framework, RequestStack $requestStack, Security $security, LoggerInterface $logger = null)
+    public function __construct(string $flashBagKey, RequestStack $requestStack)
     {
-        $this->prettyErrorScreens = $prettyErrorScreens;
         $this->flashBagKey = $flashBagKey;
-        $this->twig = $twig;
-        $this->framework = $framework;
         $this->requestStack = $requestStack;
-        $this->security = $security;
-        $this->logger = $logger;
     }
 
     /**
@@ -46,13 +32,9 @@ class ErrorMessageManager
      */
     public function add2Flash(ErrorMessage $objErrorMsg): void
     {
-        $this->getSession()->getFlashBag()->add($this->flashBagKey, $objErrorMsg->get());
-    }
-
-    private function getSession()
-    {
         $request = $this->requestStack->getCurrentRequest();
+        $session = $request->getSession();
 
-        return $request->getSession();
+        $session->getFlashBag()->add($this->flashBagKey, $objErrorMsg->get());
     }
 }

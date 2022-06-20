@@ -24,14 +24,12 @@ services:
     arguments:
       - '@contao.framework'
       - '@request_stack'
-      - '@contao.csrf.token_manager'
     calls:
       - [ initializeFramework ]
 
   Markocupic\SwissAlpineClubContaoLoginClientBundle\InteractiveLogin\InteractiveLogin:
     arguments:
       - '@contao.framework'
-      - '@contao.security.user_checker'
       - '@security.token_storage'
       - '@event_dispatcher'
       - '@request_stack'
@@ -58,13 +56,8 @@ services:
 
   Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessageManager:
     arguments:
-      - '%contao.pretty_error_screens%'
       - '%sac_oauth2_client.session.flash_bag_key%'
-      - '@twig'
-      - '@contao.framework'
       - '@request_stack'
-      - '@security.helper'
-      - '@?logger'
 
   Markocupic\SwissAlpineClubContaoLoginClientBundle\Session\Attribute\ArrayAttributeBag:
     arguments:

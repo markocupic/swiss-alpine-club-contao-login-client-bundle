@@ -18,7 +18,6 @@ use Contao\BackendUser;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\CoreBundle\Monolog\ContaoContext;
 use Contao\CoreBundle\Security\User\ContaoUserProvider;
-use Contao\CoreBundle\Security\User\UserChecker;
 use Contao\FrontendUser;
 use Contao\MemberModel;
 use Contao\System;
@@ -46,19 +45,14 @@ class InteractiveLogin
     public const SECURED_AREA_BACKEND = 'contao_backend';
 
     private ContaoFramework $framework;
-    private UserChecker $userChecker;
     private TokenStorageInterface $tokenStorage;
     private EventDispatcherInterface $eventDispatcher;
     private RequestStack $requestStack;
-    private LoggerInterface|null $logger = null;
+    private LoggerInterface|null $logger;
 
-    /**
-     * InteractiveLogin constructor.
-     */
-    public function __construct(ContaoFramework $framework, UserChecker $userChecker, TokenStorageInterface $tokenStorage, EventDispatcherInterface $eventDispatcher, RequestStack $requestStack, LoggerInterface $logger = null)
+    public function __construct(ContaoFramework $framework, TokenStorageInterface $tokenStorage, EventDispatcherInterface $eventDispatcher, RequestStack $requestStack, LoggerInterface $logger = null)
     {
         $this->framework = $framework;
-        $this->userChecker = $userChecker;
         $this->tokenStorage = $tokenStorage;
         $this->eventDispatcher = $eventDispatcher;
         $this->requestStack = $requestStack;
@@ -90,7 +84,7 @@ class InteractiveLogin
         $username = $oidcUser->getModel()->username;
 
         if (!\is_string($username) && (!\is_object($username) || !method_exists($username, '__toString'))) {
-            throw new \Exception(sprintf('The username "%s" must be a string, "%s" given.', \gettype($username)));
+            throw new \Exception(sprintf('The username must be a string, "%s" given.', \gettype($username)));
         }
 
         $username = trim((string) $username);
@@ -113,7 +107,7 @@ class InteractiveLogin
         // Retrieve user by its username
         $userProvider = new ContaoUserProvider($this->framework, $session, $userClass, $this->logger);
 
-        $user = $userProvider->loadUserByUsername($username);
+        $user = $userProvider->loadUserByIdentifier($username);
 
         $token = new UsernamePasswordToken($user, null, $providerKey, $user->getRoles());
         $this->tokenStorage->setToken($token);
