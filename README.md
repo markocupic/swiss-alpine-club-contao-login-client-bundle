@@ -15,7 +15,7 @@ SAC Mitglieder der Sektion können sich mit ihrer Mitgliedsnummer und ihrem Pass
 ## Abhängigkeiten
 Die Erweiterung basiert auf:
 - [contao/contao](https://github.com/contao/contao)
-- [markocupic/swiss-alpine-club-contao-login-client-bundle](https://github.com/markocupic/swiss-alpine-club-contao-login-client-bundle) 
+- [markocupic/sac-event-tool-bundle](https://github.com/markocupic/sac-event-tool-bundle) 
 - [thephpleague/oauth2-client](https://github.com/thephpleague/oauth2-client)
 - [codefog/contao-haste](https://github.com/codefog/contao-haste)
 
