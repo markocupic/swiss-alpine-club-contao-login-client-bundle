@@ -126,7 +126,7 @@ class RemoteUser
     /**
      * Check for allowed section membership.
      */
-    public function checkIsMemberInAllowedSection(): bool
+    public function checkIsMemberOfAllowedSection(): bool
     {
         $arrMembership = $this->getAllowedSacSectionIds();
 
@@ -148,7 +148,7 @@ class RemoteUser
     /**
      * Check for a valid email address.
      */
-    public function checkHasValidEmail(): bool
+    public function checkHasValidEmailAddress(): bool
     {
         /** @var Validator $validatorAdapter */
         $validatorAdapter = $this->framework->getAdapter(Validator::class);

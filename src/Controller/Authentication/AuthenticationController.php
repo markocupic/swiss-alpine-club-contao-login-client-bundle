@@ -18,6 +18,7 @@ use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\CoreBundle\Monolog\ContaoContext;
 use Contao\ModuleModel;
 use Contao\System;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Event\InvalidLoginAttemptEvent;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Initializer;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\InteractiveLogin\InteractiveLogin;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Oidc\Oidc;
@@ -25,6 +26,7 @@ use Markocupic\SwissAlpineClubContaoLoginClientBundle\User\RemoteUser;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\User\User;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -47,9 +49,10 @@ class AuthenticationController extends AbstractController
     private User $user;
     private InteractiveLogin $interactiveLogin;
     private Oidc $oidc;
+    private EventDispatcherInterface $eventDispatcher;
     private LoggerInterface|null $logger;
 
-    public function __construct(ContaoFramework $framework, Initializer $initializer, RequestStack $requestStack, RemoteUser $remoteUser, User $user, InteractiveLogin $interactiveLogin, Oidc $oidc, LoggerInterface $logger = null)
+    public function __construct(ContaoFramework $framework, Initializer $initializer, RequestStack $requestStack, RemoteUser $remoteUser, User $user, InteractiveLogin $interactiveLogin, Oidc $oidc, EventDispatcherInterface $eventDispatcher, LoggerInterface $logger = null)
     {
         $this->framework = $framework;
         $this->initializer = $initializer;
@@ -58,6 +61,7 @@ class AuthenticationController extends AbstractController
         $this->user = $user;
         $this->interactiveLogin = $interactiveLogin;
         $this->oidc = $oidc;
+        $this->eventDispatcher = $eventDispatcher;
         $this->logger = $logger;
     }
 
@@ -121,23 +125,29 @@ class AuthenticationController extends AbstractController
         }
 
         $this->remoteUser->create($arrData, $contaoScope);
-        //$this->remoteUser->create($this->remoteUser->getMockUserData(false)); // Should end in an error message
+        //$this->remoteUser->create($this->remoteUser->getMockUserData(true), $contaoScope); // Should end in an error message
 
         // Check if uuid/sub is set
         if (!$this->remoteUser->checkHasUuid()) {
+            $this->dispatchInvalidLoginAttemptEvent(InvalidLoginAttemptEvent::FAILED_CHECK_HAS_UUID, $contaoScope, $this->remoteUser, null);
+
             return new RedirectResponse($session->get('failurePath'));
         }
 
         // Check if user is a SAC member
         if ($blnAllowLoginToSacMembersOnly) {
             if (!$this->remoteUser->checkIsSacMember()) {
+                $this->dispatchInvalidLoginAttemptEvent(InvalidLoginAttemptEvent::FAILED_CHECK_IS_SAC_MEMBER, $contaoScope, $this->remoteUser, null);
+
                 return new RedirectResponse($session->get('failurePath'));
             }
         }
 
         // Check if user is member of an allowed section
         if ($blnAllowLoginToPredefinedSectionsOnly) {
-            if (!$this->remoteUser->checkIsMemberInAllowedSection()) {
+            if (!$this->remoteUser->checkIsMemberOfAllowedSection()) {
+                $this->dispatchInvalidLoginAttemptEvent(InvalidLoginAttemptEvent::FAILED_CHECK_IS_MEMBER_OF_ALLOWED_SECTION, $contaoScope, $this->remoteUser, null);
+
                 return new RedirectResponse($session->get('failurePath'));
             }
         }
@@ -146,7 +156,9 @@ class AuthenticationController extends AbstractController
         // This test should always be positive,
         // because creating an account at https://www.sac-cas.ch
         // requires already a valid email address
-        if (!$this->remoteUser->checkHasValidEmail()) {
+        if (!$this->remoteUser->checkHasValidEmailAddress()) {
+            $this->dispatchInvalidLoginAttemptEvent(InvalidLoginAttemptEvent::FAILED_CHECK_HAS_VALID_EMAIL_ADDRESS, $contaoScope, $this->remoteUser, null);
+
             return new RedirectResponse($session->get('failurePath'));
         }
 
@@ -160,6 +172,8 @@ class AuthenticationController extends AbstractController
 
         // Check if user exists
         if (!$this->user->checkUserExists()) {
+            $this->dispatchInvalidLoginAttemptEvent(InvalidLoginAttemptEvent::FAILED_CHECK_USER_EXISTS, $contaoScope, $this->remoteUser, $this->user);
+
             return new RedirectResponse($session->get('failurePath'));
         }
 
@@ -181,6 +195,8 @@ class AuthenticationController extends AbstractController
 
         // Check if tl_member.disable == '' or tl_member.start and tl_member.stop are not in an allowed time range
         if (!$this->user->checkIsAccountEnabled() && !$blnAllowFrontendLoginIfContaoAccountIsDisabled) {
+            $this->dispatchInvalidLoginAttemptEvent(InvalidLoginAttemptEvent::FAILED_CHECK_IS_ACCOUNT_ENABLED, $contaoScope, $this->remoteUser, $this->user);
+
             return new RedirectResponse($session->get('failurePath'));
         }
 
@@ -264,19 +280,25 @@ class AuthenticationController extends AbstractController
 
         // Check if uuid/sub is set
         if (!$this->remoteUser->checkHasUuid()) {
+            $this->dispatchInvalidLoginAttemptEvent(InvalidLoginAttemptEvent::FAILED_CHECK_HAS_UUID, $contaoScope, $this->remoteUser, null);
+
             return new RedirectResponse($session->get('failurePath'));
         }
 
         // Check if user is a SAC member
         if ($blnAllowLoginToSacMembersOnly) {
             if (!$this->remoteUser->checkIsSacMember()) {
+                $this->dispatchInvalidLoginAttemptEvent(InvalidLoginAttemptEvent::FAILED_CHECK_IS_SAC_MEMBER, $contaoScope, $this->remoteUser, null);
+
                 return new RedirectResponse($session->get('failurePath'));
             }
         }
 
         // Check if user is member of an allowed section
         if ($blnAllowLoginToPredefinedSectionsOnly) {
-            if (!$this->remoteUser->checkIsMemberInAllowedSection()) {
+            if (!$this->remoteUser->checkIsMemberOfAllowedSection()) {
+                $this->dispatchInvalidLoginAttemptEvent(InvalidLoginAttemptEvent::FAILED_CHECK_IS_MEMBER_OF_ALLOWED_SECTION, $contaoScope, $this->remoteUser, null);
+
                 return new RedirectResponse($session->get('failurePath'));
             }
         }
@@ -285,7 +307,9 @@ class AuthenticationController extends AbstractController
         // This test should always be positive,
         // because creating an account at https://www.sac-cas.ch
         // requires already a valid email address
-        if (!$this->remoteUser->checkHasValidEmail()) {
+        if (!$this->remoteUser->checkHasValidEmailAddress()) {
+            $this->dispatchInvalidLoginAttemptEvent(InvalidLoginAttemptEvent::FAILED_CHECK_HAS_VALID_EMAIL_ADDRESS, $contaoScope, $this->remoteUser, null);
+
             return new RedirectResponse($session->get('failurePath'));
         }
 
@@ -300,6 +324,8 @@ class AuthenticationController extends AbstractController
 
         // Check if user exists
         if (!$this->user->checkUserExists()) {
+            $this->dispatchInvalidLoginAttemptEvent(InvalidLoginAttemptEvent::FAILED_CHECK_USER_EXISTS, $contaoScope, $this->remoteUser, $this->user);
+
             return new RedirectResponse($session->get('failurePath'));
         }
 
@@ -318,6 +344,8 @@ class AuthenticationController extends AbstractController
 
         // Check if tl_user.disable == '' or tl_user.login == '1' or tl_user.start and tl_user.stop are not in an allowed time range
         if (!$this->user->checkIsAccountEnabled() && !$blnAllowBackendLoginIfContaoAccountIsDisabled) {
+            $this->dispatchInvalidLoginAttemptEvent(InvalidLoginAttemptEvent::FAILED_CHECK_IS_ACCOUNT_ENABLED, $contaoScope, $this->remoteUser, $this->user);
+
             return new RedirectResponse($session->get('failurePath'));
         }
 
@@ -364,5 +392,11 @@ class AuthenticationController extends AbstractController
                 ['contao' => new ContaoContext($method, $context, null)]
             );
         }
+    }
+
+    private function dispatchInvalidLoginAttemptEvent(string $causeOfError, string $contaoScope, RemoteUser $remoteUser, User $user = null): void
+    {
+        $event = new InvalidLoginAttemptEvent($causeOfError, $contaoScope, $remoteUser, $user);
+        $this->eventDispatcher->dispatch($event, InvalidLoginAttemptEvent::NAME);
     }
 }

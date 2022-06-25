@@ -10,6 +10,7 @@ services:
       - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\User\User'
       - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\InteractiveLogin\InteractiveLogin'
       - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\Oidc\Oidc'
+      - '@event_dispatcher'
       - '@monolog.logger.contao'
     calls:
       - [ 'setContainer', [ '@Psr\Container\ContainerInterface' ] ]

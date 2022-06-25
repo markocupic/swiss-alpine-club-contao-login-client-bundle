@@ -6,3 +6,11 @@ services:
       - '@contao.routing.scope_matcher'
     tags:
       - { name: kernel.event_subscriber }
+
+  # Handle invalid login attempts
+  Markocupic\SwissAlpineClubContaoLoginClientBundle\EventSubscriber\InvalidLoginAttemptSubscriber:
+    arguments:
+      - '@contao.framework'
+      - '@?logger'
+    tags:
+      - { name: kernel.event_subscriber }
