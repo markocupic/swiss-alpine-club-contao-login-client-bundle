@@ -19,9 +19,6 @@ use Markocupic\SwissAlpineClubContaoLoginClientBundle\DependencyInjection\Markoc
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
-/**
- * Class MarkocupicSwissAlpineClubContaoLoginClientBundle.
- */
 class MarkocupicSwissAlpineClubContaoLoginClientBundle extends Bundle
 {
     public function getContainerExtension(): MarkocupicSwissAlpineClubContaoLoginClientExtension

@@ -15,6 +15,7 @@ declare(strict_types=1);
 namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\InteractiveLogin;
 
 use Contao\BackendUser;
+use Contao\CoreBundle\ContaoCoreBundle;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\CoreBundle\Monolog\ContaoContext;
 use Contao\CoreBundle\Security\User\ContaoUserProvider;
@@ -23,7 +24,6 @@ use Contao\MemberModel;
 use Contao\System;
 use Contao\User;
 use Contao\UserModel;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\Authentication\AuthenticationController;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\User\RemoteUser;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\User\User as OidcUser;
 use Psr\Log\LoggerInterface;
@@ -35,13 +35,9 @@ use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Security\Http\Event\InteractiveLoginEvent;
 
-/**
- * Class InteractiveLogin.
- */
 class InteractiveLogin
 {
     public const SECURED_AREA_FRONTEND = 'contao_frontend';
-
     public const SECURED_AREA_BACKEND = 'contao_backend';
 
     private ContaoFramework $framework;
@@ -73,13 +69,15 @@ class InteractiveLogin
      */
     public function login(OidcUser $oidcUser): void
     {
+        $session = $this->requestStack->getCurrentRequest()->getSession();
+
         /** @var MemberModel $memberModelAdapter */
         $memberModelAdapter = $this->framework->getAdapter(MemberModel::class);
 
         /** @var UserModel $userModelAdapter */
         $userModelAdapter = $this->framework->getAdapter(UserModel::class);
 
-        $providerKey = AuthenticationController::CONTAO_SCOPE_FRONTEND === $oidcUser->getContaoScope() ? static::SECURED_AREA_FRONTEND : static::SECURED_AREA_BACKEND;
+        $providerKey = ContaoCoreBundle::SCOPE_FRONTEND === $oidcUser->getContaoScope() ? static::SECURED_AREA_FRONTEND : static::SECURED_AREA_BACKEND;
 
         $username = $oidcUser->getModel()->username;
 
@@ -91,7 +89,7 @@ class InteractiveLogin
 
         // Be sure user exists
         if (!$oidcUser->checkUserExists()) {
-            throw new \Exception('Could not found user with username '.$username.'.');
+            throw new \Exception('Could not find user with username '.$username.'.');
         }
 
         // Check if username is valid
@@ -100,13 +98,9 @@ class InteractiveLogin
             throw new \Exception('Invalid username.');
         }
 
-        $userClass = AuthenticationController::CONTAO_SCOPE_FRONTEND === $oidcUser->getContaoScope() ? FrontendUser::class : BackendUser::class;
-
-        $session = $this->requestStack->getCurrentRequest()->getSession();
-
-        // Retrieve user by its username
+        // Load user by username
+        $userClass = ContaoCoreBundle::SCOPE_FRONTEND === $oidcUser->getContaoScope() ? FrontendUser::class : BackendUser::class;
         $userProvider = new ContaoUserProvider($this->framework, $session, $userClass, $this->logger);
-
         $user = $userProvider->loadUserByIdentifier($username);
 
         $token = new UsernamePasswordToken($user, null, $providerKey, $user->getRoles());
@@ -138,7 +132,7 @@ class InteractiveLogin
                 $objUser->currentLogin = time();
                 $objUser->save();
             }
-            $logTxt = sprintf('Backend User "%s" [%s] has logged in with SAC OPENID CONNECT APP.', $remoteUser->get('name'), $remoteUser->get('contact_number'));
+            $logTxt = sprintf('Backend user "%s" [%s] has logged in with SAC OPENID CONNECT APP.', $remoteUser->get('name'), $remoteUser->get('contact_number'));
         }
 
         // Now the user is logged in!

@@ -32,8 +32,6 @@ use Symfony\Component\Security\Core\Security;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
- * Class SwissAlpineClubOidcFrontendLogin.
- *
  * @FrontendModule("swiss_alpine_club_oidc_frontend_login", category="user")
  */
 class SwissAlpineClubOidcFrontendLogin extends AbstractFrontendModuleController

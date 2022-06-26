@@ -15,6 +15,7 @@ declare(strict_types=1);
 namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\User;
 
 use Contao\BackendUser;
+use Contao\CoreBundle\ContaoCoreBundle;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\FrontendUser;
 use Contao\MemberModel;
@@ -23,26 +24,20 @@ use Contao\ModuleModel;
 use Contao\StringUtil;
 use Contao\System;
 use Contao\UserModel;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\Authentication\AuthenticationController;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessage;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessageManager;
 use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
-/**
- * Class User.
- */
 class User
 {
     public ?RemoteUser $remoteUser = null;
-
     private ContaoFramework $framework;
     private TranslatorInterface $translator;
     private PasswordHasherFactoryInterface $hasherFactory;
     private ErrorMessageManager $errorMessageManager;
     private string $contaoScope = '';
-
 
     public function __construct(ContaoFramework $framework, TranslatorInterface $translator, PasswordHasherFactoryInterface $hasherFactory, ErrorMessageManager $errorMessageManager)
     {
@@ -76,7 +71,7 @@ class User
     public function getContaoScope(): ?string
     {
         if (empty($this->contaoScope)) {
-            throw new \Exception('No contao scope set.');
+            throw new \Exception('No Contao scope has been set.');
         }
 
         return $this->contaoScope;
@@ -87,14 +82,15 @@ class User
      */
     public function getModel(string $strTable = ''): ?Model
     {
-        if ('tl_member' === $strTable || AuthenticationController::CONTAO_SCOPE_FRONTEND === $this->getContaoScope()) {
+
+        if ('tl_member' === $strTable || ContaoCoreBundle::SCOPE_FRONTEND === $this->getContaoScope()) {
             /** @var MemberModel $memberModelAdapter */
             $memberModelAdapter = $this->framework->getAdapter(MemberModel::class);
 
             return $memberModelAdapter->findByUsername($this->remoteUser->get('contact_number'));
         }
 
-        if ('tl_user' === $strTable || AuthenticationController::CONTAO_SCOPE_BACKEND === $this->getContaoScope()) {
+        if ('tl_user' === $strTable || ContaoCoreBundle::SCOPE_BACKEND === $this->getContaoScope()) {
             /** @var UserModel $userModelAdapter */
             $userModelAdapter = $this->framework->getAdapter(UserModel::class);
 
@@ -109,11 +105,11 @@ class User
      */
     public function createIfNotExists(): void
     {
-        if (AuthenticationController::CONTAO_SCOPE_FRONTEND === $this->getContaoScope()) {
+        if (ContaoCoreBundle::SCOPE_FRONTEND === $this->getContaoScope()) {
             $this->createFrontendUserIfNotExists();
         }
 
-        if (AuthenticationController::CONTAO_SCOPE_BACKEND === $this->getContaoScope()) {
+        if (ContaoCoreBundle::SCOPE_BACKEND === $this->getContaoScope()) {
             throw new \Exception('Auto-Creating Backend User is not allowed.');
         }
     }
@@ -126,7 +122,7 @@ class User
         $arrData = $this->remoteUser->getData();
 
         if (!isset($arrData) || empty($arrData['contact_number']) || !$this->userExists()) {
-            if (AuthenticationController::CONTAO_SCOPE_FRONTEND === $this->getContaoScope()) {
+            if (ContaoCoreBundle::SCOPE_FRONTEND === $this->getContaoScope()) {
                 $this->errorMessageManager->add2Flash(
                     new ErrorMessage(
                         ErrorMessage::LEVEL_WARNING,
@@ -168,7 +164,7 @@ class User
     public function checkIsAccountEnabled(): bool
     {
         if (($model = $this->getModel()) !== null) {
-            if (AuthenticationController::CONTAO_SCOPE_FRONTEND === $this->getContaoScope()) {
+            if (ContaoCoreBundle::SCOPE_FRONTEND === $this->getContaoScope()) {
                 $disabled = $model->disable || ('' !== $model->start && $model->start > time()) || ('' !== $model->stop && $model->stop <= time());
 
                 if (!$disabled) {
@@ -176,7 +172,7 @@ class User
                 }
             }
 
-            if (AuthenticationController::CONTAO_SCOPE_BACKEND === $this->getContaoScope()) {
+            if (ContaoCoreBundle::SCOPE_BACKEND === $this->getContaoScope()) {
                 $disabled = $model->disable || ('' !== $model->start && $model->start > time()) || ('' !== $model->stop && $model->stop <= time());
 
                 if (!$disabled) {
@@ -208,11 +204,13 @@ class User
         /** @var StringUtil $stringUtilAdapter */
         $stringUtilAdapter = $this->framework->getAdapter(StringUtil::class);
 
+        // Get member data from JSON payload
         $arrData = $this->remoteUser->getData();
 
         $objMember = $this->getModel('tl_member');
 
         if (null !== $objMember) {
+            // Update member details from JSON payload
             $objMember->mobile = $this->beautifyPhoneNumber((string) $arrData['telefonmobil']);
             $objMember->phone = $this->beautifyPhoneNumber((string) $arrData['telefonp']);
             $objMember->uuid = $arrData['sub'];
@@ -226,14 +224,14 @@ class User
             $objMember->country = strtolower($arrData['land']);
             $objMember->email = $arrData['email'];
 
-            // Allowed_sac_section_ids:
+            // Update SAC section membership from JSON payload
             if ($systemAdapter->getContainer()->getParameter('sac_oauth2_client.oidc.allow_frontend_login_to_predefined_section_members_only')) {
                 $objMember->sectionId = serialize($this->remoteUser->getAllowedSacSectionIds());
             } else {
                 $objMember->sectionId = serialize($this->remoteUser->getAllowedSacSectionIds());
             }
 
-            // Member has to be member of a valid sac section
+            // Member has to be member of a valid SAC section
             if ($systemAdapter->getContainer()->getParameter('sac_oauth2_client.oidc.allow_frontend_login_to_predefined_section_members_only')) {
                 $objMember->isSacMember = !empty($this->remoteUser->getAllowedSacSectionIds()) ? '1' : '';
             } else {
@@ -362,7 +360,7 @@ class User
      */
     public function activateMemberAccount(): void
     {
-        if (AuthenticationController::CONTAO_SCOPE_FRONTEND !== $this->getContaoScope()) {
+        if (ContaoCoreBundle::SCOPE_FRONTEND !== $this->getContaoScope()) {
             return;
         }
 
@@ -428,12 +426,12 @@ class User
      */
     private function setContaoScope(string $scope): void
     {
-        $arrScopes = [
-            AuthenticationController::CONTAO_SCOPE_FRONTEND,
-            AuthenticationController::CONTAO_SCOPE_BACKEND,
+        $arrAllowedScopes = [
+            ContaoCoreBundle::SCOPE_FRONTEND,
+            ContaoCoreBundle::SCOPE_BACKEND,
         ];
 
-        if (!\in_array(strtolower($scope), $arrScopes, true)) {
+        if (!\in_array(strtolower($scope), $arrAllowedScopes, true)) {
             throw new \Exception('Parameter "$scope" should be either "frontend" or "backend".');
         }
 

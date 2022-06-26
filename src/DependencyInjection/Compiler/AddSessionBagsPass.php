@@ -14,6 +14,7 @@ declare(strict_types=1);
 
 namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\DependencyInjection\Compiler;
 
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Session\Attribute\ArrayAttributeBag;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
@@ -30,6 +31,6 @@ class AddSessionBagsPass implements CompilerPassInterface
         }
 
         $session = $container->findDefinition('session');
-        $session->addMethodCall('registerBag', [new Reference('Markocupic\SwissAlpineClubContaoLoginClientBundle\Session\Attribute\ArrayAttributeBag')]);
+        $session->addMethodCall('registerBag', [new Reference(ArrayAttributeBag::class)]);
     }
 }

@@ -14,21 +14,18 @@ declare(strict_types=1);
 
 namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\User;
 
+use Contao\CoreBundle\ContaoCoreBundle;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\System;
 use Contao\Validator;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\Authentication\AuthenticationController;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessage;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessageManager;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
-/**
- * Class RemoteUser.
- */
 class RemoteUser
 {
     /**
-     * Navision section id regex.
+     * NAVISION section id regex.
      */
     public const NAV_SECTION_ID_REGEX = '/NAV_MITGLIED_S(\d+)/';
 
@@ -66,6 +63,9 @@ class RemoteUser
         }
     }
 
+    /**
+     * Return the JSON payload as array.
+     */
     public function getData(): array
     {
         return $this->data;
@@ -104,7 +104,7 @@ class RemoteUser
     }
 
     /**
-     * Check if remote user is SAC member.
+     * Check if remote user is a SAC member.
      */
     public function checkIsSacMember(): bool
     {
@@ -124,7 +124,7 @@ class RemoteUser
     }
 
     /**
-     * Check for allowed section membership.
+     * Check for allowed SAC section membership.
      */
     public function checkIsMemberOfAllowedSection(): bool
     {
@@ -170,14 +170,14 @@ class RemoteUser
     }
 
     /**
-     * Return all allowed sac sections ids a remote user belongs to.
+     * Return all allowed SAC section ids a remote user belongs to.
      */
     public function getAllowedSacSectionIds(): array
     {
         /** @var System $systemAdapter */
         $systemAdapter = $this->framework->getAdapter(System::class);
 
-        if (AuthenticationController::CONTAO_SCOPE_FRONTEND === $this->contaoScope) {
+        if (ContaoCoreBundle::SCOPE_FRONTEND === $this->contaoScope) {
             $arrAllowedGroups = $systemAdapter
                 ->getContainer()
                 ->getParameter('sac_oauth2_client.oidc.allowed_frontend_sac_section_ids')
@@ -195,7 +195,7 @@ class RemoteUser
     }
 
     /**
-     * Check if remote user is member of a sac section.
+     * Check if remote user is member of a SAC section.
      */
     public function isSacMember(): bool
     {
@@ -256,7 +256,7 @@ class RemoteUser
     }
 
     /**
-     * Return all sac sections ids a remote user belongs to.
+     * Return all SAC section ids a remote user belongs to.
      */
     private function getSacSectionIds(): array
     {
@@ -277,7 +277,7 @@ class RemoteUser
      */
     private function setContaoScope(string $contaoScope): void
     {
-        if (AuthenticationController::CONTAO_SCOPE_FRONTEND !== $contaoScope && AuthenticationController::CONTAO_SCOPE_BACKEND !== $contaoScope) {
+        if (ContaoCoreBundle::SCOPE_FRONTEND !== $contaoScope && ContaoCoreBundle::SCOPE_BACKEND !== $contaoScope) {
             throw new \Exception('Scope should be either "backend" or "frontend".');
         }
         $this->contaoScope = $contaoScope;

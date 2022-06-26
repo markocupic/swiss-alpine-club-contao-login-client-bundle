@@ -33,13 +33,8 @@ use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Routing\Annotation\Route;
 
-/**
- * Class AuthenticationController.
- */
 class AuthenticationController extends AbstractController
 {
-    public const CONTAO_SCOPE_FRONTEND = 'frontend';
-    public const CONTAO_SCOPE_BACKEND = 'backend';
     private const OPENID_CONNECT_DEBUG_LOG = 'OPENID_CONNECT_DEBUG_LOG';
 
     private ContaoFramework $framework;
@@ -70,7 +65,7 @@ class AuthenticationController extends AbstractController
      *
      * @throws \Exception
      *
-     * @Route("/ssoauth/frontend", name="swiss_alpine_club_sso_login_frontend", defaults={"_scope" = self::CONTAO_SCOPE_FRONTEND, "_token_check" = false})
+     * @Route("/ssoauth/frontend", name="swiss_alpine_club_sso_login_frontend", defaults={"_scope" = "frontend", "_token_check" = false})
      */
     public function frontendUserAuthenticationAction(string $_scope): RedirectResponse
     {
@@ -226,7 +221,7 @@ class AuthenticationController extends AbstractController
      *
      * @throws \Exception
      *
-     * @Route("/ssoauth/backend", name="swiss_alpine_club_sso_login_backend", defaults={"_scope" = self::CONTAO_SCOPE_BACKEND, "_token_check" = false})
+     * @Route("/ssoauth/backend", name="swiss_alpine_club_sso_login_backend", defaults={"_scope" = "backend", "_token_check" = false})
      */
     public function backendUserAuthenticationAction(string $_scope): RedirectResponse
     {

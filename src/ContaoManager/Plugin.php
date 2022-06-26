@@ -14,18 +14,18 @@ declare(strict_types=1);
 
 namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\ContaoManager;
 
+use Contao\CoreBundle\ContaoCoreBundle;
 use Contao\ManagerPlugin\Bundle\BundlePluginInterface;
 use Contao\ManagerPlugin\Bundle\Config\BundleConfig;
 use Contao\ManagerPlugin\Bundle\Parser\ParserInterface;
 use Contao\ManagerPlugin\Config\ConfigPluginInterface;
 use Contao\ManagerPlugin\Routing\RoutingPluginInterface;
+use Markocupic\SacEventToolBundle\MarkocupicSacEventToolBundle;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\MarkocupicSwissAlpineClubContaoLoginClientBundle;
 use Symfony\Component\Config\Loader\LoaderInterface;
 use Symfony\Component\Config\Loader\LoaderResolverInterface;
 use Symfony\Component\HttpKernel\KernelInterface;
 
-/**
- * Class Plugin.
- */
 class Plugin implements ConfigPluginInterface, BundlePluginInterface, RoutingPluginInterface
 {
     /**
@@ -34,9 +34,9 @@ class Plugin implements ConfigPluginInterface, BundlePluginInterface, RoutingPlu
     public function getBundles(ParserInterface $parser)
     {
         return [
-            BundleConfig::create('Markocupic\SwissAlpineClubContaoLoginClientBundle\MarkocupicSwissAlpineClubContaoLoginClientBundle')
-                ->setLoadAfter(['Contao\CoreBundle\ContaoCoreBundle'])
-                ->setLoadAfter(['Markocupic\SacEventToolBundle\MarkocupicSacEventToolBundle']),
+            BundleConfig::create(MarkocupicSwissAlpineClubContaoLoginClientBundle::class)
+                ->setLoadAfter([ContaoCoreBundle::class])
+                ->setLoadAfter([MarkocupicSacEventToolBundle::class]),
         ];
     }
 

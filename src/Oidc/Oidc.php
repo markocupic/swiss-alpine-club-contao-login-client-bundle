@@ -24,9 +24,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Session\Session;
 
-/**
- * Class Oidc.
- */
 class Oidc
 {
     private ContaoFramework $framework;
