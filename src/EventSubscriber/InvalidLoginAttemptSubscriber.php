@@ -22,6 +22,7 @@ use Contao\UserModel;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Event\InvalidLoginAttemptEvent;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use function Safe\json_encode;
 
 class InvalidLoginAttemptSubscriber implements EventSubscriberInterface
 {
@@ -48,31 +49,31 @@ class InvalidLoginAttemptSubscriber implements EventSubscriberInterface
         // Increment tl_user.loginAttempts or tl_member.loginAttempts, if login fails
         // Write cause of error to the Contao system log
         $remoteUser = $loginEvent->getRemoteUser();
-        $identifier = $remoteUser->get('contact_number');
-        $firstname = $remoteUser->get('vorname');
-        $lastname = $remoteUser->get('familienname');
+
+        // Prepare args for the log text
+        $logArgs = [
+            $remoteUser->get('vorname'),
+            $remoteUser->get('familienname'),
+            $remoteUser->get('contact_number'),
+            $loginEvent->getCauseOfError(),
+            json_encode($remoteUser->getData()),
+        ];
 
         if (ContaoCoreBundle::SCOPE_FRONTEND === $loginEvent->getContaoScope()) {
             $memberModelAdapter = $this->framework->getAdapter(MemberModel::class);
-            $userModel = $memberModelAdapter->findByUsername($identifier);
+            $userModel = $memberModelAdapter->findByUsername($remoteUser->get('contact_number'));
             $logLevel = 'SSO_FRONTEND_LOGIN_FAIL';
             $logText = sprintf(
-                'SAC oauth2 (SSO-Frontend-Login) failed for user "%s %s" with member id [%s]. Cause: %s',
-                $firstname,
-                $lastname,
-                $identifier,
-                $loginEvent->getCauseOfError()
+                'SAC oauth2 (SSO-Frontend-Login) failed for user "%s %s" with member id [%s]. Cause: %s. JSON Payload: %s',
+                ...$logArgs,
             );
         } else {
             $userModelAdapter = $this->framework->getAdapter(UserModel::class);
-            $userModel = $userModelAdapter->findBySacMemberId($identifier);
+            $userModel = $userModelAdapter->findBySacMemberId($remoteUser->get('contact_number'));
             $logLevel = 'SSO_BACKEND_LOGIN_FAIL';
             $logText = sprintf(
-                'SAC oauth2 (SSO-Backend-Login) failed for user "%s %s" with member id [%s]. Cause: %s',
-                $firstname,
-                $lastname,
-                $identifier,
-                $loginEvent->getCauseOfError()
+                'SAC oauth2 (SSO-Backend-Login) failed for user "%s %s" with member id [%s]. Cause: %s. JSON Payload: %s',
+                ...$logArgs,
             );
         }
 
