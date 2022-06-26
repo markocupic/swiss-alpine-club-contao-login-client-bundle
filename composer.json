@@ -2,10 +2,10 @@
   "name": "markocupic/swiss-alpine-club-contao-login-client-bundle",
   "description": "Contao SSO Login Client for OIDC Server at Swiss Alpine Club",
   "keywords": [
-    "contao",
-    "openid connect",
-    "login",
-    "oauth2",
+    "Contao",
+    "Swiss Alpine Club SAC",
+    "SAC Single Sign On - SSO-Login",
+    "OAuth2 Client",
     "SSO"
   ],
   "type": "contao-bundle",
@@ -17,9 +17,13 @@
       "role": "Developer"
     }
   ],
+  "support": {
+    "issues": "https://github.com/markocupic/swiss-alpine-club-contao-login-client-bundle/issues",
+    "source": "https://github.com/markocupic/swiss-alpine-club-contao-login-client-bundle"
+  },
   "require": {
-    "php": "^7.4|^8.0",
-    "league/oauth2-client": "^2.6.1",
+    "php": "^8.0",
+    "league/oauth2-client": "^2.6",
     "contao/core-bundle": "^4.13",
     "codefog/contao-haste": "^4.20",
     "markocupic/sac-event-tool-bundle": "*"
