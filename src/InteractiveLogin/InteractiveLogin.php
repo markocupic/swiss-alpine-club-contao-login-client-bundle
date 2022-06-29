@@ -24,7 +24,7 @@ use Contao\MemberModel;
 use Contao\System;
 use Contao\User;
 use Contao\UserModel;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\User\RemoteUser;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Provider\SwissAlpineClubResourceOwner;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\User\User as OidcUser;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
@@ -53,15 +53,6 @@ class InteractiveLogin
         $this->eventDispatcher = $eventDispatcher;
         $this->requestStack = $requestStack;
         $this->logger = $logger;
-    }
-
-    /**
-     * Service method call.
-     */
-    public function initializeFramework(): void
-    {
-        // Initialize Contao framework
-        $this->framework->initialize();
     }
 
     /**
@@ -98,7 +89,7 @@ class InteractiveLogin
             throw new \Exception('Invalid username.');
         }
 
-        // Load user by username
+        // Load user by identifier (username)
         $userClass = ContaoCoreBundle::SCOPE_FRONTEND === $oidcUser->getContaoScope() ? FrontendUser::class : BackendUser::class;
         $userProvider = new ContaoUserProvider($this->framework, $session, $userClass, $this->logger);
         $user = $userProvider->loadUserByIdentifier($username);
@@ -114,8 +105,8 @@ class InteractiveLogin
         $event = new InteractiveLoginEvent($this->requestStack->getCurrentRequest(), $token);
         $this->eventDispatcher->dispatch($event, 'security.interactive_login');
 
-        /** @var RemoteUser $remoteUser */
-        $remoteUser = $oidcUser->remoteUser;
+        /** @var SwissAlpineClubResourceOwner $resourceOwner */
+        $resourceOwner = $oidcUser->getResourceOwner();
 
         if ($user instanceof FrontendUser) {
             if (null !== ($objUser = $memberModelAdapter->findByUsername($user->username))) {
@@ -123,7 +114,7 @@ class InteractiveLogin
                 $objUser->currentLogin = time();
                 $objUser->save();
             }
-            $logTxt = sprintf('Frontend User "%s" [%s] has logged in with SAC OPENID CONNECT APP.', $remoteUser->get('name'), $remoteUser->get('contact_number'));
+            $logTxt = sprintf('Frontend User "%s" [%s] has logged in with SAC OPENID CONNECT APP.', $resourceOwner->getFullName(), $resourceOwner->getSacMemberId());
         }
 
         if ($user instanceof BackendUser) {
@@ -132,7 +123,7 @@ class InteractiveLogin
                 $objUser->currentLogin = time();
                 $objUser->save();
             }
-            $logTxt = sprintf('Backend user "%s" [%s] has logged in with SAC OPENID CONNECT APP.', $remoteUser->get('name'), $remoteUser->get('contact_number'));
+            $logTxt = sprintf('Backend user "%s" [%s] has logged in with SAC OPENID CONNECT APP.', $resourceOwner->getFullName(), $resourceOwner->getSacMemberId());
         }
 
         // Now the user is logged in!

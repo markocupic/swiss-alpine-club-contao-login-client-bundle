@@ -26,43 +26,46 @@ use Contao\System;
 use Contao\UserModel;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessage;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessageManager;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Provider\SwissAlpineClubResourceOwner;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Validator\LoginValidator;
 use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 class User
 {
-    public ?RemoteUser $remoteUser = null;
     private ContaoFramework $framework;
     private TranslatorInterface $translator;
     private PasswordHasherFactoryInterface $hasherFactory;
+    private LoginValidator $loginValidator;
     private ErrorMessageManager $errorMessageManager;
     private string $contaoScope = '';
+    private ?SwissAlpineClubResourceOwner $resourceOwner = null;
 
-    public function __construct(ContaoFramework $framework, TranslatorInterface $translator, PasswordHasherFactoryInterface $hasherFactory, ErrorMessageManager $errorMessageManager)
+
+    public function __construct(ContaoFramework $framework, TranslatorInterface $translator, PasswordHasherFactoryInterface $hasherFactory, LoginValidator $loginValidator, ErrorMessageManager $errorMessageManager)
     {
         $this->framework = $framework;
         $this->translator = $translator;
         $this->hasherFactory = $hasherFactory;
+        $this->loginValidator = $loginValidator;
         $this->errorMessageManager = $errorMessageManager;
     }
 
     /**
-     * Service method call.
-     */
-    public function initializeFramework(): void
-    {
-        // Initialize Contao framework
-        $this->framework->initialize();
-    }
-
-    /**
+     * This is the first method that has to be called
+     *
      * @throws \Exception
      */
-    public function initialize(RemoteUser $remoteUser, string $scope): void
+    public function createFromResourceOwner(SwissAlpineClubResourceOwner $resourceOwner, string $scope): void
     {
-        $this->remoteUser = &$remoteUser;
+        $this->resourceOwner = $resourceOwner;
         $this->setContaoScope($scope);
+    }
+
+    public function getResourceOwner(): ?SwissAlpineClubResourceOwner
+    {
+        return $this->resourceOwner;
     }
 
     /**
@@ -87,14 +90,14 @@ class User
             /** @var MemberModel $memberModelAdapter */
             $memberModelAdapter = $this->framework->getAdapter(MemberModel::class);
 
-            return $memberModelAdapter->findByUsername($this->remoteUser->get('contact_number'));
+            return $memberModelAdapter->findByUsername($this->resourceOwner->getSacMemberId());
         }
 
         if ('tl_user' === $strTable || ContaoCoreBundle::SCOPE_BACKEND === $this->getContaoScope()) {
             /** @var UserModel $userModelAdapter */
             $userModelAdapter = $this->framework->getAdapter(UserModel::class);
 
-            return $userModelAdapter->findOneBySacMemberId($this->remoteUser->get('contact_number'));
+            return $userModelAdapter->findOneBySacMemberId($this->resourceOwner->getSacMemberId());
         }
 
         return null;
@@ -119,14 +122,12 @@ class User
      */
     public function checkUserExists(): bool
     {
-        $arrData = $this->remoteUser->getData();
-
-        if (!isset($arrData) || empty($arrData['contact_number']) || !$this->userExists()) {
+        if (empty($this->resourceOwner->getSacMemberId()) || !$this->userExists()) {
             if (ContaoCoreBundle::SCOPE_FRONTEND === $this->getContaoScope()) {
                 $this->errorMessageManager->add2Flash(
                     new ErrorMessage(
                         ErrorMessage::LEVEL_WARNING,
-                        $this->translator->trans('ERR.sacOidcLoginError_userDoesNotExist_matter', [$arrData['vorname']], 'contao_default'),
+                        $this->translator->trans('ERR.sacOidcLoginError_userDoesNotExist_matter', [$this->resourceOwner->getFirstName()], 'contao_default'),
                         $this->translator->trans('ERR.sacOidcLoginError_userDoesNotExist_howToFix', [], 'contao_default'),
                         $this->translator->trans('ERR.sacOidcLoginError_userDoesNotExist_explain', [], 'contao_default'),
                     )
@@ -135,7 +136,7 @@ class User
                 $this->errorMessageManager->add2Flash(
                     new ErrorMessage(
                         ErrorMessage::LEVEL_WARNING,
-                        $this->translator->trans('ERR.sacOidcLoginError_backendUserNotFound_matter', [$arrData['vorname']], 'contao_default'),
+                        $this->translator->trans('ERR.sacOidcLoginError_backendUserNotFound_matter', [$this->resourceOwner->getFirstName()], 'contao_default'),
                     )
                 );
             }
@@ -184,7 +185,7 @@ class User
         $this->errorMessageManager->add2Flash(
             new ErrorMessage(
                 ErrorMessage::LEVEL_WARNING,
-                $this->translator->trans('ERR.sacOidcLoginError_accountDisabled_matter', [$this->remoteUser->get('vorname')], 'contao_default'),
+                $this->translator->trans('ERR.sacOidcLoginError_accountDisabled_matter', [$this->resourceOwner->getFirstName()], 'contao_default'),
                 '',
                 $this->translator->trans('ERR.sacOidcLoginError_accountDisabled_explain', [], 'contao_default'),
             )
@@ -204,38 +205,31 @@ class User
         /** @var StringUtil $stringUtilAdapter */
         $stringUtilAdapter = $this->framework->getAdapter(StringUtil::class);
 
-        // Get member data from JSON payload
-        $arrData = $this->remoteUser->getData();
-
         $objMember = $this->getModel('tl_member');
 
         if (null !== $objMember) {
             // Update member details from JSON payload
-            $objMember->mobile = $this->beautifyPhoneNumber((string) $arrData['telefonmobil']);
-            $objMember->phone = $this->beautifyPhoneNumber((string) $arrData['telefonp']);
-            $objMember->uuid = $arrData['sub'];
-            $objMember->lastname = $arrData['familienname'];
-            $objMember->firstname = $arrData['vorname'];
-            $objMember->street = $arrData['strasse'];
-            $objMember->city = $arrData['ort'];
-            $objMember->postal = $arrData['plz'];
-            $objMember->dateOfBirth = false !== strtotime($arrData['geburtsdatum']) ? strtotime($arrData['geburtsdatum']) : 0;
-            $objMember->gender = 'HERR' === $arrData['anredecode'] ? 'male' : 'female';
-            $objMember->country = strtolower($arrData['land']);
-            $objMember->email = $arrData['email'];
+            $objMember->mobile = $this->beautifyPhoneNumber($this->resourceOwner->getPhoneMobile());
+            $objMember->phone = $this->beautifyPhoneNumber($this->resourceOwner->getPhonePrivate());
+            $objMember->uuid = $this->resourceOwner->getId();
+            $objMember->lastname = $this->resourceOwner->getLastName();
+            $objMember->firstname = $this->resourceOwner->getFirstName();
+            $objMember->street = $this->resourceOwner->getStreet();
+            $objMember->city =$this->resourceOwner->getCity();
+            $objMember->postal = $this->resourceOwner->getPostal();
+            $objMember->dateOfBirth = false !== strtotime($this->resourceOwner->getDateOfBirth()) ? strtotime($this->resourceOwner->getDateOfBirth()) : 0;
+            $objMember->gender = 'HERR' === $this->resourceOwner->getSalutation() ? 'male' : 'female';
+            $objMember->country = strtolower($this->resourceOwner->getCountryCode());
+            $objMember->email = $this->resourceOwner->getEmail();
 
             // Update SAC section membership from JSON payload
-            if ($systemAdapter->getContainer()->getParameter('sac_oauth2_client.oidc.allow_frontend_login_to_predefined_section_members_only')) {
-                $objMember->sectionId = serialize($this->remoteUser->getAllowedSacSectionIds());
-            } else {
-                $objMember->sectionId = serialize($this->remoteUser->getAllowedSacSectionIds());
-            }
+            $objMember->sectionId = serialize($this->loginValidator->getAllowedSacSectionIds($this->resourceOwner));
 
             // Member has to be member of a valid SAC section
             if ($systemAdapter->getContainer()->getParameter('sac_oauth2_client.oidc.allow_frontend_login_to_predefined_section_members_only')) {
-                $objMember->isSacMember = !empty($this->remoteUser->getAllowedSacSectionIds()) ? '1' : '';
+                $objMember->isSacMember = !empty($this->loginValidator->getAllowedSacSectionIds($this->resourceOwner)) ? '1' : '';
             } else {
-                $objMember->isSacMember = $this->remoteUser->isSacMember() ? '1' : '';
+                $objMember->isSacMember = $this->loginValidator->isSacMember($this->resourceOwner) ? '1' : '';
             }
 
             $objMember->tstamp = time();
@@ -266,25 +260,24 @@ class User
      */
     public function updateBackendUser(): void
     {
-        $arrData = $this->remoteUser->getData();
 
-        $objUser = $this->getModel('tl_user');
+        $objUser = $this->getModel( 'tl_user');
 
         if (null !== $objUser) {
-            $objUser->mobile = $this->beautifyPhoneNumber((string) $arrData['telefonmobil']);
-            $objUser->phone = $this->beautifyPhoneNumber((string) $arrData['telefonp']);
-            $objUser->uuid = $arrData['sub'];
-            $objUser->lastname = $arrData['familienname'];
-            $objUser->firstname = $arrData['vorname'];
-            $objUser->name = $arrData['vorname'].' '.$arrData['familienname'];
-            $objUser->street = $arrData['strasse'];
-            $objUser->city = $arrData['ort'];
-            $objUser->postal = $arrData['plz'];
-            $objUser->dateOfBirth = false !== strtotime($arrData['geburtsdatum']) ? strtotime($arrData['geburtsdatum']) : 0;
-            $objUser->gender = 'HERR' === $arrData['anredecode'] ? 'male' : 'female';
-            $objUser->country = strtolower($arrData['land']);
-            $objUser->email = $arrData['email'];
-            $objUser->sectionId = serialize($this->remoteUser->getAllowedSacSectionIds());
+            $objUser->mobile = $this->beautifyPhoneNumber( $this->resourceOwner->getPhoneMobile());
+            $objUser->phone = $this->beautifyPhoneNumber($this->resourceOwner->getPhonePrivate());
+            $objUser->uuid = $this->resourceOwner->getId();
+            $objUser->lastname = $this->resourceOwner->getLastName();
+            $objUser->firstname = $this->resourceOwner->getFirstName();
+            $objUser->name = $this->resourceOwner->getFullName();
+            $objUser->street = $this->resourceOwner->getStreet();
+            $objUser->city = $this->resourceOwner->getCity();
+            $objUser->postal = $this->resourceOwner->getPostal();
+            $objUser->dateOfBirth = false !== strtotime($this->resourceOwner->getDateOfBirth()) ? strtotime($this->resourceOwner->getDateOfBirth()) : 0;
+            $objUser->gender = 'HERR' === $this->resourceOwner->getSalutation() ? 'male' : 'female';
+            $objUser->country = strtolower($this->resourceOwner->getCountryCode());
+            $objUser->email = $this->resourceOwner->getEmail();
+            $objUser->sectionId = serialize($this->loginValidator->getAllowedSacSectionIds($this->resourceOwner));
             $objUser->tstamp = time();
 
             // Set random password
@@ -405,7 +398,7 @@ class User
             $strNumber = str_replace('0041', '', $strNumber);
 
             // Add a leading zero, if there is no f.ex 41
-            if ('0' !== substr($strNumber, 0, 1) && 9 === \strlen($strNumber)) {
+            if (!str_starts_with($strNumber, '0') && 9 === \strlen($strNumber)) {
                 $strNumber = '0'.$strNumber;
             }
 
@@ -443,19 +436,17 @@ class User
      */
     private function createFrontendUserIfNotExists(): void
     {
-        $arrData = $this->remoteUser->getData();
-        $username = preg_replace('/^0+/', '', $arrData['contact_number']);
-        $uuid = $arrData['sub'];
+        $sacMemberId = $this->resourceOwner->getSacMemberId();
 
-        if (!$this->isValidUsername($username)) {
+        if (!$this->isValidUsername($sacMemberId)) {
             return;
         }
 
         if (null === $this->getModel('tl_member')) {
             $objNew = new MemberModel();
-            $objNew->username = $username;
-            $objNew->sacMemberId = $username;
-            $objNew->uuid = $uuid;
+            $objNew->username = $sacMemberId;
+            $objNew->sacMemberId = $sacMemberId;
+            $objNew->uuid = $this->resourceOwner->getId();
             $objNew->dateAdded = time();
             $objNew->tstamp = time();
             $objNew->save();

@@ -6,7 +6,7 @@ services:
       - '@contao.framework'
       - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\Initializer'
       - '@request_stack'
-      - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\User\RemoteUser'
+      - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\Validator\LoginValidator'
       - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\User\User'
       - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\InteractiveLogin\InteractiveLogin'
       - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\Oidc\Oidc'
@@ -25,8 +25,6 @@ services:
     arguments:
       - '@contao.framework'
       - '@request_stack'
-    calls:
-      - [ initializeFramework ]
 
   Markocupic\SwissAlpineClubContaoLoginClientBundle\InteractiveLogin\InteractiveLogin:
     arguments:
@@ -35,25 +33,20 @@ services:
       - '@event_dispatcher'
       - '@request_stack'
       - '@monolog.logger.contao'
-    calls:
-      - [ initializeFramework ]
 
   Markocupic\SwissAlpineClubContaoLoginClientBundle\User\User:
     arguments:
       - '@contao.framework'
       - '@translator'
       - '@security.password_hasher_factory'
+      - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\Validator\LoginValidator'
       - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessageManager'
-    calls:
-      - [ initializeFramework ]
 
-  Markocupic\SwissAlpineClubContaoLoginClientBundle\User\RemoteUser:
+  Markocupic\SwissAlpineClubContaoLoginClientBundle\Validator\LoginValidator:
     arguments:
       - '@contao.framework'
       - '@translator'
       - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessageManager'
-    calls:
-      - [ initializeFramework ]
 
   Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessageManager:
     arguments:
