@@ -25,7 +25,7 @@ use Contao\System;
 use Contao\User;
 use Contao\UserModel;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Provider\SwissAlpineClubResourceOwner;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\User\User as OidcUser;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\User\ContaoUser;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -58,7 +58,7 @@ class InteractiveLogin
     /**
      * @throws \Exception
      */
-    public function login(OidcUser $oidcUser): void
+    public function login(ContaoUser $contaoUser): void
     {
         $session = $this->requestStack->getCurrentRequest()->getSession();
 
@@ -68,9 +68,9 @@ class InteractiveLogin
         /** @var UserModel $userModelAdapter */
         $userModelAdapter = $this->framework->getAdapter(UserModel::class);
 
-        $providerKey = ContaoCoreBundle::SCOPE_FRONTEND === $oidcUser->getContaoScope() ? static::SECURED_AREA_FRONTEND : static::SECURED_AREA_BACKEND;
+        $providerKey = ContaoCoreBundle::SCOPE_FRONTEND === $contaoUser->getContaoScope() ? static::SECURED_AREA_FRONTEND : static::SECURED_AREA_BACKEND;
 
-        $username = $oidcUser->getModel()->username;
+        $username = $contaoUser->getModel()->username;
 
         if (!\is_string($username) && (!\is_object($username) || !method_exists($username, '__toString'))) {
             throw new \Exception(sprintf('The username must be a string, "%s" given.', \gettype($username)));
@@ -79,7 +79,7 @@ class InteractiveLogin
         $username = trim((string) $username);
 
         // Be sure user exists
-        if (!$oidcUser->checkUserExists()) {
+        if (!$contaoUser->checkUserExists()) {
             throw new \Exception('Could not find user with username '.$username.'.');
         }
 
@@ -90,7 +90,7 @@ class InteractiveLogin
         }
 
         // Load user by identifier (username)
-        $userClass = ContaoCoreBundle::SCOPE_FRONTEND === $oidcUser->getContaoScope() ? FrontendUser::class : BackendUser::class;
+        $userClass = ContaoCoreBundle::SCOPE_FRONTEND === $contaoUser->getContaoScope() ? FrontendUser::class : BackendUser::class;
         $userProvider = new ContaoUserProvider($this->framework, $session, $userClass, $this->logger);
         $user = $userProvider->loadUserByIdentifier($username);
 
@@ -106,7 +106,7 @@ class InteractiveLogin
         $this->eventDispatcher->dispatch($event, 'security.interactive_login');
 
         /** @var SwissAlpineClubResourceOwner $resourceOwner */
-        $resourceOwner = $oidcUser->getResourceOwner();
+        $resourceOwner = $contaoUser->getResourceOwner();
 
         if ($user instanceof FrontendUser) {
             if (null !== ($objUser = $memberModelAdapter->findByUsername($user->username))) {

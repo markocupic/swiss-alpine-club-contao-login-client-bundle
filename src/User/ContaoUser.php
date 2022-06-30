@@ -32,7 +32,7 @@ use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
-class User
+class ContaoUser
 {
     private ContaoFramework $framework;
     private TranslatorInterface $translator;

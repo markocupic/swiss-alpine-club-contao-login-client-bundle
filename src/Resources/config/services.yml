@@ -7,7 +7,7 @@ services:
       - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\Initializer'
       - '@request_stack'
       - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\Validator\LoginValidator'
-      - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\User\User'
+      - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\User\ContaoUserFactory'
       - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\InteractiveLogin\InteractiveLogin'
       - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\Oidc\Oidc'
       - '@event_dispatcher'
@@ -34,7 +34,7 @@ services:
       - '@request_stack'
       - '@monolog.logger.contao'
 
-  Markocupic\SwissAlpineClubContaoLoginClientBundle\User\User:
+  Markocupic\SwissAlpineClubContaoLoginClientBundle\User\ContaoUserFactory:
     arguments:
       - '@contao.framework'
       - '@translator'

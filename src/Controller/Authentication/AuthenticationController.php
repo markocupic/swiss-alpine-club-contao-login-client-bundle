@@ -24,7 +24,8 @@ use Markocupic\SwissAlpineClubContaoLoginClientBundle\Initializer;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\InteractiveLogin\InteractiveLogin;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Oidc\Oidc;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Provider\SwissAlpineClubResourceOwner;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\User\User;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\User\ContaoUser;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\User\ContaoUserFactory;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Validator\LoginValidator;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -41,19 +42,19 @@ class AuthenticationController extends AbstractController
     private Initializer $initializer;
     private RequestStack $requestStack;
     private LoginValidator $loginValidator;
-    private User $user;
+    private ContaoUserFactory $contaoUserFactory;
     private InteractiveLogin $interactiveLogin;
     private Oidc $oidc;
     private EventDispatcherInterface $eventDispatcher;
     private LoggerInterface|null $logger;
 
-    public function __construct(ContaoFramework $framework, Initializer $initializer, RequestStack $requestStack, LoginValidator $loginValidator, User $user, InteractiveLogin $interactiveLogin, Oidc $oidc, EventDispatcherInterface $eventDispatcher, LoggerInterface $logger = null)
+    public function __construct(ContaoFramework $framework, Initializer $initializer, RequestStack $requestStack, LoginValidator $loginValidator, ContaoUserFactory $contaoUserFactory, InteractiveLogin $interactiveLogin, Oidc $oidc, EventDispatcherInterface $eventDispatcher, LoggerInterface $logger = null)
     {
         $this->framework = $framework;
         $this->initializer = $initializer;
         $this->requestStack = $requestStack;
         $this->loginValidator = $loginValidator;
-        $this->user = $user;
+        $this->contaoUserFactory = $contaoUserFactory;
         $this->interactiveLogin = $interactiveLogin;
         $this->oidc = $oidc;
         $this->eventDispatcher = $eventDispatcher;
@@ -169,40 +170,40 @@ class AuthenticationController extends AbstractController
             return new RedirectResponse($session->get('failurePath'));
         }
 
-        // Create the user object
-        $this->user->createFromResourceOwner($resourceOwner, $contaoScope);
+        // Create the user wrapper object
+        $contaoUser = $this->contaoUserFactory->createContaoUser($resourceOwner, $contaoScope);
 
         // Create a Contao frontend user if it doesn't exist.
         if ($blnAutocreate) {
-            $this->user->createIfNotExists();
+            $contaoUser->createIfNotExists();
         }
 
         // Check if Contao frontend user exists
-        if (!$this->user->checkUserExists()) {
-            $this->dispatchInvalidLoginAttemptEvent(InvalidLoginAttemptEvent::FAILED_CHECK_USER_EXISTS, $contaoScope, $resourceOwner, $this->user);
+        if (!$contaoUser->checkUserExists()) {
+            $this->dispatchInvalidLoginAttemptEvent(InvalidLoginAttemptEvent::FAILED_CHECK_USER_EXISTS, $contaoScope, $resourceOwner, $contaoUser);
 
             return new RedirectResponse($session->get('failurePath'));
         }
 
         // Allow login: set tl_member.disable = ''
-        $this->user->enableLogin();
+        $contaoUser->enableLogin();
 
         // Set tl_member.locked = 0
-        $this->user->unlock();
+        $contaoUser->unlock();
 
         // Set tl_member.loginAttempts = 0
-        $this->user->resetLoginAttempts();
+        $contaoUser->resetLoginAttempts();
 
         // Set tl_member.login = '1'
-        $this->user->activateMemberAccount();
+        $contaoUser->activateMemberAccount();
 
         // Update tl_member and tl_user
-        $this->user->updateFrontendUser();
-        $this->user->updateBackendUser();
+        $contaoUser->updateFrontendUser();
+        $contaoUser->updateBackendUser();
 
         // Check if tl_member.disable == '' or tl_member.start and tl_member.stop are not in an allowed time range
-        if (!$this->user->checkIsAccountEnabled() && !$blnAllowFrontendLoginIfContaoAccountIsDisabled) {
-            $this->dispatchInvalidLoginAttemptEvent(InvalidLoginAttemptEvent::FAILED_CHECK_IS_ACCOUNT_ENABLED, $contaoScope, $resourceOwner, $this->user);
+        if (!$contaoUser->checkIsAccountEnabled() && !$blnAllowFrontendLoginIfContaoAccountIsDisabled) {
+            $this->dispatchInvalidLoginAttemptEvent(InvalidLoginAttemptEvent::FAILED_CHECK_IS_ACCOUNT_ENABLED, $contaoScope, $resourceOwner, $contaoUser);
 
             return new RedirectResponse($session->get('failurePath'));
         }
@@ -213,12 +214,12 @@ class AuthenticationController extends AbstractController
         }
 
         // Log in as a Contao frontend user.
-        $this->interactiveLogin->login($this->user);
+        $this->interactiveLogin->login($contaoUser);
 
         // Add predefined frontend groups to contao frontend user
         // The groups have to be predefined in the frontend module settings
         $moduleModel = $moduleModelAdapter->findByPk($session->get('moduleId'));
-        $this->user->addFrontendGroups($moduleModel);
+        $contaoUser->addFrontendGroups($moduleModel);
 
         $targetPath = $session->get('targetPath');
         $session->clear();
@@ -333,37 +334,37 @@ class AuthenticationController extends AbstractController
             return new RedirectResponse($session->get('failurePath'));
         }
 
-        // Create the user object
-        $this->user->createFromResourceOwner($resourceOwner, $contaoScope);
+        // Create the user wrapper object
+        $contaoUser = $this->contaoUserFactory->createContaoUser($resourceOwner, $contaoScope);
 
         // Create Contao backend user, if it doesn't exist.
         if ($blnAutocreate) {
-            // $this->user->createIfNotExists(); // Disabled for Contao backend users!
+            // $contaoUser->createIfNotExists(); // Disabled for Contao backend users!
         }
 
         // Check if Contao backend user exists
-        if (!$this->user->checkUserExists()) {
-            $this->dispatchInvalidLoginAttemptEvent(InvalidLoginAttemptEvent::FAILED_CHECK_USER_EXISTS, $contaoScope, $resourceOwner, $this->user);
+        if (!$contaoUser->checkUserExists()) {
+            $this->dispatchInvalidLoginAttemptEvent(InvalidLoginAttemptEvent::FAILED_CHECK_USER_EXISTS, $contaoScope, $resourceOwner, $contaoUser);
 
             return new RedirectResponse($session->get('failurePath'));
         }
 
         // Allow login: set tl_user.disable = ''
-        //$this->user->enableLogin();
+        //$contaoUser->enableLogin();
 
         // Set tl_user.locked = 0
-        $this->user->unlock();
+        $contaoUser->unlock();
 
         // Set tl_user.loginAttempts = 0
-        $this->user->resetLoginAttempts();
+        $contaoUser->resetLoginAttempts();
 
         // Update tl_member and tl_user
-        $this->user->updateFrontendUser();
-        $this->user->updateBackendUser();
+        $contaoUser->updateFrontendUser();
+        $contaoUser->updateBackendUser();
 
         // Check if tl_user.disable == '' or tl_user.login == '1' or tl_user.start and tl_user.stop are not in an allowed time range
-        if (!$this->user->checkIsAccountEnabled() && !$blnAllowBackendLoginIfContaoAccountIsDisabled) {
-            $this->dispatchInvalidLoginAttemptEvent(InvalidLoginAttemptEvent::FAILED_CHECK_IS_ACCOUNT_ENABLED, $contaoScope, $resourceOwner, $this->user);
+        if (!$contaoUser->checkIsAccountEnabled() && !$blnAllowBackendLoginIfContaoAccountIsDisabled) {
+            $this->dispatchInvalidLoginAttemptEvent(InvalidLoginAttemptEvent::FAILED_CHECK_IS_ACCOUNT_ENABLED, $contaoScope, $resourceOwner, $contaoUser);
 
             return new RedirectResponse($session->get('failurePath'));
         }
@@ -374,7 +375,7 @@ class AuthenticationController extends AbstractController
         }
 
         // Log in as Contao backend user.
-        $this->interactiveLogin->login($this->user);
+        $this->interactiveLogin->login($contaoUser);
 
         $targetPath = $session->get('targetPath');
 
@@ -413,9 +414,9 @@ class AuthenticationController extends AbstractController
         }
     }
 
-    private function dispatchInvalidLoginAttemptEvent(string $causeOfError, string $contaoScope, SwissAlpineClubResourceOwner $resourceOwner, User $user = null): void
+    private function dispatchInvalidLoginAttemptEvent(string $causeOfError, string $contaoScope, SwissAlpineClubResourceOwner $resourceOwner, ContaoUser $contaoUser = null): void
     {
-        $event = new InvalidLoginAttemptEvent($causeOfError, $contaoScope, $resourceOwner, $user);
+        $event = new InvalidLoginAttemptEvent($causeOfError, $contaoScope, $resourceOwner, $contaoUser);
         $this->eventDispatcher->dispatch($event, InvalidLoginAttemptEvent::NAME);
     }
 }

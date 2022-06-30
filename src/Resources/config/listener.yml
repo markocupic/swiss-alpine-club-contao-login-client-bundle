@@ -4,7 +4,7 @@ services:
   Markocupic\SwissAlpineClubContaoLoginClientBundle\EventListener\Contao\ParseBackendTemplateListener:
     public: true
     arguments:
-    - "@request_stack"
-    - "@contao.framework"
+      - "@request_stack"
+      - "@contao.framework"
     tags:
-    - { name: kernel.event_listener, event: contao.parseBackendTemplate, method: addLoginButtonToTemplate }
+      - { name: kernel.event_listener, event: contao.parseBackendTemplate, method: addLoginButtonToTemplate }

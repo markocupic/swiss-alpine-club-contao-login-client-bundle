@@ -2,13 +2,13 @@ services:
 
   Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\FrontendModule\SwissAlpineClubOidcFrontendLogin:
     arguments:
-    - '@contao.framework'
-    - '@security.helper'
-    - '@request_stack'
-    - '@translator'
+      - '@contao.framework'
+      - '@security.helper'
+      - '@request_stack'
+      - '@translator'
     tags:
-    - { name: contao.frontend_module, category: user }
-    - { name: container.service_subscriber }
+      - { name: contao.frontend_module, category: user }
+      - { name: container.service_subscriber }
     public: true
 
 
