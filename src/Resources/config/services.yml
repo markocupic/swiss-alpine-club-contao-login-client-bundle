@@ -4,14 +4,7 @@ services:
     public: true
     arguments:
       - '@contao.framework'
-      - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\Initializer'
-      - '@request_stack'
-      - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\Validator\LoginValidator'
-      - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\User\ContaoUserFactory'
-      - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\InteractiveLogin\InteractiveLogin'
-      - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\Oidc\Oidc'
-      - '@event_dispatcher'
-      - '@monolog.logger.contao'
+      - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\OpenIdConnect\OpenIdConnect'
     calls:
       - [ 'setContainer', [ '@Psr\Container\ContainerInterface' ] ]
 
@@ -21,10 +14,16 @@ services:
       - '@request_stack'
       - '@contao.csrf.token_manager'
 
-  Markocupic\SwissAlpineClubContaoLoginClientBundle\Oidc\Oidc:
+  Markocupic\SwissAlpineClubContaoLoginClientBundle\OpenIdConnect\OpenIdConnect:
     arguments:
       - '@contao.framework'
+      - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\Initializer'
       - '@request_stack'
+      - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\Validator\LoginValidator'
+      - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\User\ContaoUserFactory'
+      - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\InteractiveLogin\InteractiveLogin'
+      - '@event_dispatcher'
+      - '@monolog.logger.contao'
 
   Markocupic\SwissAlpineClubContaoLoginClientBundle\InteractiveLogin\InteractiveLogin:
     arguments:
