@@ -20,7 +20,6 @@ use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\FrontendUser;
 use Contao\MemberModel;
 use Contao\Model;
-use Contao\ModuleModel;
 use Contao\StringUtil;
 use Contao\System;
 use Contao\UserModel;
@@ -41,7 +40,6 @@ class ContaoUser
     private ErrorMessageManager $errorMessageManager;
     private string $contaoScope = '';
     private ?SwissAlpineClubResourceOwner $resourceOwner = null;
-
 
     public function __construct(ContaoFramework $framework, TranslatorInterface $translator, PasswordHasherFactoryInterface $hasherFactory, LoginValidator $loginValidator, ErrorMessageManager $errorMessageManager)
     {
@@ -208,6 +206,7 @@ class ContaoUser
         $objMember = $this->getModel('tl_member');
 
         if (null !== $objMember) {
+
             // Update member details from JSON payload
             $objMember->mobile = $this->beautifyPhoneNumber($this->resourceOwner->getPhoneMobile());
             $objMember->phone = $this->beautifyPhoneNumber($this->resourceOwner->getPhonePrivate());
@@ -215,7 +214,7 @@ class ContaoUser
             $objMember->lastname = $this->resourceOwner->getLastName();
             $objMember->firstname = $this->resourceOwner->getFirstName();
             $objMember->street = $this->resourceOwner->getStreet();
-            $objMember->city =$this->resourceOwner->getCity();
+            $objMember->city = $this->resourceOwner->getCity();
             $objMember->postal = $this->resourceOwner->getPostal();
             $objMember->dateOfBirth = false !== strtotime($this->resourceOwner->getDateOfBirth()) ? strtotime($this->resourceOwner->getDateOfBirth()) : 0;
             $objMember->gender = 'HERR' === $this->resourceOwner->getSalutation() ? 'male' : 'female';
@@ -234,18 +233,26 @@ class ContaoUser
 
             $objMember->tstamp = time();
 
-            // Groups
+            // Add member groups
             $arrGroups = $stringUtilAdapter->deserialize($objMember->groups, true);
             $arrAutoGroups = $systemAdapter->getContainer()->getParameter('sac_oauth2_client.oidc.add_to_frontend_user_groups');
 
             if (!empty($arrAutoGroups) && \is_array($arrAutoGroups)) {
-                $objMember->groups = serialize(array_merge($arrGroups, $arrAutoGroups));
+
+                foreach ($arrAutoGroups as $groupId) {
+                    if (!in_array($groupId, $arrGroups, false)) {
+                        $arrGroups[] = $groupId;
+                    }
+                }
+
+                $objMember->groups = serialize($arrGroups);
+
             }
 
             // Set random password
             if (empty($objMember->password)) {
                 $encoder = $this->hasherFactory->getPasswordHasher(FrontendUser::class);
-                $objMember->password = $encoder->hash(substr(md5((string) random_int(900009, 111111111111)), 0, 8), null);
+                $objMember->password = $encoder->hash(substr(md5((string)random_int(900009, 111111111111)), 0, 8), null);
             }
 
             // Save
@@ -261,10 +268,10 @@ class ContaoUser
     public function updateBackendUser(): void
     {
 
-        $objUser = $this->getModel( 'tl_user');
+        $objUser = $this->getModel('tl_user');
 
         if (null !== $objUser) {
-            $objUser->mobile = $this->beautifyPhoneNumber( $this->resourceOwner->getPhoneMobile());
+            $objUser->mobile = $this->beautifyPhoneNumber($this->resourceOwner->getPhoneMobile());
             $objUser->phone = $this->beautifyPhoneNumber($this->resourceOwner->getPhonePrivate());
             $objUser->uuid = $this->resourceOwner->getId();
             $objUser->lastname = $this->resourceOwner->getLastName();
@@ -283,35 +290,13 @@ class ContaoUser
             // Set random password
             if (empty($objUser->password)) {
                 $passwordHasher = $this->hasherFactory->getPasswordHasher(BackendUser::class);
-                $objUser->password = $passwordHasher->hash(substr(md5((string) random_int(900009, 111111111111)), 0, 8), null);
+                $objUser->password = $passwordHasher->hash(substr(md5((string)random_int(900009, 111111111111)), 0, 8), null);
             }
 
             // Save
             $objUser->save();
 
             $objUser->refresh();
-        }
-    }
-
-    /**
-     * @throws \Exception
-     */
-    public function addFrontendGroups(ModuleModel $model): void
-    {
-        /** @var StringUtil $stringUtilAdapter */
-        $stringUtilAdapter = $this->framework->getAdapter(StringUtil::class);
-
-        // Add groups
-        $objUser = $this->getModel('tl_member');
-
-        if (null !== $objUser) {
-            $arrMemberGroups = $stringUtilAdapter->deserialize($objUser->groups, true);
-            $arrGroupsToAdd = $stringUtilAdapter->deserialize($model->swiss_alpine_club_oidc_add_to_fe_groups, true);
-            $arrGroups = array_merge($arrMemberGroups, $arrGroupsToAdd);
-            $arrGroups = array_unique($arrGroups);
-            $arrGroups = array_filter($arrGroups);
-            $objUser->groups = serialize($arrGroups);
-            $objUser->save();
         }
     }
 
