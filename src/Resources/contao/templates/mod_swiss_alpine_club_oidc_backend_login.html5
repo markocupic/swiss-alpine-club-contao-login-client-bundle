@@ -47,7 +47,7 @@
 	</div>
 
 	<?php endif; ?>
-	<?php if (!$this->hideContaoLogin): ?>
+	<?php if (!$this->disableContaoLogin): ?>
 	<div class="login-button-separator-container">
 		<div class="login-button-separator">oder</div>
 	</div>

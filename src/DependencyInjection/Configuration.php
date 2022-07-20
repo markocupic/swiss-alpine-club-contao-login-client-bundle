@@ -130,7 +130,7 @@ class Configuration implements ConfigurationInterface
                 ->arrayNode('backend')
                     ->addDefaultsIfNotSet()
                     ->children()
-                        ->booleanNode('hide_contao_login')
+                        ->booleanNode('disable_contao_login')
                             ->defaultFalse()
                         ->end()
                     ->end()

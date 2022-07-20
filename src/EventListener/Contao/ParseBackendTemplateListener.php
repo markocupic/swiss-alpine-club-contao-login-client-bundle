@@ -101,7 +101,7 @@ class ParseBackendTemplateListener
                 $template->error = $arrError;
             }
 
-            $template->hideContaoLogin = $systemAdapter->getContainer()->getParameter('sac_oauth2_client.backend.hide_contao_login');
+            $template->disableContaoLogin = $systemAdapter->getContainer()->getParameter('sac_oauth2_client.backend.disable_contao_login');
 
             $strAppendBefore = '<form';
 
@@ -114,10 +114,10 @@ class ParseBackendTemplateListener
             // Prepend sso login form to contao login form
             $strContent = str_replace($strAppendBefore, $ssoLoginForm.$strAppendBefore, $strContent);
 
-            // Hide Contao login form
-            $blnHideContaoLogin = $systemAdapter->getContainer()->getParameter('sac_oauth2_client.backend.hide_contao_login');
+            // Remove Contao login form
+            $blnDisableContaoLogin = $systemAdapter->getContainer()->getParameter('sac_oauth2_client.backend.disable_contao_login');
 
-            if (true === $blnHideContaoLogin) {
+            if (true === $blnDisableContaoLogin) {
                 $strContent = preg_replace('/<form class="tl_login_form"[^>]*>(.*?)<\/form>/is', '', $strContent);
             }
         }
