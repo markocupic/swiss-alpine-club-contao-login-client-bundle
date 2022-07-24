@@ -120,6 +120,9 @@ class ParseBackendTemplateListener
             if (true === $blnDisableContaoLogin) {
                 $strContent = preg_replace('/<form class="tl_login_form"[^>]*>(.*?)<\/form>/is', '', $strContent);
             }
+
+            // Add hack: Test, if input field with id="username" exists.
+            $strContent = str_replace("$('username').focus();", "if ($('username')){ \n\t\t$('username').focus();\n\t  }", $strContent);
         }
 
         return $strContent;
