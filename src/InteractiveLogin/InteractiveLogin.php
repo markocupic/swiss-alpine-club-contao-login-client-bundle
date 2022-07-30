@@ -24,6 +24,7 @@ use Contao\MemberModel;
 use Contao\System;
 use Contao\User;
 use Contao\UserModel;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Event\PreInteractiveLoginEvent;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Provider\SwissAlpineClubResourceOwner;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\User\ContaoUser;
 use Psr\Log\LoggerInterface;
@@ -70,29 +71,34 @@ class InteractiveLogin
 
         $providerKey = ContaoCoreBundle::SCOPE_FRONTEND === $contaoUser->getContaoScope() ? static::SECURED_AREA_FRONTEND : static::SECURED_AREA_BACKEND;
 
-        $username = $contaoUser->getModel()->username;
+        $userIdentifier = $contaoUser->getModel()->username;
 
-        if (!\is_string($username) && (!\is_object($username) || !method_exists($username, '__toString'))) {
-            throw new \Exception(sprintf('The username must be a string, "%s" given.', \gettype($username)));
+        if (!\is_string($userIdentifier) && (!\is_object($userIdentifier) || !method_exists($userIdentifier, '__toString'))) {
+            throw new \Exception(sprintf('The username must be a string, "%s" given.', \gettype($userIdentifier)));
         }
 
-        $username = trim((string) $username);
+        $userIdentifier = trim((string) $userIdentifier);
 
         // Be sure user exists
         if (!$contaoUser->checkUserExists()) {
-            throw new \Exception('Could not find user with username '.$username.'.');
+            throw new \Exception('Could not find user with user identifier '.$userIdentifier.'.');
         }
 
         // Check if username is valid
         // Security::MAX_USERNAME_LENGTH = 4096;
-        if (\strlen($username) > Security::MAX_USERNAME_LENGTH) {
+        if (\strlen($userIdentifier) > Security::MAX_USERNAME_LENGTH) {
             throw new \Exception('Invalid username.');
         }
 
-        // Load user by identifier (username)
+        // Load user by identifier (sac member id)
         $userClass = ContaoCoreBundle::SCOPE_FRONTEND === $contaoUser->getContaoScope() ? FrontendUser::class : BackendUser::class;
         $userProvider = new ContaoUserProvider($this->framework, $session, $userClass, $this->logger);
-        $user = $userProvider->loadUserByIdentifier($username);
+
+        // Dispatch the PreInteractiveLoginEvent
+        $event = new PreInteractiveLoginEvent($userIdentifier, $userClass, $userProvider, $contaoUser->getResourceOwner());
+        $this->eventDispatcher->dispatch($event, PreInteractiveLoginEvent::NAME);
+
+        $user = $userProvider->loadUserByIdentifier($userIdentifier);
 
         $token = new UsernamePasswordToken($user, null, $providerKey, $user->getRoles());
         $this->tokenStorage->setToken($token);

@@ -72,3 +72,7 @@ sac_oauth2_client:
 
 ```
 
+## PreInteractiveLoginEvent
+Der **PreInteractiveLoginEvent** wird getriggert bevor der Contao User Provider den Frontend oder Backend User lädt. 
+Mit einem **Event Listener** oder **Event Subscriber** lassen sich so vor dem Contao Login Vorgang unter anderem Manipulationen am User Account vornehmen. 
+
