@@ -59,11 +59,11 @@ class MarkocupicSwissAlpineClubContaoLoginClientExtension extends Extension
         $container->setParameter($rootKey.'.oidc.auth_provider_endpoint_userinfo', $config['oidc']['auth_provider_endpoint_userinfo']);
         $container->setParameter($rootKey.'.oidc.add_to_frontend_user_groups', $config['oidc']['add_to_frontend_user_groups']);
         $container->setParameter($rootKey.'.oidc.auth_provider_endpoint_logout', $config['oidc']['auth_provider_endpoint_logout']);
-        $container->setParameter($rootKey.'.oidc.autocreate_frontend_user', $config['oidc']['autocreate_frontend_user']);
+        $container->setParameter($rootKey.'.oidc.auto_create_frontend_user', $config['oidc']['auto_create_frontend_user']);
         $container->setParameter($rootKey.'.oidc.allow_frontend_login_to_sac_members_only', $config['oidc']['allow_frontend_login_to_sac_members_only']);
         $container->setParameter($rootKey.'.oidc.allow_frontend_login_to_predefined_section_members_only', $config['oidc']['allow_frontend_login_to_predefined_section_members_only']);
         $container->setParameter($rootKey.'.oidc.allow_frontend_login_if_contao_account_is_disabled', $config['oidc']['allow_frontend_login_if_contao_account_is_disabled']);
-        $container->setParameter($rootKey.'.oidc.autocreate_backend_user', $config['oidc']['autocreate_backend_user']);
+        $container->setParameter($rootKey.'.oidc.auto_create_backend_user', $config['oidc']['auto_create_backend_user']);
         $container->setParameter($rootKey.'.oidc.allow_backend_login_to_sac_members_only', $config['oidc']['allow_backend_login_to_sac_members_only']);
         $container->setParameter($rootKey.'.oidc.allow_backend_login_to_predefined_section_members_only', $config['oidc']['allow_backend_login_to_predefined_section_members_only']);
         $container->setParameter($rootKey.'.oidc.allow_backend_login_if_contao_account_is_disabled', $config['oidc']['allow_backend_login_if_contao_account_is_disabled']);

@@ -14,8 +14,10 @@ declare(strict_types=1);
 
 namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Provider;
 
+use JetBrains\PhpStorm\Pure;
 use League\OAuth2\Client\Provider\AbstractProvider;
 use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
+use League\OAuth2\Client\Provider\ResourceOwnerInterface;
 use League\OAuth2\Client\Token\AccessToken;
 use League\OAuth2\Client\Tool\BearerAuthorizationTrait;
 use Psr\Http\Message\ResponseInterface;
@@ -81,6 +83,7 @@ class SwissAlpineClub extends AbstractProvider
     /**
      * Returns all options that can be configured.
      */
+    #[Pure]
     protected function getConfigurableOptions(): array
     {
         return array_merge($this->getRequiredOptions(), [
@@ -106,14 +109,15 @@ class SwissAlpineClub extends AbstractProvider
     /**
      * Requests and returns the resource owner of given access token.
      */
-    public function getResourceOwner(AccessToken $token): SwissAlpineClubResourceOwner
+    public function getResourceOwner(AccessToken $token): ResourceOwnerInterface
     {
         $response = $this->fetchResourceOwnerDetails($token);
 
         return $this->createResourceOwner($response, $token);
     }
 
-    protected function createResourceOwner(array $response, AccessToken $token): SwissAlpineClubResourceOwner
+    #[Pure]
+    protected function createResourceOwner(array $response, AccessToken $token): ResourceOwnerInterface
     {
         return new SwissAlpineClubResourceOwner($response, $this->responseResourceOwnerId);
     }

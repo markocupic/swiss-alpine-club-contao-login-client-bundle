@@ -47,7 +47,7 @@ sac_oauth2_client:
     # optional frontend user settings
     add_to_frontend_user_groups:
       - 9 # Standard Mitgliedergruppe
-    autocreate_frontend_user: false
+    auto_create_frontend_user: false
     allow_frontend_login_to_sac_members_only: true
     allow_frontend_login_to_predefined_section_members_only: true
     allow_frontend_login_if_contao_account_is_disabled: false # Do not allow login if contao member account is disabled or login is set to false
@@ -59,7 +59,7 @@ sac_oauth2_client:
       - 4254 # OG Rigi
 
     # optional backend user settings
-    autocreate_backend_user: false
+    auto_create_backend_user: false
     allow_backend_login_to_sac_members_only: true
     allow_backend_login_to_predefined_section_members_only: true
     allow_backend_login_if_contao_account_is_disabled: false # Do not allow login if contao user account is disabled

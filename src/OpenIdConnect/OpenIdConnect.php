@@ -20,6 +20,7 @@ use Contao\CoreBundle\Framework\Adapter;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\CoreBundle\Monolog\ContaoContext;
 use Contao\System;
+use League\OAuth2\Client\Provider\AbstractProvider;
 use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use League\OAuth2\Client\Token\AccessToken;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Config\ContaoLogConfig;
@@ -53,9 +54,6 @@ class OpenIdConnect
     // Adapter
     private Adapter $system;
 
-    private SwissAlpineClub|null $provider = null;
-    private SwissAlpineClubResourceOwner|null $resourceOwner = null;
-
     public function __construct(ContaoFramework $framework, Initializer $initializer, RequestStack $requestStack, LoginValidator $loginValidator, ContaoUserFactory $contaoUserFactory, InteractiveLogin $interactiveLogin, EventDispatcherInterface $eventDispatcher, LoggerInterface $logger = null)
     {
         $this->framework = $framework;
@@ -87,8 +85,8 @@ class OpenIdConnect
         $session = $this->requestStack->getCurrentRequest()->getSession()->getBag($bagName);
         $flashBag = $this->requestStack->getCurrentRequest()->getSession()->getFlashBag();
 
-        /** @var bool $blnAutocreateContaoUser */
-        $blnAutocreateContaoUser = $container->getParameter('sac_oauth2_client.oidc.autocreate_'.$contaoScope.'_user');
+        /** @var bool $blnAutoCreateContaoUser */
+        $blnAutoCreateContaoUser = $container->getParameter('sac_oauth2_client.oidc.auto_create_'.$contaoScope.'_user');
 
         /** @var bool $blnAllowLoginToSacMembersOnly */
         $blnAllowLoginToSacMembersOnly = $container->getParameter('sac_oauth2_client.oidc.allow_'.$contaoScope.'_login_to_sac_members_only');
@@ -100,25 +98,26 @@ class OpenIdConnect
         $blnAllowContaoLoginIfAccountIsDisabled = $container->getParameter('sac_oauth2_client.oidc.allow_'.$contaoScope.'_login_if_contao_account_is_disabled');
 
         // Set redirect uri
-        $this->createProvider(['redirectUri' => $container->getParameter('sac_oauth2_client.oidc.client_auth_endpoint_'.$contaoScope)]);
+        $provider = $this->createProvider(['redirectUri' => $container->getParameter('sac_oauth2_client.oidc.client_auth_endpoint_'.$contaoScope)]);
 
         // Redirect user to the authorization endpoint
         if (!$this->hasAuthCode()) {
-            $this->redirectToAuthorizationUrl();
+            $this->redirectToAuthorizationUrl($provider);
         }
 
         // Get the access Token
-        $accessToken = $this->getAccessToken();
+        $accessToken = $this->getAccessToken($provider);
 
         // Get the resource owner object
-        $resourceOwner = $this->createResourceOwnerFromAccessToken($accessToken);
+        /** @var SwissAlpineClubResourceOwner $resourceOwner */
+        $resourceOwner = $provider->getResourceOwner($accessToken);
 
         // For testing purposes only
         //$resourceOwner->overrideData($resourceOwner->getDummyResourceOwnerData(true));
 
         if ($isDebugMode) {
             // Log resource owners details
-            $text = sprintf(
+            $logText = sprintf(
                 'SAC oauth2 debug %s login. NAME: %s - SAC MEMBER ID: %s - ROLES: %s - DATA ALL: %s',
                 $contaoScope,
                 $resourceOwner->getFullName(),
@@ -127,14 +126,14 @@ class OpenIdConnect
                 json_encode($resourceOwner->toArray()),
             );
 
-            $this->log($text, __METHOD__, ContaoLogConfig::SAC_OAUTH2_DEBUG_LOG);
+            $this->log($logText, __METHOD__, ContaoLogConfig::SAC_OAUTH2_DEBUG_LOG);
         }
 
         $this->loginValidator->setContaoScope($contaoScope);
 
         // Check if uuid/sub is set
         if (!$this->loginValidator->checkHasUuid($resourceOwner)) {
-            $this->dispatchInvalidLoginAttemptEvent(InvalidLoginAttemptEvent::FAILED_CHECK_HAS_UUID, $contaoScope, $resourceOwner, null);
+            $this->dispatchInvalidLoginAttemptEvent(InvalidLoginAttemptEvent::FAILED_CHECK_HAS_UUID, $contaoScope, $resourceOwner);
 
             throw new RedirectResponseException($session->get('failurePath'));
         }
@@ -142,7 +141,7 @@ class OpenIdConnect
         // Check if user is a SAC member
         if ($blnAllowLoginToSacMembersOnly) {
             if (!$this->loginValidator->checkIsSacMember($resourceOwner)) {
-                $this->dispatchInvalidLoginAttemptEvent(InvalidLoginAttemptEvent::FAILED_CHECK_IS_SAC_MEMBER, $contaoScope, $resourceOwner, null);
+                $this->dispatchInvalidLoginAttemptEvent(InvalidLoginAttemptEvent::FAILED_CHECK_IS_SAC_MEMBER, $contaoScope, $resourceOwner);
 
                 throw new RedirectResponseException($session->get('failurePath'));
             }
@@ -151,7 +150,7 @@ class OpenIdConnect
         // Check if user is member of an allowed section
         if ($blnAllowLoginToPredefinedSectionsOnly) {
             if (!$this->loginValidator->checkIsMemberOfAllowedSection($resourceOwner)) {
-                $this->dispatchInvalidLoginAttemptEvent(InvalidLoginAttemptEvent::FAILED_CHECK_IS_MEMBER_OF_ALLOWED_SECTION, $contaoScope, $resourceOwner, null);
+                $this->dispatchInvalidLoginAttemptEvent(InvalidLoginAttemptEvent::FAILED_CHECK_IS_MEMBER_OF_ALLOWED_SECTION, $contaoScope, $resourceOwner);
 
                 throw new RedirectResponseException($session->get('failurePath'));
             }
@@ -162,7 +161,7 @@ class OpenIdConnect
         // because creating an account at https://www.sac-cas.ch
         // requires already a valid email address
         if (!$this->loginValidator->checkHasValidEmailAddress($resourceOwner)) {
-            $this->dispatchInvalidLoginAttemptEvent(InvalidLoginAttemptEvent::FAILED_CHECK_HAS_VALID_EMAIL_ADDRESS, $contaoScope, $resourceOwner, null);
+            $this->dispatchInvalidLoginAttemptEvent(InvalidLoginAttemptEvent::FAILED_CHECK_HAS_VALID_EMAIL_ADDRESS, $contaoScope, $resourceOwner);
 
             throw new RedirectResponseException($session->get('failurePath'));
         }
@@ -172,7 +171,7 @@ class OpenIdConnect
 
         // Create Contao frontend or backend user, if it doesn't exist.
         if (ContaoCoreBundle::SCOPE_FRONTEND === $contaoScope) {
-            if ($blnAutocreateContaoUser) {
+            if ($blnAutoCreateContaoUser) {
                 $contaoUser->createIfNotExists();
             }
         }
@@ -221,67 +220,55 @@ class OpenIdConnect
 
         $session->clear();
 
+        // Contao system log
+        $logText = sprintf(
+            '%s User "%s" [%s] has logged in with SAC OPENID CONNECT APP.',
+            ContaoCoreBundle::SCOPE_FRONTEND === $contaoScope ? 'Frontend' : 'Backend',
+            $resourceOwner->getFullName(),
+            $resourceOwner->getSacMemberId()
+        );
+        $this->log($logText, __METHOD__, ContaoContext::ACCESS);
+
         // All ok. The Contao user has successfully logged in.
         // Let's redirect to the target page now.
         throw new RedirectResponseException($targetPath);
     }
 
-    /**
-     * @param array $arrData
-     * @return void
-     */
-    protected function createProvider(array $arrData = []): void
+    protected function createProvider(array $arrData = []): AbstractProvider
     {
         $arrProviderConfig = array_merge(
             [
                 // The client ID assigned to you by the provider
-                'clientId'                => $this->system->getContainer()->getParameter('sac_oauth2_client.oidc.client_id'),
+                'clientId' => $this->system->getContainer()->getParameter('sac_oauth2_client.oidc.client_id'),
                 // The client password assigned to you by the provider
-                'clientSecret'            => $this->system->getContainer()->getParameter('sac_oauth2_client.oidc.client_secret'),
+                'clientSecret' => $this->system->getContainer()->getParameter('sac_oauth2_client.oidc.client_secret'),
                 // Absolute callback url to your system (must be registered by service provider.)
-                'urlAuthorize'            => $this->system->getContainer()->getParameter('sac_oauth2_client.oidc.auth_provider_endpoint_authorize'),
-                'urlAccessToken'          => $this->system->getContainer()->getParameter('sac_oauth2_client.oidc.auth_provider_endpoint_token'),
+                'urlAuthorize' => $this->system->getContainer()->getParameter('sac_oauth2_client.oidc.auth_provider_endpoint_authorize'),
+                'urlAccessToken' => $this->system->getContainer()->getParameter('sac_oauth2_client.oidc.auth_provider_endpoint_token'),
                 'urlResourceOwnerDetails' => $this->system->getContainer()->getParameter('sac_oauth2_client.oidc.auth_provider_endpoint_userinfo'),
-                'scopes'                  => ['openid'],
+                'scopes' => ['openid'],
             ],
             $arrData
         );
 
-        $this->provider = new SwissAlpineClub($arrProviderConfig, []);
+        return new SwissAlpineClub($arrProviderConfig, []);
     }
 
     /**
-     * @return bool
      * @throws \Exception
      */
     protected function hasAuthCode(): bool
     {
-        $this->assertHasProviderSet();
-
         $request = $this->requestStack->getCurrentRequest();
 
         return $request->query->has('code');
     }
 
     /**
-     * @return void
      * @throws \Exception
      */
-    protected function assertHasProviderSet(): void
+    protected function redirectToAuthorizationUrl(AbstractProvider $provider): void
     {
-        if (!$this->provider) {
-            throw new \Exception(sprintf('No OAuth provider has been set. Please use %s::createProvider() to create an OAuth provider.', __CLASS__));
-        }
-    }
-
-    /**
-     * @return void
-     * @throws \Exception
-     */
-    protected function redirectToAuthorizationUrl(): void
-    {
-        $this->assertHasProviderSet();
-
         /** @var string $bagName */
         $bagName = $this->system->getContainer()->getParameter('sac_oauth2_client.session.attribute_bag_name');
 
@@ -291,23 +278,20 @@ class OpenIdConnect
         // Fetch the authorization URL from the provider;
         // this returns the urlAuthorize option and generates and applies any necessary parameters
         // (e.g. state).
-        $authorizationUrl = $this->provider->getAuthorizationUrl();
+        $authorizationUrl = $provider->getAuthorizationUrl();
 
         // Get the state and store it to the session.
-        $session->set('oauth2state', $this->provider->getState());
+        $session->set('oauth2state', $provider->getState());
 
         // Redirect the user to the authorization URL.
         throw new RedirectResponseException($authorizationUrl);
     }
 
     /**
-     * @return AccessToken
      * @throws \Exception
      */
-    protected function getAccessToken(): AccessToken
+    protected function getAccessToken(AbstractProvider $provider): AccessToken
     {
-        $this->assertHasProviderSet();
-
         $request = $this->requestStack->getCurrentRequest();
 
         /** @var string $bagName */
@@ -326,7 +310,7 @@ class OpenIdConnect
             }
 
             // Try to get an access token using the authorization code grant.
-            $accessToken = $this->provider->getAccessToken('authorization_code', [
+            $accessToken = $provider->getAccessToken('authorization_code', [
                 'code' => $request->query->get('code'),
             ]);
         } catch (BadQueryStringException|IdentityProviderException $e) {
@@ -336,46 +320,19 @@ class OpenIdConnect
         return $accessToken;
     }
 
-    /**
-     * @param $accessToken
-     * @return SwissAlpineClubResourceOwner
-     * @throws \Exception
-     */
-    protected function createResourceOwnerFromAccessToken($accessToken): SwissAlpineClubResourceOwner
-    {
-        $this->assertHasProviderSet();
-
-        if (null === $this->resourceOwner) {
-            $this->resourceOwner = $this->provider->getResourceOwner($accessToken);
-        }
-
-        return $this->resourceOwner;
-    }
-
-    private function log(string $text, string $method, string $context): void
+    protected function log(string $logText, string $method, string $context): void
     {
         if (null !== $this->logger) {
             $this->logger->info(
-                $text,
+                $logText,
                 ['contao' => new ContaoContext($method, $context, null)]
             );
         }
     }
 
-    private function dispatchInvalidLoginAttemptEvent(string $causeOfError, string $contaoScope, SwissAlpineClubResourceOwner $resourceOwner, ContaoUser $contaoUser = null): void
+    protected function dispatchInvalidLoginAttemptEvent(string $causeOfError, string $contaoScope, SwissAlpineClubResourceOwner $resourceOwner, ContaoUser $contaoUser = null): void
     {
         $event = new InvalidLoginAttemptEvent($causeOfError, $contaoScope, $resourceOwner, $contaoUser);
         $this->eventDispatcher->dispatch($event, InvalidLoginAttemptEvent::NAME);
-    }
-
-    /**
-     * @return SwissAlpineClub|null
-     * @throws \Exception
-     */
-    protected function getProvider(): SwissAlpineClub|null
-    {
-        $this->assertHasProviderSet();
-
-        return $this->provider;
     }
 }
