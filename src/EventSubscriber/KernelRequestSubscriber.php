@@ -37,7 +37,7 @@ class KernelRequestSubscriber implements EventSubscriberInterface
     {
         $request = $e->getRequest();
 
-        $GLOBALS['TL_JAVASCRIPT'][] = 'bundles/markocupicswissalpineclubcontaologinclient/js/ids-kill-session.js|static';
+        $GLOBALS['TL_JAVASCRIPT'][] = 'bundles/markocupicswissalpineclubcontaologinclient/js/ids-kill-session.min.js|static';
 
         if ($this->scopeMatcher->isBackendRequest($request)) {
             if (false !== strpos($request->getUri(), '/contao/login')) {
