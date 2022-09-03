@@ -32,17 +32,17 @@ body {
   display: flex;
   justify-content: end;
 }
-#mod_swiss_alpine_club_oidc_backend_login .sac-oidc-error.backend .errorBox {
+#mod_swiss_alpine_club_oidc_backend_login .sac-oidc-error.backend .error-box {
   margin-top: 1rem;
   padding-top: 1rem;
 }
-#mod_swiss_alpine_club_oidc_backend_login .sac-oidc-error.backend .errorBox .error-title {
+#mod_swiss_alpine_club_oidc_backend_login .sac-oidc-error.backend .error-box .error-title {
   font-size: 0.875rem;
   color: #ff2117;
   font-weight: 600;
   margin-top: 10px;
 }
-#mod_swiss_alpine_club_oidc_backend_login .sac-oidc-error.backend .errorBox p {
+#mod_swiss_alpine_club_oidc_backend_login .sac-oidc-error.backend .error-box p {
   font-size: 0.875rem;
   line-height: normal;
   color: #797979;
