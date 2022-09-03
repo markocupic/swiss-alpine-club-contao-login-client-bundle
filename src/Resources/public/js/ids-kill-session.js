@@ -44,7 +44,7 @@ window.onload = function () {
         fetch('/_contao/logout');
 
         // Get logout endpoint
-        fetch('/ssoauth/send_logout_endpoint').then(function (response) {
+        fetch('/ssoauth/get_logout_endpoint').then(function (response) {
             return response.json();
         }).then(function (json) {
             // Logout
