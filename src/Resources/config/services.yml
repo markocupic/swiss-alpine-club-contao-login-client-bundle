@@ -5,6 +5,7 @@ services:
     arguments:
       - '@contao.framework'
       - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\OpenIdConnect\OpenIdConnect'
+      - '%sac_oauth2_client.oidc.auth_provider_endpoint_logout%'
     calls:
       - [ 'setContainer', [ '@Psr\Container\ContainerInterface' ] ]
 

@@ -16,7 +16,6 @@ namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\Authentic
 
 use Contao\CoreBundle\Exception\ResponseException;
 use Contao\CoreBundle\Framework\ContaoFramework;
-use Contao\System;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\OpenIdConnect\OpenIdConnect;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -27,11 +26,13 @@ class AuthenticationController extends AbstractController
 {
     private ContaoFramework $framework;
     private OpenIdConnect $openIdConnect;
+    private string $authProviderLogoutEndpoint;
 
-    public function __construct(ContaoFramework $framework, OpenIdConnect $openIdConnect)
+    public function __construct(ContaoFramework $framework, OpenIdConnect $openIdConnect, string $authProviderLogoutEndpoint)
     {
         $this->framework = $framework;
         $this->openIdConnect = $openIdConnect;
+        $this->authProviderLogoutEndpoint = $authProviderLogoutEndpoint;
     }
 
     /**
@@ -77,14 +78,11 @@ class AuthenticationController extends AbstractController
     {
         $this->framework->initialize();
 
-        /** @var System $configAdapter */
-        $systemAdapter = $this->framework->getAdapter(System::class);
-
-        $data = [
+        $json = [
             'success' => 'true',
-            'logout_endpoint_url' => $systemAdapter->getContainer()->getParameter('sac_oauth2_client.oidc.auth_provider_endpoint_logout'),
+            'logout_endpoint_url' => $this->authProviderLogoutEndpoint,
         ];
 
-        return new JsonResponse($data);
+        return new JsonResponse($json);
     }
 }
