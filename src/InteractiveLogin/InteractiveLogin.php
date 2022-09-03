@@ -17,7 +17,6 @@ namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\InteractiveLogin;
 use Contao\BackendUser;
 use Contao\CoreBundle\ContaoCoreBundle;
 use Contao\CoreBundle\Framework\ContaoFramework;
-use Contao\CoreBundle\Monolog\ContaoContext;
 use Contao\CoreBundle\Security\User\ContaoUserProvider;
 use Contao\FrontendUser;
 use Contao\MemberModel;
@@ -25,10 +24,8 @@ use Contao\System;
 use Contao\User;
 use Contao\UserModel;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Event\PreInteractiveLoginEvent;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\Provider\SwissAlpineClubResourceOwner;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\User\ContaoUser;
 use Psr\Log\LoggerInterface;
-use Psr\Log\LogLevel;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
@@ -111,16 +108,12 @@ class InteractiveLogin
         $event = new InteractiveLoginEvent($this->requestStack->getCurrentRequest(), $token);
         $this->eventDispatcher->dispatch($event, 'security.interactive_login');
 
-        /** @var SwissAlpineClubResourceOwner $resourceOwner */
-        $resourceOwner = $contaoUser->getResourceOwner();
-
         if ($user instanceof FrontendUser) {
             if (null !== ($objUser = $memberModelAdapter->findByUsername($user->username))) {
                 $objUser->lastLogin = $objUser->currentLogin;
                 $objUser->currentLogin = time();
                 $objUser->save();
             }
-            $logTxt = sprintf('Frontend User "%s" [%s] has logged in with SAC OPENID CONNECT APP.', $resourceOwner->getFullName(), $resourceOwner->getSacMemberId());
         }
 
         if ($user instanceof BackendUser) {
@@ -129,17 +122,9 @@ class InteractiveLogin
                 $objUser->currentLogin = time();
                 $objUser->save();
             }
-            $logTxt = sprintf('Backend user "%s" [%s] has logged in with SAC OPENID CONNECT APP.', $resourceOwner->getFullName(), $resourceOwner->getSacMemberId());
         }
 
-        // Now the user is logged in!
-        if ($this->logger && isset($logTxt)) {
-            $this->logger->log(
-                LogLevel::INFO,
-                $logTxt,
-                ['contao' => new ContaoContext(__METHOD__, ContaoContext::ACCESS)]
-            );
-        }
+        // Contao user is logged in now!
 
         // Trigger the Contao post login hook
         $this->triggerPostLoginHook($user);
