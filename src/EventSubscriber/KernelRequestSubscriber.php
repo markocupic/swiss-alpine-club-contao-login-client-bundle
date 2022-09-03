@@ -15,32 +15,37 @@ declare(strict_types=1);
 namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\EventSubscriber;
 
 use Contao\CoreBundle\Routing\ScopeMatcher;
+use JetBrains\PhpStorm\ArrayShape;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 class KernelRequestSubscriber implements EventSubscriberInterface
 {
     private ScopeMatcher $scopeMatcher;
+    private UrlGeneratorInterface $router;
 
-    public function __construct(ScopeMatcher $scopeMatcher)
+    public function __construct(ScopeMatcher $scopeMatcher, UrlGeneratorInterface $router)
     {
         $this->scopeMatcher = $scopeMatcher;
+        $this->router = $router;
     }
 
-    public static function getSubscribedEvents()
+    #[ArrayShape([KernelEvents::REQUEST => 'string'])]
+    public static function getSubscribedEvents(): array
     {
-        return [KernelEvents::REQUEST => 'onKernelRequest'];
+        return [KernelEvents::REQUEST => 'loadAssets'];
     }
 
-    public function onKernelRequest(RequestEvent $e): void
+    public function loadAssets(RequestEvent $e): void
     {
         $request = $e->getRequest();
 
         $GLOBALS['TL_JAVASCRIPT'][] = 'bundles/markocupicswissalpineclubcontaologinclient/js/ids-kill-session.min.js|static';
 
         if ($this->scopeMatcher->isBackendRequest($request)) {
-            if (false !== strpos($request->getUri(), '/contao/login')) {
+            if (str_contains($request->getUri(), $this->router->generate('contao_backend_login'))) {
                 $GLOBALS['TL_CSS'][] = 'bundles/markocupicswissalpineclubcontaologinclient/css/sac_login_button.min.css|static';
                 $GLOBALS['TL_CSS'][] = 'bundles/markocupicswissalpineclubcontaologinclient/css/backend.min.css';
             }
