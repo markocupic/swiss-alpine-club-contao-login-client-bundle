@@ -49,7 +49,7 @@
 	<?php endif; ?>
 	<?php if (!$this->disableContaoLogin): ?>
 	<div class="login-button-separator-container">
-		<div class="login-button-separator">oder</div>
+		<div class="login-button-separator"><?= $this->trans('MSC.or', [], 'contao_default') ?></div>
 	</div>
 	<?php endif; ?>
 

@@ -23,6 +23,7 @@ $GLOBALS['TL_LANG']['MSC']['warningMatter'] = 'Warnung';
 $GLOBALS['TL_LANG']['MSC']['errorMatter'] = 'Fehlermeldung';
 $GLOBALS['TL_LANG']['MSC']['errorHowToFix'] = 'Was kann ich tun?';
 $GLOBALS['TL_LANG']['MSC']['errorExplain'] = 'Erklärung';
+$GLOBALS['TL_LANG']['MSC']['or'] = 'or';
 
 $GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_accountDisabled_matter'] = 'Hallo %s{{br}}Schön bist du hier. Leider hat die Überprüfung deiner vom Identity Provider an uns übermittelten Daten fehlgeschlagen.';
 $GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_accountDisabled_howToFix'] = 'Falls du der Meinung bist, dass es sich hier um einen Irrtum handelt, dann melde dich bei der Geschäftsstelle.';
