@@ -23,7 +23,7 @@ $GLOBALS['TL_CSS'][] = 'bundles/markocupicswissalpineclubcontaologinclient/css/s
             <div class="sac-login-button-prepend">
                 <img src="bundles/markocupicswissalpineclubcontaologinclient/img/logo_sac_small.svg" class="sac-login-button-prepend-icon">
             </div>
-            <button type="submit"><?= $this->btnLbl ?> <span style="font-size:1rem;">{{arrow::RIGHTWARDS_ARROW}}</span></button>
+            <button type="submit"><?= $this->btnLbl ?> <span style="font-size:1rem;">&#8594</span></button>
         </div>
     </div>
 </form>
