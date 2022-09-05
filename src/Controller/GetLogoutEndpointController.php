@@ -19,7 +19,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
- * @Route("/ssoauth/get_logout_endpoint", name="swiss_alpine_club_sso_login_get_logout_endpoint")
+ * @Route("/ssoauth/get_logout_endpoint", priority="10", name="swiss_alpine_club_sso_login_get_logout_endpoint")
  */
 class GetLogoutEndpointController extends AbstractController
 {

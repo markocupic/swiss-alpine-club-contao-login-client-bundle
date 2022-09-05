@@ -12,7 +12,7 @@ declare(strict_types=1);
  * @link https://github.com/markocupic/swiss-alpine-club-contao-login-client-bundle
  */
 
-namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\OpenIdConnect;
+namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller;
 
 use Contao\CoreBundle\ContaoCoreBundle;
 use Contao\CoreBundle\Exception\RedirectResponseException;
@@ -35,12 +35,21 @@ use Markocupic\SwissAlpineClubContaoLoginClientBundle\User\ContaoUserFactory;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Validator\LoginValidator;
 use Psr\Log\LoggerInterface;
 use Safe\Exceptions\JsonException;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Session\Session;
+use Symfony\Component\Routing\Annotation\Route;
 use function Safe\json_encode;
 
-class OpenIdConnect
+/**
+ * This controller handles the SSO authentication flow.
+ * Add your custom controller with a higher priority, if you want to override the existing controller.
+ *
+ * @Route("/ssoauth/frontend", priority=10, name="swiss_alpine_club_sso_login_frontend", defaults={"_scope" = "frontend", "_token_check" = false})
+ * @Route("/ssoauth/backend", priority=10, name="swiss_alpine_club_sso_login_backend", defaults={"_scope" = "backend", "_token_check" = false})
+ */
+class ContaoSingleSignOnAuthenticationController extends AbstractController
 {
     private ContaoFramework $framework;
     private Initializer $initializer;
@@ -72,8 +81,10 @@ class OpenIdConnect
     /**
      * @throws JsonException
      */
-    public function authenticate(string $contaoScope): void
+    public function __invoke(string $_scope): void
     {
+        $contaoScope = $_scope;
+
         $this->initializer->initialize();
         $container = $this->system->getContainer();
 
