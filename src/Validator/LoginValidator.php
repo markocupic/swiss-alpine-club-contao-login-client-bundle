@@ -117,7 +117,7 @@ class LoginValidator
             $this->errorMessageManager->add2Flash(
                 new ErrorMessage(
                     ErrorMessage::LEVEL_WARNING,
-                    $this->translator->trans('ERR.sacOidcLoginError_invalidEmail_matter', [$resourceOwner->getFirstName()()], 'contao_default'),
+                    $this->translator->trans('ERR.sacOidcLoginError_invalidEmail_matter', [$resourceOwner->getFirstName()], 'contao_default'),
                     $this->translator->trans('ERR.sacOidcLoginError_invalidEmail_howToFix', [], 'contao_default'),
                     $this->translator->trans('ERR.sacOidcLoginError_invalidEmail_explain', [], 'contao_default'),
                 )
