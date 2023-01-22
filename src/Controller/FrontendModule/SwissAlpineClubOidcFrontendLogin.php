@@ -5,7 +5,7 @@ declare(strict_types=1);
 /*
  * This file is part of Swiss Alpine Club Contao Login Client Bundle.
  *
- * (c) Marko Cupic 2022 <m.cupic@gmx.ch>
+ * (c) Marko Cupic 2023 <m.cupic@gmx.ch>
  * @license MIT
  * For the full copyright and license information,
  * please view the LICENSE file that was distributed with this source code.
@@ -24,7 +24,7 @@ use Contao\PageModel;
 use Contao\StringUtil;
 use Contao\System;
 use Contao\Template;
-use Haste\Util\Url;
+use JustSteveKing\UriBuilder\Uri;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
@@ -63,8 +63,8 @@ class SwissAlpineClubOidcFrontendLogin extends AbstractFrontendModuleController
         /** @var StringUtil $stringUtilAdapter */
         $stringUtilAdapter = $this->framework->getAdapter(StringUtil::class);
 
-        /** @var Url $urlAdapter */
-        $urlAdapter = $this->framework->getAdapter(Url::class);
+        /** @var Uri $urlAdapter */
+        $uriAdapter = $this->framework->getAdapter(Uri::class);
 
         // Get logged in member object
         if (($user = $this->security->getUser()) instanceof FrontendUser) {
@@ -85,8 +85,9 @@ class SwissAlpineClubOidcFrontendLogin extends AbstractFrontendModuleController
             // Since Contao 4.9 urls are base64 encoded
             $template->targetPath = $stringUtilAdapter->specialchars(base64_encode($strRedirect));
 
-            $failurePath = $urlAdapter->addQueryString('sso_error=true', $environmentAdapter->get('uri'));
-            $template->failurePath = $stringUtilAdapter->specialchars(base64_encode($failurePath));
+            $uri = $uriAdapter->fromString($request->getUri());
+            $uri->addQueryParam('sso_error', 'true');
+            $template->failurePath = $stringUtilAdapter->specialchars(base64_encode($uri->toString()));
 
             $template->login = true;
 

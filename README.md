@@ -12,12 +12,12 @@ SAC Mitglieder der Sektion können sich mit ihrer Mitgliedsnummer und ihrem Pass
 | ![SAC Login](docs/img/screenshot_backend_readme.png) | ![SAC Login](docs/img/screenshot_remote_login_form_readme.png) |
 | Bei Klick auf den Login Button erfolgt die Weiterleitug zum Login Formular des Schweizerischen Alpenclubs | Login Formular Schweizerischer Alpenclub |
 
-## Abhängigkeiten
-Die Erweiterung basiert auf:
+## Dependencies
+Die Erweiterung besitzt folgende Abhängigkeiten:
 - [contao/contao](https://github.com/contao/contao)
 - [markocupic/sac-event-tool-bundle](https://github.com/markocupic/sac-event-tool-bundle) 
 - [thephpleague/oauth2-client](https://github.com/thephpleague/oauth2-client)
-- [codefog/contao-haste](https://github.com/codefog/contao-haste)
+- [juststeveking/uri-builder](https://github.com/juststeveking/uri-builder)
 
 ## Hilfe/HowTo
 [The PHP League Oauth2 client](https://oauth2-client.thephpleague.com/usage/)

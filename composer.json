@@ -1,46 +1,46 @@
 {
-  "name": "markocupic/swiss-alpine-club-contao-login-client-bundle",
-  "description": "Contao SSO Login Client for OIDC Server at Swiss Alpine Club",
-  "keywords": [
-    "Contao",
-    "Swiss Alpine Club SAC",
-    "SAC Single Sign On - SSO-Login",
-    "OAuth2 Client",
-    "SSO"
-  ],
-  "type": "contao-bundle",
-  "license": "MIT",
-  "authors": [
-    {
-      "name": "Marko Cupic",
-      "homepage": "https://github.com/markocupic",
-      "role": "Developer"
+    "name": "markocupic/swiss-alpine-club-contao-login-client-bundle",
+    "description": "Contao SSO Login Client for OIDC Server at Swiss Alpine Club",
+    "keywords": [
+        "Contao",
+        "Swiss Alpine Club SAC",
+        "SAC Single Sign On - SSO-Login",
+        "OAuth2 Client",
+        "SSO"
+    ],
+    "type": "contao-bundle",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Marko Cupic",
+            "homepage": "https://github.com/markocupic",
+            "role": "Developer"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/markocupic/swiss-alpine-club-contao-login-client-bundle/issues",
+        "source": "https://github.com/markocupic/swiss-alpine-club-contao-login-client-bundle"
+    },
+    "require": {
+        "php": "^8.1",
+        "league/oauth2-client": "^2.6",
+        "contao/core-bundle": "^4.13",
+        "juststeveking/uri-builder": "^3.0",
+        "markocupic/sac-event-tool-bundle": "*"
+    },
+    "require-dev": {
+        "contao/easy-coding-standard": "^5.0",
+        "contao/manager-plugin": "^2.3.1",
+        "contao/test-case": "^4.6",
+        "phpunit/phpunit": "^9.3",
+        "symfony/phpunit-bridge": "^5.4"
+    },
+    "autoload": {
+        "psr-4": {
+            "Markocupic\\SwissAlpineClubContaoLoginClientBundle\\": "src/"
+        }
+    },
+    "extra": {
+        "contao-manager-plugin": "Markocupic\\SwissAlpineClubContaoLoginClientBundle\\ContaoManager\\Plugin"
     }
-  ],
-  "support": {
-    "issues": "https://github.com/markocupic/swiss-alpine-club-contao-login-client-bundle/issues",
-    "source": "https://github.com/markocupic/swiss-alpine-club-contao-login-client-bundle"
-  },
-  "require": {
-    "php": "^8.0",
-    "league/oauth2-client": "^2.6",
-    "contao/core-bundle": "^4.13",
-    "codefog/contao-haste": "^4.20",
-    "markocupic/sac-event-tool-bundle": "*"
-  },
-  "require-dev": {
-    "contao/easy-coding-standard": "^5.0",
-    "contao/manager-plugin": "^2.3.1",
-    "contao/test-case": "^4.6",
-    "phpunit/phpunit": "^9.3",
-    "symfony/phpunit-bridge": "^5.4"
-  },
-  "autoload": {
-    "psr-4": {
-      "Markocupic\\SwissAlpineClubContaoLoginClientBundle\\": "src/"
-    }
-  },
-  "extra": {
-    "contao-manager-plugin": "Markocupic\\SwissAlpineClubContaoLoginClientBundle\\ContaoManager\\Plugin"
-  }
 }
