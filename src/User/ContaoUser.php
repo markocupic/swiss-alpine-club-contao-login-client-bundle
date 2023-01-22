@@ -5,7 +5,7 @@ declare(strict_types=1);
 /*
  * This file is part of Swiss Alpine Club Contao Login Client Bundle.
  *
- * (c) Marko Cupic 2022 <m.cupic@gmx.ch>
+ * (c) Marko Cupic 2023 <m.cupic@gmx.ch>
  * @license MIT
  * For the full copyright and license information,
  * please view the LICENSE file that was distributed with this source code.
@@ -39,7 +39,7 @@ class ContaoUser
     private LoginValidator $loginValidator;
     private ErrorMessageManager $errorMessageManager;
     private string $contaoScope = '';
-    private ?SwissAlpineClubResourceOwner $resourceOwner = null;
+    private SwissAlpineClubResourceOwner|null $resourceOwner = null;
 
     public function __construct(ContaoFramework $framework, TranslatorInterface $translator, PasswordHasherFactoryInterface $hasherFactory, LoginValidator $loginValidator, ErrorMessageManager $errorMessageManager)
     {
@@ -51,7 +51,7 @@ class ContaoUser
     }
 
     /**
-     * This is the first method that has to be called
+     * This is the first method that has to be called.
      *
      * @throws \Exception
      */
@@ -61,7 +61,7 @@ class ContaoUser
         $this->setContaoScope($scope);
     }
 
-    public function getResourceOwner(): ?SwissAlpineClubResourceOwner
+    public function getResourceOwner(): SwissAlpineClubResourceOwner|null
     {
         return $this->resourceOwner;
     }
@@ -69,7 +69,7 @@ class ContaoUser
     /**
      * @throws \Exception
      */
-    public function getContaoScope(): ?string
+    public function getContaoScope(): string|null
     {
         if (empty($this->contaoScope)) {
             throw new \Exception('No Contao scope has been set.');
@@ -81,9 +81,8 @@ class ContaoUser
     /**
      * @throws \Exception
      */
-    public function getModel(string $strTable = ''): ?Model
+    public function getModel(string $strTable = ''): Model|null
     {
-
         if ('tl_member' === $strTable || ContaoCoreBundle::SCOPE_FRONTEND === $this->getContaoScope()) {
             /** @var MemberModel $memberModelAdapter */
             $memberModelAdapter = $this->framework->getAdapter(MemberModel::class);
@@ -206,7 +205,6 @@ class ContaoUser
         $objMember = $this->getModel('tl_member');
 
         if (null !== $objMember) {
-
             // Update member details from JSON payload
             $objMember->mobile = $this->beautifyPhoneNumber($this->resourceOwner->getPhoneMobile());
             $objMember->phone = $this->beautifyPhoneNumber($this->resourceOwner->getPhonePrivate());
@@ -238,21 +236,19 @@ class ContaoUser
             $arrAutoGroups = $systemAdapter->getContainer()->getParameter('sac_oauth2_client.oidc.add_to_frontend_user_groups');
 
             if (!empty($arrAutoGroups) && \is_array($arrAutoGroups)) {
-
                 foreach ($arrAutoGroups as $groupId) {
-                    if (!in_array($groupId, $arrGroups, false)) {
+                    if (!\in_array($groupId, $arrGroups, false)) {
                         $arrGroups[] = $groupId;
                     }
                 }
 
                 $objMember->groups = serialize($arrGroups);
-
             }
 
             // Set random password
             if (empty($objMember->password)) {
                 $encoder = $this->hasherFactory->getPasswordHasher(FrontendUser::class);
-                $objMember->password = $encoder->hash(substr(md5((string)random_int(900009, 111111111111)), 0, 8), null);
+                $objMember->password = $encoder->hash(substr(md5((string) random_int(900009, 111111111111)), 0, 8), null);
             }
 
             // Save
@@ -267,7 +263,6 @@ class ContaoUser
      */
     public function updateBackendUser(): void
     {
-
         $objUser = $this->getModel('tl_user');
 
         if (null !== $objUser) {
@@ -290,7 +285,7 @@ class ContaoUser
             // Set random password
             if (empty($objUser->password)) {
                 $passwordHasher = $this->hasherFactory->getPasswordHasher(BackendUser::class);
-                $objUser->password = $passwordHasher->hash(substr(md5((string)random_int(900009, 111111111111)), 0, 8), null);
+                $objUser->password = $passwordHasher->hash(substr(md5((string) random_int(900009, 111111111111)), 0, 8), null);
             }
 
             // Save
@@ -302,7 +297,6 @@ class ContaoUser
 
     /**
      * @param $username
-     * @return bool
      */
     public function isValidUsername($username): bool
     {

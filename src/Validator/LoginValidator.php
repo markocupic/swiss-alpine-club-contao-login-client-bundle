@@ -5,7 +5,7 @@ declare(strict_types=1);
 /*
  * This file is part of Swiss Alpine Club Contao Login Client Bundle.
  *
- * (c) Marko Cupic 2022 <m.cupic@gmx.ch>
+ * (c) Marko Cupic 2023 <m.cupic@gmx.ch>
  * @license MIT
  * For the full copyright and license information,
  * please view the LICENSE file that was distributed with this source code.
@@ -168,6 +168,17 @@ class LoginValidator
     }
 
     /**
+     * @throws \Exception
+     */
+    public function setContaoScope(string $contaoScope): void
+    {
+        if (ContaoCoreBundle::SCOPE_FRONTEND !== $contaoScope && ContaoCoreBundle::SCOPE_BACKEND !== $contaoScope) {
+            throw new \Exception('Scope should be either "backend" or "frontend".');
+        }
+        $this->contaoScope = $contaoScope;
+    }
+
+    /**
      * Return all SAC section ids a resource owner belongs to.
      */
     private function getSacSectionIds(SwissAlpineClubResourceOwner $resourceOwner): array
@@ -182,16 +193,5 @@ class LoginValidator
         $pattern = static::NAV_SECTION_ID_REGEX;
 
         return preg_match_all($pattern, $strRoles, $matches) ? array_unique(array_map('intval', $matches[1])) : [];
-    }
-
-    /**
-     * @throws \Exception
-     */
-    public function setContaoScope(string $contaoScope): void
-    {
-        if (ContaoCoreBundle::SCOPE_FRONTEND !== $contaoScope && ContaoCoreBundle::SCOPE_BACKEND !== $contaoScope) {
-            throw new \Exception('Scope should be either "backend" or "frontend".');
-        }
-        $this->contaoScope = $contaoScope;
     }
 }
