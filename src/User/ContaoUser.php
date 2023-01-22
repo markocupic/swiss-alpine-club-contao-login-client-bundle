@@ -33,21 +33,16 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 
 class ContaoUser
 {
-    private ContaoFramework $framework;
-    private TranslatorInterface $translator;
-    private PasswordHasherFactoryInterface $hasherFactory;
-    private LoginValidator $loginValidator;
-    private ErrorMessageManager $errorMessageManager;
     private string $contaoScope = '';
     private SwissAlpineClubResourceOwner|null $resourceOwner = null;
 
-    public function __construct(ContaoFramework $framework, TranslatorInterface $translator, PasswordHasherFactoryInterface $hasherFactory, LoginValidator $loginValidator, ErrorMessageManager $errorMessageManager)
-    {
-        $this->framework = $framework;
-        $this->translator = $translator;
-        $this->hasherFactory = $hasherFactory;
-        $this->loginValidator = $loginValidator;
-        $this->errorMessageManager = $errorMessageManager;
+    public function __construct(
+        private readonly ContaoFramework $framework,
+        private readonly TranslatorInterface $translator,
+        private readonly PasswordHasherFactoryInterface $hasherFactory,
+        private readonly LoginValidator $loginValidator,
+        private readonly ErrorMessageManager $errorMessageManager,
+    ) {
     }
 
     /**

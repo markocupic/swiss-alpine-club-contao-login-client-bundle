@@ -18,13 +18,10 @@ use Symfony\Component\HttpFoundation\RequestStack;
 
 class ErrorMessageManager
 {
-    private string $flashBagKey;
-    private RequestStack $requestStack;
-
-    public function __construct(string $flashBagKey, RequestStack $requestStack)
-    {
-        $this->flashBagKey = $flashBagKey;
-        $this->requestStack = $requestStack;
+    public function __construct(
+        private readonly string $flashBagKey,
+        private readonly RequestStack $requestStack,
+    ) {
     }
 
     /**

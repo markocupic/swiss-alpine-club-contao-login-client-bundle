@@ -26,15 +26,11 @@ use Symfony\Component\Security\Csrf\CsrfTokenManager;
 
 class Initializer
 {
-    private ContaoFramework $framework;
-    private RequestStack $requestStack;
-    private CsrfTokenManager $csrfTokenManager;
-
-    public function __construct(ContaoFramework $framework, RequestStack $requestStack, CsrfTokenManager $csrfTokenManager)
-    {
-        $this->framework = $framework;
-        $this->requestStack = $requestStack;
-        $this->csrfTokenManager = $csrfTokenManager;
+    public function __construct(
+        private readonly ContaoFramework $framework,
+        private readonly RequestStack $requestStack,
+        private readonly CsrfTokenManager $csrfTokenManager,
+    ) {
     }
 
     public function initialize(): void

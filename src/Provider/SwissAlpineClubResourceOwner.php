@@ -18,13 +18,10 @@ use League\OAuth2\Client\Provider\ResourceOwnerInterface;
 
 class SwissAlpineClubResourceOwner implements ResourceOwnerInterface
 {
-    protected array $arrData;
-    protected string $resourceOwnerId;
-
-    public function __construct(array $response, string $resourceOwnerId)
-    {
-        $this->resourceOwnerId = $resourceOwnerId;
-        $this->arrData = $response;
+    public function __construct(
+        protected array $arrData,
+        protected string $resourceOwnerId,
+    ) {
     }
 
     /**

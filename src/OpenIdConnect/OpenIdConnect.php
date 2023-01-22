@@ -42,29 +42,19 @@ use function Safe\json_encode;
 
 class OpenIdConnect
 {
-    private ContaoFramework $framework;
-    private Initializer $initializer;
-    private RequestStack $requestStack;
-    private LoginValidator $loginValidator;
-    private ContaoUserFactory $contaoUserFactory;
-    private InteractiveLogin $interactiveLogin;
-    private EventDispatcherInterface $eventDispatcher;
-    private LoggerInterface|null $logger;
-
     // Adapter
     private Adapter $system;
 
-    public function __construct(ContaoFramework $framework, Initializer $initializer, RequestStack $requestStack, LoginValidator $loginValidator, ContaoUserFactory $contaoUserFactory, InteractiveLogin $interactiveLogin, EventDispatcherInterface $eventDispatcher, LoggerInterface $logger = null)
-    {
-        $this->framework = $framework;
-        $this->initializer = $initializer;
-        $this->requestStack = $requestStack;
-        $this->loginValidator = $loginValidator;
-        $this->contaoUserFactory = $contaoUserFactory;
-        $this->interactiveLogin = $interactiveLogin;
-        $this->eventDispatcher = $eventDispatcher;
-        $this->logger = $logger;
-
+    public function __construct(
+        private readonly ContaoFramework $framework,
+        private readonly Initializer $initializer,
+        private readonly RequestStack $requestStack,
+        private readonly LoginValidator $loginValidator,
+        private readonly ContaoUserFactory $contaoUserFactory,
+        private readonly InteractiveLogin $interactiveLogin,
+        private readonly EventDispatcherInterface $eventDispatcher,
+        private readonly LoggerInterface|null $logger = null,
+    ) {
         // Adapters
         $this->system = $this->framework->getAdapter(System::class);
     }

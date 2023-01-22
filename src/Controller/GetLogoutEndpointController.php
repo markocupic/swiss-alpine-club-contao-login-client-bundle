@@ -23,11 +23,9 @@ use Symfony\Component\Routing\Annotation\Route;
  */
 class GetLogoutEndpointController extends AbstractController
 {
-    private string $authProviderLogoutEndpoint;
-
-    public function __construct(string $authProviderLogoutEndpoint)
-    {
-        $this->authProviderLogoutEndpoint = $authProviderLogoutEndpoint;
+    public function __construct(
+        private readonly string $authProviderLogoutEndpoint,
+    ) {
     }
 
     public function __invoke(): JsonResponse

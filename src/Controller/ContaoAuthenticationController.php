@@ -30,13 +30,10 @@ use Symfony\Component\Routing\Annotation\Route;
  */
 class ContaoAuthenticationController extends AbstractController
 {
-    private ContaoFramework $framework;
-    private OpenIdConnect $openIdConnect;
-
-    public function __construct(ContaoFramework $framework, OpenIdConnect $openIdConnect)
-    {
-        $this->framework = $framework;
-        $this->openIdConnect = $openIdConnect;
+    public function __construct(
+        private readonly ContaoFramework $framework,
+        private readonly OpenIdConnect $openIdConnect,
+    ) {
     }
 
     /**

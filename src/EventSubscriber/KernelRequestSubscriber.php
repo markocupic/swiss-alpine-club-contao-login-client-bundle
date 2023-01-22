@@ -23,13 +23,10 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 class KernelRequestSubscriber implements EventSubscriberInterface
 {
-    private ScopeMatcher $scopeMatcher;
-    private UrlGeneratorInterface $router;
-
-    public function __construct(ScopeMatcher $scopeMatcher, UrlGeneratorInterface $router)
-    {
-        $this->scopeMatcher = $scopeMatcher;
-        $this->router = $router;
+    public function __construct(
+        private readonly ScopeMatcher $scopeMatcher,
+        private readonly UrlGeneratorInterface $router,
+    ) {
     }
 
     #[ArrayShape([KernelEvents::REQUEST => 'string'])]

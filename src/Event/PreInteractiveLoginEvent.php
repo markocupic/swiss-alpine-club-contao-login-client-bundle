@@ -22,17 +22,12 @@ final class PreInteractiveLoginEvent extends Event
 {
     public const NAME = 'sac_oauth2_client.pre_interactive_login';
 
-    private string $userIdentifier;
-    private string $userClass;
-    private ContaoUserProvider $userProvider;
-    private SwissAlpineClubResourceOwner $resourceOwner;
-
-    public function __construct(string $userIdentifier, string $userClass, ContaoUserProvider $userProvider, SwissAlpineClubResourceOwner $resourceOwner)
-    {
-        $this->userIdentifier = $userIdentifier;
-        $this->userClass = $userClass;
-        $this->userProvider = $userProvider;
-        $this->resourceOwner = $resourceOwner;
+    public function __construct(
+        private readonly string $userIdentifier,
+        private readonly string $userClass,
+        private readonly ContaoUserProvider $userProvider,
+        private readonly SwissAlpineClubResourceOwner $resourceOwner,
+    ) {
     }
 
     public function getUserIdentifier(): string

@@ -38,19 +38,13 @@ class InteractiveLogin
     public const SECURED_AREA_FRONTEND = 'contao_frontend';
     public const SECURED_AREA_BACKEND = 'contao_backend';
 
-    private ContaoFramework $framework;
-    private TokenStorageInterface $tokenStorage;
-    private EventDispatcherInterface $eventDispatcher;
-    private RequestStack $requestStack;
-    private LoggerInterface|null $logger;
-
-    public function __construct(ContaoFramework $framework, TokenStorageInterface $tokenStorage, EventDispatcherInterface $eventDispatcher, RequestStack $requestStack, LoggerInterface $logger = null)
-    {
-        $this->framework = $framework;
-        $this->tokenStorage = $tokenStorage;
-        $this->eventDispatcher = $eventDispatcher;
-        $this->requestStack = $requestStack;
-        $this->logger = $logger;
+    public function __construct(
+        private readonly ContaoFramework $framework,
+        private readonly TokenStorageInterface $tokenStorage,
+        private readonly EventDispatcherInterface $eventDispatcher,
+        private readonly RequestStack $requestStack,
+        private readonly LoggerInterface|null $logger = null,
+    ) {
     }
 
     /**

@@ -30,17 +30,12 @@ class InvalidLoginAttemptEvent extends Event
     public const FAILED_CHECK_USER_EXISTS = 'failed.check.user.exists';
     public const FAILED_CHECK_IS_ACCOUNT_ENABLED = 'failed.check.is.account.enabled';
 
-    private string $causeOfError;
-    private string $contaoScope;
-    private SwissAlpineClubResourceOwner $resourceOwner;
-    private ContaoUser|null $contaoUser;
-
-    public function __construct(string $causeOfError, string $contaoScope, SwissAlpineClubResourceOwner $resourceOwner, ContaoUser $contaoUser = null)
-    {
-        $this->causeOfError = $causeOfError;
-        $this->contaoScope = $contaoScope;
-        $this->resourceOwner = $resourceOwner;
-        $this->contaoUser = $contaoUser;
+    public function __construct(
+        private readonly string $causeOfError,
+        private readonly string $contaoScope,
+        private readonly SwissAlpineClubResourceOwner $resourceOwner,
+        private readonly ContaoUser|null $contaoUser = null,
+    ) {
     }
 
     public function getCauseOfError(): string

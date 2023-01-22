@@ -19,21 +19,15 @@ final class ErrorMessage
     public const LEVEL_WARNING = 'warning';
     public const LEVEL_ERROR = 'error';
 
-    private string $level;
-    private string $matter;
-    private string $howToFix;
-    private string $explain;
-
-    public function __construct(string $level, string $matter, string $howToFix = '', string $explain = '')
-    {
+    public function __construct(
+        private readonly string $level,
+        private readonly string $matter,
+        private readonly string $howToFix = '',
+        private readonly string $explain = '',
+    ) {
         if (self::LEVEL_ERROR !== $level && self::LEVEL_WARNING !== $level) {
             throw new \InvalidArgumentException(sprintf('First parameter must be either %s or %s, %s given.', self::LEVEL_WARNING, self::LEVEL_ERROR, $level));
         }
-
-        $this->level = $level;
-        $this->matter = $matter;
-        $this->howToFix = $howToFix;
-        $this->explain = $explain;
     }
 
     public function get(): array

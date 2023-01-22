@@ -28,13 +28,11 @@ use function Safe\json_encode;
 class InvalidLoginAttemptSubscriber implements EventSubscriberInterface
 {
     private const PRIORITY = 1000;
-    private ContaoFramework $framework;
-    private LoggerInterface|null $logger;
 
-    public function __construct(ContaoFramework $framework, LoggerInterface|null $logger)
-    {
-        $this->framework = $framework;
-        $this->logger = $logger;
+    public function __construct(
+        private readonly ContaoFramework $framework,
+        private readonly LoggerInterface|null $logger,
+    ) {
     }
 
     public static function getSubscribedEvents(): array

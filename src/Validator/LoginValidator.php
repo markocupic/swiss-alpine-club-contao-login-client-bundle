@@ -30,16 +30,13 @@ class LoginValidator
      */
     public const NAV_SECTION_ID_REGEX = '/NAV_MITGLIED_S(\d+)/';
 
-    private ContaoFramework $framework;
-    private TranslatorInterface $translator;
-    private ErrorMessageManager $errorMessageManager;
     private string $contaoScope = 'frontend';
 
-    public function __construct(ContaoFramework $framework, TranslatorInterface $translator, ErrorMessageManager $errorMessageManager)
-    {
-        $this->framework = $framework;
-        $this->translator = $translator;
-        $this->errorMessageManager = $errorMessageManager;
+    public function __construct(
+        private readonly ContaoFramework $framework,
+        private readonly TranslatorInterface $translator,
+        private readonly ErrorMessageManager $errorMessageManager,
+    ) {
     }
 
     /**
