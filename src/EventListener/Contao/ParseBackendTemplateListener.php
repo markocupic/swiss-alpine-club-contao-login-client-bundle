@@ -15,16 +15,14 @@ declare(strict_types=1);
 namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\EventListener\Contao;
 
 use Contao\BackendTemplate;
+use Contao\CoreBundle\DependencyInjection\Attribute\AsHook;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\CoreBundle\InsertTag\InsertTagParser;
-use Contao\CoreBundle\ServiceAnnotation\Hook;
 use Contao\Environment;
 use Contao\System;
 use Symfony\Component\HttpFoundation\RequestStack;
 
-/**
- * @Hook("parseBackendTemplate")
- */
+#[AsHook('parseBackendTemplate', priority: 100)]
 class ParseBackendTemplateListener
 {
     public function __construct(
