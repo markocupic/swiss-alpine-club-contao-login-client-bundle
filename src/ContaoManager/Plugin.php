@@ -45,7 +45,7 @@ class Plugin implements ConfigPluginInterface, BundlePluginInterface, RoutingPlu
      */
     public function registerContainerConfiguration(LoaderInterface $loader, array $config): void
     {
-        $loader->load('@MarkocupicSwissAlpineClubContaoLoginClientBundle/Resources/config/config.yml');
+        $loader->load('@MarkocupicSwissAlpineClubContaoLoginClientBundle/config/config.yaml');
     }
 
     /**
@@ -54,8 +54,8 @@ class Plugin implements ConfigPluginInterface, BundlePluginInterface, RoutingPlu
     public function getRouteCollection(LoaderResolverInterface $resolver, KernelInterface $kernel)
     {
         return $resolver
-            ->resolve(__DIR__.'/../Resources/config/routing.yml')
-            ->load(__DIR__.'/../Resources/config/routing.yml')
+            ->resolve(__DIR__.'/../../config/routes.yaml')
+            ->load(__DIR__.'/../../config/routes.yaml')
         ;
     }
 }

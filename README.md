@@ -23,7 +23,7 @@ Die Erweiterung besitzt folgende Abhängigkeiten:
 [The PHP League Oauth2 client](https://oauth2-client.thephpleague.com/usage/)
 
 ## Konfiguration
-Vor der Inbetriebnahme muss die App konfiguriert werden. Erstellen Sie dazu einen neuen Abschnitt in config/config.yml.
+Vor der Inbetriebnahme muss die App konfiguriert werden. Erstellen Sie dazu einen neuen Abschnitt in config/config.yaml.
 
 ```
 sac_oauth2_client:

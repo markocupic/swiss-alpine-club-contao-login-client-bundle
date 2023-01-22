@@ -21,6 +21,11 @@ use Symfony\Component\HttpKernel\Bundle\Bundle;
 
 class MarkocupicSwissAlpineClubContaoLoginClientBundle extends Bundle
 {
+    public function getPath(): string
+    {
+        return \dirname(__DIR__);
+    }
+
     public function getContainerExtension(): MarkocupicSwissAlpineClubContaoLoginClientExtension
     {
         // Set alias sac_oauth2_client

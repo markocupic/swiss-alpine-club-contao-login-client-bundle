@@ -1,0 +1,56 @@
+<div id="mod_swiss_alpine_club_oidc_backend_login">
+  <h1><?= $this->trans('MSC.loginBT', [], 'contao_default') ?></h1>
+  <form action="/<?= $this->route('swiss_alpine_club_sso_login_backend') ?>" id="sac-oidc-login-be" method="post">
+    <div class="formbody">
+      <input type="hidden" name="FORM_SUBMIT" value="sac-oidc-login-be">
+      <?php if ($this->enableCsrfTokenCheck): ?>
+      <input type="hidden" name="REQUEST_TOKEN" value="<?= $this->rt ?>">
+      <?php endif; ?>
+      <input type="hidden" name="targetPath" value="<?= $this->targetPath ?>">
+      <input type="hidden" name="failurePath" value="<?= $this->failurePath ?>">
+      <input type="hidden" name="alwaysUseTargetPath" value="<?= $this->alwaysUseTargetPath ?>">
+      <div class="sac-login-button-group">
+        <div class="sac-login-button-prepend">
+          <img src="bundles/markocupicswissalpineclubcontaologinclient/img/logo_sac_small.svg" class="sac-login-button-prepend-icon">
+        </div>
+        <button type="submit"><?= $this->trans('MSC.loginWithSacSso', [], 'contao_default') ?> <span style="font-size:1rem;">&#8594</span></button>
+      </div>
+      <div class="sac-login-fe-link">
+        <a href="/" class="footer_preview"><?= $this->trans('MSC.feLink', [], 'contao_default') ?> ›</a>
+      </div>
+    </div>
+  </form>
+
+  <?php if ($this->error): ?>
+  <div class="trigger-ids-kill-session sac-oidc-error <?= $this->error['level'] ?> backend">
+
+    <?php if ('' != $this->error['matter']): ?>
+    <div class="error-matter-box error-box">
+      <h1 class="error-title mt-0"><?= $this->trans('MSC.'.$this->error['level'].'Matter', [], 'contao_default') ?></h1>
+      <p class="error-matter small"><?= $this->error['matter'] ?></p>
+    </div>
+    <?php endif; ?>
+
+    <?php if ('' != $this->error['howToFix']): ?>
+    <div class="error-how-to-fix-box error-box">
+      <h1 class="error-title mt-0"><?= $this->trans('MSC.errorHowToFix', [], 'contao_default') ?></h1>
+      <p class="error-how-to-fix small"><?= $this->error['howToFix'] ?></p>
+    </div>
+    <?php endif; ?>
+
+    <?php if ('' != $this->error['explain']): ?>
+    <div class="error-explain-box error-box">
+      <h1 class="error-title mt-0"><?= $this->trans('MSC.errorExplain', [], 'contao_default') ?></h1>
+      <p class="error-explain small"><?= $this->error['explain'] ?></p>
+    </div>
+    <?php endif; ?>
+  </div>
+
+  <?php endif; ?>
+  <?php if (!$this->disableContaoLogin): ?>
+  <div class="login-button-separator-container">
+    <div class="login-button-separator"><?= $this->trans('MSC.or', [], 'contao_default') ?></div>
+  </div>
+  <?php endif; ?>
+
+</div>
