@@ -44,10 +44,8 @@ class MarkocupicSwissAlpineClubContaoLoginClientExtension extends Extension
             new FileLocator(__DIR__.'/../../config')
         );
 
-        $loader->load('listener.yaml');
         $loader->load('subscriber.yaml');
         $loader->load('services.yaml');
-        $loader->load('controller-contao-frontend-module.yaml');
 
         $rootKey = $this->getAlias();
 

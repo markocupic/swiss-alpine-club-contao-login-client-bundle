@@ -1,19 +1,17 @@
 services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+    bind:
 
-  Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\ContaoAuthenticationController:
-    public: true
-    arguments:
-      - '@contao.framework'
-      - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\OpenIdConnect\OpenIdConnect'
-    calls:
-      - [ 'setContainer', [ '@Psr\Container\ContainerInterface' ] ]
+  Markocupic\SwissAlpineClubContaoLoginClientBundle\:
+    resource: ../src/
+    exclude: [ ../src/{ DependencyInjection,Model,Event,Session,Provider }, ../src/Config/ContaoLogConfig.php, ../src/ErrorMessage/ErrorMessage.php ]
 
   Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\GetLogoutEndpointController:
     public: true
     arguments:
       - '%sac_oauth2_client.oidc.auth_provider_endpoint_logout%'
-    calls:
-      - [ 'setContainer', [ '@Psr\Container\ContainerInterface' ] ]
 
   Markocupic\SwissAlpineClubContaoLoginClientBundle\Initializer:
     arguments:

@@ -31,7 +31,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
-#[AsFrontendModule(SwissAlpineClubOidcFrontendLogin::TYPE, category:'miscellaneous', template: 'mod_swiss_alpine_club_oidc_frontend_login')]
+#[AsFrontendModule(SwissAlpineClubOidcFrontendLogin::TYPE, category:'user', template: 'mod_swiss_alpine_club_oidc_frontend_login')]
 class SwissAlpineClubOidcFrontendLogin extends AbstractFrontendModuleController
 {
     public const TYPE = 'swiss_alpine_club_oidc_frontend_login';

@@ -22,7 +22,7 @@ use Contao\Environment;
 use Contao\System;
 use Symfony\Component\HttpFoundation\RequestStack;
 
-#[AsHook('parseBackendTemplate', priority: 100)]
+#[AsHook('parseBackendTemplate')]
 class ParseBackendTemplateListener
 {
     public function __construct(
