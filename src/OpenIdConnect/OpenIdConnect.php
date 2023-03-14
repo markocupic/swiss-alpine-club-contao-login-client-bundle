@@ -28,7 +28,7 @@ use Markocupic\SwissAlpineClubContaoLoginClientBundle\Event\InvalidLoginAttemptE
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Exception\BadQueryStringException;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Initializer;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\InteractiveLogin\InteractiveLogin;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\Provider\SwissAlpineClub;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Provider\ProviderFactory;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Provider\SwissAlpineClubResourceOwner;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\User\ContaoUser;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\User\ContaoUserFactory;
@@ -49,6 +49,7 @@ class OpenIdConnect
         private readonly ContaoFramework $framework,
         private readonly Initializer $initializer,
         private readonly RequestStack $requestStack,
+        private readonly ProviderFactory $providerFactory,
         private readonly LoginValidator $loginValidator,
         private readonly ContaoUserFactory $contaoUserFactory,
         private readonly InteractiveLogin $interactiveLogin,
@@ -64,13 +65,21 @@ class OpenIdConnect
      */
     public function authenticate(string $contaoScope): void
     {
+        $allowedScopes = [
+            ContaoCoreBundle::SCOPE_BACKEND,
+            ContaoCoreBundle::SCOPE_FRONTEND,
+        ];
+
+        if (!\in_array($contaoScope, $allowedScopes, true)) {
+            throw new \InvalidArgumentException(sprintf('The Contao Scope must be either "%s" "%s" given.', implode('" or "', $allowedScopes), $contaoScope));
+        }
+
         $this->initializer->initialize();
         $container = $this->system->getContainer();
 
         $isDebugMode = $container->getParameter('sac_oauth2_client.oidc.debug_mode');
         $bagName = $container->getParameter('sac_oauth2_client.session.attribute_bag_name');
         $flashBagKey = $container->getParameter('sac_oauth2_client.session.flash_bag_key');
-
         /** @var Session $session */
         $session = $this->requestStack->getCurrentRequest()->getSession()->getBag($bagName);
         $flashBag = $this->requestStack->getCurrentRequest()->getSession()->getFlashBag();
@@ -87,8 +96,7 @@ class OpenIdConnect
         /** @var bool $blnAllowContaoLoginIfAccountIsDisabled */
         $blnAllowContaoLoginIfAccountIsDisabled = $container->getParameter('sac_oauth2_client.oidc.allow_'.$contaoScope.'_login_if_contao_account_is_disabled');
 
-        // Set redirect uri
-        $provider = $this->createProvider(['redirectUri' => $container->getParameter('sac_oauth2_client.oidc.client_auth_endpoint_'.$contaoScope)]);
+        $provider = $this->providerFactory->createProvider($contaoScope);
 
         // Redirect user to the authorization endpoint
         if (!$this->hasAuthCode()) {
@@ -222,26 +230,6 @@ class OpenIdConnect
         // All ok. The Contao user has successfully logged in.
         // Let's redirect to the target page now.
         throw new RedirectResponseException($targetPath);
-    }
-
-    protected function createProvider(array $arrData = []): AbstractProvider
-    {
-        $arrProviderConfig = array_merge(
-            [
-                // The client ID assigned to you by the provider
-                'clientId' => $this->system->getContainer()->getParameter('sac_oauth2_client.oidc.client_id'),
-                // The client password assigned to you by the provider
-                'clientSecret' => $this->system->getContainer()->getParameter('sac_oauth2_client.oidc.client_secret'),
-                // Absolute callback url to your system (must be registered by service provider.)
-                'urlAuthorize' => $this->system->getContainer()->getParameter('sac_oauth2_client.oidc.auth_provider_endpoint_authorize'),
-                'urlAccessToken' => $this->system->getContainer()->getParameter('sac_oauth2_client.oidc.auth_provider_endpoint_token'),
-                'urlResourceOwnerDetails' => $this->system->getContainer()->getParameter('sac_oauth2_client.oidc.auth_provider_endpoint_userinfo'),
-                'scopes' => ['openid'],
-            ],
-            $arrData
-        );
-
-        return new SwissAlpineClub($arrProviderConfig, []);
     }
 
     /**
