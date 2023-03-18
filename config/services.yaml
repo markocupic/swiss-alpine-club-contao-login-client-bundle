@@ -6,70 +6,56 @@ services:
 
     Markocupic\SwissAlpineClubContaoLoginClientBundle\:
         resource: ../src/
-        exclude: [ ../src/{ DependencyInjection,Model,Event,Session }, ../src/Provider/SwissAlpineClub.php, ../src/Provider/SwissAlpineClubResourceOwner.php, ../src/Config/ContaoLogConfig.php, ../src/ErrorMessage/ErrorMessage.php ]
+        exclude: [
+            ../src/{ DependencyInjection,Model,Event,Session,Exception },
+            ../src/Provider/SwissAlpineClub.php,
+            ../src/Provider/SwissAlpineClubResourceOwner.php,
+            ../src/Provider/Exception/InvalidOauth2ProviderConfigurationException.php,
+            ../src/Config/ContaoLogConfig.php,
+            ../src/ErrorMessage/ErrorMessage.php,
+        ]
 
     Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\GetLogoutEndpointController:
         public: true
         arguments:
             - '%sac_oauth2_client.oidc.auth_provider_endpoint_logout%'
 
-    Markocupic\SwissAlpineClubContaoLoginClientBundle\Initializer:
-        arguments:
-            - '@contao.framework'
-            - '@request_stack'
-            - '@contao.csrf.token_manager'
-
     Markocupic\SwissAlpineClubContaoLoginClientBundle\Provider\ProviderFactory:
         arguments:
-            - '%sac_oauth2_client.oidc.client_id%'
-            - '%sac_oauth2_client.oidc.client_secret%'
-            - '%sac_oauth2_client.oidc.auth_provider_endpoint_authorize%'
-            - '%sac_oauth2_client.oidc.auth_provider_endpoint_token%'
-            - '%sac_oauth2_client.oidc.auth_provider_endpoint_userinfo%'
-            - '%sac_oauth2_client.oidc.client_auth_endpoint_backend%'
-            - '%sac_oauth2_client.oidc.client_auth_endpoint_frontend%'
-
-    Markocupic\SwissAlpineClubContaoLoginClientBundle\OpenIdConnect\OpenIdConnect:
-        arguments:
-            - '@contao.framework'
-            - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\Initializer'
-            - '@request_stack'
-            - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\Provider\ProviderFactory'
-            - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\Validator\LoginValidator'
-            - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\User\ContaoUserFactory'
-            - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\InteractiveLogin\InteractiveLogin'
-            - '@event_dispatcher'
-            - '@monolog.logger.contao'
-
-    Markocupic\SwissAlpineClubContaoLoginClientBundle\InteractiveLogin\InteractiveLogin:
-        arguments:
-            - '@contao.framework'
-            - '@security.token_storage'
-            - '@event_dispatcher'
-            - '@request_stack'
-            - '@monolog.logger.contao'
-
-    Markocupic\SwissAlpineClubContaoLoginClientBundle\User\ContaoUserFactory:
-        arguments:
-            - '@contao.framework'
-            - '@translator'
-            - '@security.password_hasher_factory'
-            - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\Validator\LoginValidator'
-            - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessageManager'
-
-    Markocupic\SwissAlpineClubContaoLoginClientBundle\Validator\LoginValidator:
-        arguments:
-            - '@contao.framework'
-            - '@translator'
-            - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessageManager'
+            - '@router.default'
+            - # provider config
+                'clientId': '%sac_oauth2_client.oidc.client_id%'
+                'clientSecret': '%sac_oauth2_client.oidc.client_secret%'
+                'urlAuthorize': '%sac_oauth2_client.oidc.auth_provider_endpoint_authorize%'
+                'urlAccessToken': '%sac_oauth2_client.oidc.auth_provider_endpoint_token%'
+                'urlResourceOwnerDetails': '%sac_oauth2_client.oidc.auth_provider_endpoint_userinfo%'
+                'redirectRouteBackend': '%sac_oauth2_client.oidc.client_auth_endpoint_backend_route%'
+                'redirectRouteFrontend': '%sac_oauth2_client.oidc.client_auth_endpoint_frontend_route%'
 
     Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessageManager:
         arguments:
             - '%sac_oauth2_client.session.flash_bag_key%'
             - '@request_stack'
 
-    Markocupic\SwissAlpineClubContaoLoginClientBundle\Session\Attribute\ArrayAttributeBag:
+    # Register session bags
+    markocupic.sac_oauth2_client.session.factory:
+        class: Markocupic\SwissAlpineClubContaoLoginClientBundle\Session\SessionFactory
+        decorates: session.factory
         arguments:
-            - '%sac_oauth2_client.session.attribute_bag_key%'
+            - '@markocupic.sac_oauth2_client.session.factory.inner'
+            - '@markocupic.sac_oauth2_client.session.attribute.array_attribute_bag_backend'
+            - '@markocupic.sac_oauth2_client.session.attribute.array_attribute_bag_frontend'
+
+    markocupic.sac_oauth2_client.session.attribute.array_attribute_bag_backend:
+        class: Markocupic\SwissAlpineClubContaoLoginClientBundle\Session\Attribute\ArrayAttributeBag
+        arguments:
+            - '_sac_oauth2_client_attr_backend'
         calls:
-            - [ 'setName', [ '%sac_oauth2_client.session.attribute_bag_name%' ] ]
+            - [ 'setName', [ 'sac_oauth2_client_attr_backend' ] ]
+
+    markocupic.sac_oauth2_client.session.attribute.array_attribute_bag_frontend:
+        class: Markocupic\SwissAlpineClubContaoLoginClientBundle\Session\Attribute\ArrayAttributeBag
+        arguments:
+            - '_sac_oauth2_client_attr_frontend'
+        calls:
+            - [ 'setName', [ 'sac_oauth2_client_attr_frontend' ] ]

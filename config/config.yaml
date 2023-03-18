@@ -5,9 +5,10 @@ sac_oauth2_client:
     client_id: '###'
     client_secret: '###'
     enable_backend_sso: true
-    client_auth_endpoint_frontend: '###'
-    client_auth_endpoint_backend: '###'
+
     # defaults
+    client_auth_endpoint_frontend_route: 'swiss_alpine_club_sso_login_frontend'
+    client_auth_endpoint_backend_route: 'swiss_alpine_club_sso_login_backend'
     auth_provider_endpoint_authorize: 'https://ids01.sac-cas.ch:443/oauth2/authorize'
     auth_provider_endpoint_token: 'https://ids01.sac-cas.ch:443/oauth2/token'
     auth_provider_endpoint_userinfo: 'https://ids01.sac-cas.ch:443/oauth2/userinfo'

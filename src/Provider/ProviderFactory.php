@@ -16,37 +16,56 @@ namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Provider;
 
 use Contao\CoreBundle\ContaoCoreBundle;
 use League\OAuth2\Client\Provider\AbstractProvider;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Provider\Exception\Oauth2ProviderConfigurationException;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Routing\RouterInterface;
 
 class ProviderFactory
 {
     public function __construct(
-        private readonly string $clientId,
-        private readonly string $clientSecret,
-        private readonly string $urlAuthorize,
-        private readonly string $urlAccessToken,
-        private readonly string $urlResourceOwnerDetails,
-        private readonly string $redirectUriBackend,
-        private readonly string $redirectUriFrontend,
+        private readonly RouterInterface $router,
+        private readonly array $providerConfig,
     ) {
     }
 
     public function createProvider(string $contaoScope): AbstractProvider
     {
-        $redirectUri = ContaoCoreBundle::SCOPE_BACKEND === $contaoScope ? $this->redirectUriBackend : $this->redirectUriFrontend;
+        $redirectRoute = ContaoCoreBundle::SCOPE_BACKEND === $contaoScope ? $this->providerConfig['redirectRouteBackend'] : $this->providerConfig['redirectRouteFrontend'];
 
         $providerConfig = [
             // The client ID assigned to you by the provider
-            'clientId' => $this->clientId,
+            'clientId' => $this->providerConfig['clientId'] ?? '',
             // The client password assigned to you by the provider
-            'clientSecret' => $this->clientSecret,
-            // Absolute callback url to your system (must be registered by service provider.)
-            'urlAuthorize' => $this->urlAuthorize,
-            'urlAccessToken' => $this->urlAccessToken,
-            'urlResourceOwnerDetails' => $this->urlResourceOwnerDetails,
-            'redirectUri' => $redirectUri,
+            'clientSecret' => $this->providerConfig['clientSecret'] ?? '',
+            // Absolute url to the "authorize" endpoint
+            'urlAuthorize' => $this->providerConfig['urlAuthorize'] ?? '',
+            // Absolute url to the "get access token" endpoint
+            'urlAccessToken' => $this->providerConfig['urlAccessToken'] ?? '',
+            // Absolute url to the "get resource owner details endpoint"
+            'urlResourceOwnerDetails' => $this->providerConfig['urlResourceOwnerDetails'] ?? '',
+            // Absolute callback url to your login route (must be registered by the service provider.)
+            'redirectUri' => $this->router->generate(
+                $redirectRoute,
+                [],
+                UrlGeneratorInterface::ABSOLUTE_URL,
+            ),
             'scopes' => ['openid'],
         ];
 
+        $this->checkProviderConfiguration($providerConfig);
+
         return new SwissAlpineClub($providerConfig, []);
+    }
+
+    /**
+     * Check if all required options have been set.
+     */
+    private function checkProviderConfiguration(array $providerConfig): void
+    {
+        foreach ($providerConfig as $key => $value) {
+            if (empty($value)) {
+                throw new Oauth2ProviderConfigurationException(sprintf('Please check your oauth2 provider configuration. The key "%s" can not be empty.', $key));
+            }
+        }
     }
 }

@@ -62,13 +62,13 @@ class InteractiveLogin
 
         $providerKey = ContaoCoreBundle::SCOPE_FRONTEND === $contaoUser->getContaoScope() ? static::SECURED_AREA_FRONTEND : static::SECURED_AREA_BACKEND;
 
-        $userIdentifier = $contaoUser->getModel()->username;
+        $userIdentifier = $contaoUser->getIdentifier();
 
-        if (!\is_string($userIdentifier) && (!\is_object($userIdentifier) || !method_exists($userIdentifier, '__toString'))) {
+        if (empty($userIdentifier) || !\is_string($userIdentifier)) {
             throw new \Exception(sprintf('The username must be a string, "%s" given.', \gettype($userIdentifier)));
         }
 
-        $userIdentifier = trim((string) $userIdentifier);
+        $userIdentifier = trim($userIdentifier);
 
         // Be sure user exists
         if (!$contaoUser->checkUserExists()) {

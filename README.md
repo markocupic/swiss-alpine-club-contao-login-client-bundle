@@ -34,10 +34,10 @@ sac_oauth2_client:
     client_id: '### Get your client id form SAC Schweiz ###'
     client_secret: '### Get your client secret form SAC Schweiz ###'
     enable_backend_sso: true
-    client_auth_endpoint_frontend: '### Set your frontend login route ###'
-    client_auth_endpoint_backend: '### Set your backend login route ###'
     
     # defaults
+    client_auth_endpoint_frontend_route: 'swiss_alpine_club_sso_login_frontend'
+    client_auth_endpoint_backend_route: 'swiss_alpine_club_sso_login_backend'
     debug_mode: false # Log resource owners details (Contao backend log)
     auth_provider_endpoint_authorize: 'https://ids01.sac-cas.ch:443/oauth2/authorize'
     auth_provider_endpoint_token: 'https://ids01.sac-cas.ch:443/oauth2/token'

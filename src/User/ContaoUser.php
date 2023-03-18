@@ -26,7 +26,6 @@ use Contao\UserModel;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessage;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessageManager;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Provider\SwissAlpineClubResourceOwner;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\Validator\LoginValidator;
 use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -40,7 +39,7 @@ class ContaoUser
         private readonly ContaoFramework $framework,
         private readonly TranslatorInterface $translator,
         private readonly PasswordHasherFactoryInterface $hasherFactory,
-        private readonly LoginValidator $loginValidator,
+        private readonly UserChecker $userChecker,
         private readonly ErrorMessageManager $errorMessageManager,
     ) {
     }
@@ -50,7 +49,7 @@ class ContaoUser
      *
      * @throws \Exception
      */
-    public function createFromResourceOwner(SwissAlpineClubResourceOwner $resourceOwner, string $scope): void
+    public function loadContaoUserFromResourceOwner(SwissAlpineClubResourceOwner $resourceOwner, string $scope): void
     {
         $this->resourceOwner = $resourceOwner;
         $this->setContaoScope($scope);
@@ -71,6 +70,17 @@ class ContaoUser
         }
 
         return $this->contaoScope;
+    }
+
+    public function getIdentifier(): string|null
+    {
+        $model = $this->getModel();
+
+        if (null !== $model) {
+            return $model->username;
+        }
+
+        return null;
     }
 
     /**
@@ -215,13 +225,13 @@ class ContaoUser
             $objMember->email = $this->resourceOwner->getEmail();
 
             // Update SAC section membership from JSON payload
-            $objMember->sectionId = serialize($this->loginValidator->getAllowedSacSectionIds($this->resourceOwner));
+            $objMember->sectionId = serialize($this->userChecker->getAllowedSacSectionIds($this->resourceOwner));
 
             // Member has to be member of a valid SAC section
             if ($systemAdapter->getContainer()->getParameter('sac_oauth2_client.oidc.allow_frontend_login_to_predefined_section_members_only')) {
-                $objMember->isSacMember = !empty($this->loginValidator->getAllowedSacSectionIds($this->resourceOwner)) ? '1' : '';
+                $objMember->isSacMember = !empty($this->userChecker->getAllowedSacSectionIds($this->resourceOwner)) ? '1' : '';
             } else {
-                $objMember->isSacMember = $this->loginValidator->isSacMember($this->resourceOwner) ? '1' : '';
+                $objMember->isSacMember = $this->userChecker->isSacMember($this->resourceOwner) ? '1' : '';
             }
 
             $objMember->tstamp = time();
@@ -274,7 +284,7 @@ class ContaoUser
             $objUser->gender = 'HERR' === $this->resourceOwner->getSalutation() ? 'male' : 'female';
             $objUser->country = strtolower($this->resourceOwner->getCountryCode());
             $objUser->email = $this->resourceOwner->getEmail();
-            $objUser->sectionId = serialize($this->loginValidator->getAllowedSacSectionIds($this->resourceOwner));
+            $objUser->sectionId = serialize($this->userChecker->getAllowedSacSectionIds($this->resourceOwner));
             $objUser->tstamp = time();
 
             // Set random password

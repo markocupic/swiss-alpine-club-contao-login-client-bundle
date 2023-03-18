@@ -26,28 +26,20 @@ class SwissAlpineClub extends AbstractProvider
 {
     use BearerAuthorizationTrait;
 
-    private array $scopes = [];
-    private string $responseError = 'error';
-    private string $responseResourceOwnerId = 'sub';
-    private string $urlAccessToken;
-    private string $urlAuthorize;
-    private string $urlResourceOwnerDetails;
+    protected string $urlAuthorize;
+    protected string $urlAccessToken;
+    protected string $urlResourceOwnerDetails;
+    protected array $scopes = [];
+    protected string $responseError = 'error';
+    protected string $responseResourceOwnerId = 'sub';
 
-    public function __construct(array $options = [], array $collaborators = [])
+    public function __construct(array $providerConfiguration = [], array $collaborators = [])
     {
-        $this->assertRequiredOptions($options);
-
-        $possible = $this->getConfigurableOptions();
-        $configured = array_intersect_key($options, array_flip($possible));
-
-        foreach ($configured as $key => $value) {
+        foreach ($providerConfiguration as $key => $value) {
             $this->$key = $value;
         }
 
-        // Remove all options that are only used locally
-        $options = array_diff_key($options, $configured);
-
-        parent::__construct($options, $collaborators);
+        parent::__construct($providerConfiguration, $collaborators);
     }
 
     public function getBaseAuthorizationUrl(): string
@@ -73,33 +65,6 @@ class SwissAlpineClub extends AbstractProvider
         $response = $this->fetchResourceOwnerDetails($token);
 
         return $this->createResourceOwner($response, $token);
-    }
-
-    /**
-     * Returns all options that are required.
-     */
-    protected function getRequiredOptions(): array
-    {
-        return [
-            'clientId',
-            'clientSecret',
-            'urlAuthorize',
-            'urlAccessToken',
-            'urlResourceOwnerDetails',
-            'redirectUri',
-            'scopes',
-        ];
-    }
-
-    /**
-     * Returns all options that can be configured.
-     */
-    #[Pure]
-    protected function getConfigurableOptions(): array
-    {
-        return array_merge($this->getRequiredOptions(), [
-            // empty: no configurable options
-        ]);
     }
 
     #[Pure]
@@ -128,20 +93,6 @@ class SwissAlpineClub extends AbstractProvider
             }
 
             throw new IdentityProviderException($error, $code, $data);
-        }
-    }
-
-    /**
-     * Verifies that all required options have been passed.
-     *
-     * @throws \InvalidArgumentException
-     */
-    private function assertRequiredOptions(array $options): void
-    {
-        $missing = array_diff_key(array_flip($this->getRequiredOptions()), $options);
-
-        if (!empty($missing)) {
-            throw new \InvalidArgumentException('Required options not defined: '.implode(', ', array_keys($missing)));
         }
     }
 }

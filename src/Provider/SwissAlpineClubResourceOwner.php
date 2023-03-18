@@ -89,7 +89,7 @@ class SwissAlpineClubResourceOwner implements ResourceOwnerInterface
 
     public function getCountryCode(): string
     {
-        return isset($this->arrData['land']) ? strtolower($this->arrData['land']) : '';
+        return strtolower($this->arrData['land'] ?? '');
     }
 
     public function getDateOfBirth(): string

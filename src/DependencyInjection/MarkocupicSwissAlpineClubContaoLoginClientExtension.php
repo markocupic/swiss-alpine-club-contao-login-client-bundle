@@ -26,7 +26,7 @@ class MarkocupicSwissAlpineClubContaoLoginClientExtension extends Extension
      */
     public function getAlias(): string
     {
-        // Default root key would be markocupic_swiss_alpine_club_contao_login_client
+        // Default root key would be markocupic_sac_oauth2_client
         return Configuration::ROOT_KEY;
     }
 
@@ -67,13 +67,11 @@ class MarkocupicSwissAlpineClubContaoLoginClientExtension extends Extension
         $container->setParameter($rootKey.'.oidc.allow_backend_login_if_contao_account_is_disabled', $config['oidc']['allow_backend_login_if_contao_account_is_disabled']);
         $container->setParameter($rootKey.'.oidc.allowed_frontend_sac_section_ids', $config['oidc']['allowed_frontend_sac_section_ids']);
         $container->setParameter($rootKey.'.oidc.allowed_backend_sac_section_ids', $config['oidc']['allowed_backend_sac_section_ids']);
-        $container->setParameter($rootKey.'.oidc.client_auth_endpoint_frontend', $config['oidc']['client_auth_endpoint_frontend']);
-        $container->setParameter($rootKey.'.oidc.client_auth_endpoint_backend', $config['oidc']['client_auth_endpoint_backend']);
+        $container->setParameter($rootKey.'.oidc.client_auth_endpoint_frontend_route', $config['oidc']['client_auth_endpoint_frontend_route']);
+        $container->setParameter($rootKey.'.oidc.client_auth_endpoint_backend_route', $config['oidc']['client_auth_endpoint_backend_route']);
         $container->setParameter($rootKey.'.oidc.enable_backend_sso', $config['oidc']['enable_backend_sso']);
         $container->setParameter($rootKey.'.oidc.enable_csrf_token_check', $config['oidc']['enable_csrf_token_check']);
         // Session stuff
-        $container->setParameter($rootKey.'.session.attribute_bag_key', $config['session']['attribute_bag_key']);
-        $container->setParameter($rootKey.'.session.attribute_bag_name', $config['session']['attribute_bag_name']);
         $container->setParameter($rootKey.'.session.flash_bag_key', $config['session']['flash_bag_key']);
         // Backend settings
         $container->setParameter($rootKey.'.backend.disable_contao_login', $config['backend']['disable_contao_login']);

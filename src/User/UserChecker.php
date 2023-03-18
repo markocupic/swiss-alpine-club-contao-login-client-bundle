@@ -12,7 +12,7 @@ declare(strict_types=1);
  * @link https://github.com/markocupic/swiss-alpine-club-contao-login-client-bundle
  */
 
-namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Validator;
+namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\User;
 
 use Contao\CoreBundle\ContaoCoreBundle;
 use Contao\CoreBundle\Framework\ContaoFramework;
@@ -23,7 +23,7 @@ use Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessageM
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Provider\SwissAlpineClubResourceOwner;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
-class LoginValidator
+class UserChecker
 {
     /**
      * NAVISION section id regex.
