@@ -33,7 +33,6 @@ use Psr\Log\LoggerInterface;
 use Safe\Exceptions\JsonException;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Session\SessionBagInterface;
 use function Safe\json_encode;
 
@@ -43,11 +42,10 @@ class AuthenticationManager
 
     public function __construct(
         private readonly ContaoFramework $framework,
-        private readonly RequestStack $requestStack,
-        private readonly ResourceOwnerChecker $resourceOwnerChecker,
         private readonly ContaoUserFactory $contaoUserFactory,
-        private readonly InteractiveLogin $interactiveLogin,
         private readonly EventDispatcherInterface $eventDispatcher,
+        private readonly InteractiveLogin $interactiveLogin,
+        private readonly ResourceOwnerChecker $resourceOwnerChecker,
         private readonly LoggerInterface|null $logger = null,
     ) {
         // Adapters
@@ -74,7 +72,7 @@ class AuthenticationManager
 
         // Session
         $session = $this->getSession($request, $contaoScope);
-        $flashBag = $this->requestStack->getCurrentRequest()->getSession()->getFlashBag();
+        $flashBag = $request->getSession()->getFlashBag();
         $flashBagKey = $container->getParameter('sac_oauth2_client.session.flash_bag_key');
 
         /** @var bool $blnAutoCreateContaoUser */
