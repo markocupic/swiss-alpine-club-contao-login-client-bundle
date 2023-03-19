@@ -15,7 +15,7 @@ declare(strict_types=1);
 namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Event;
 
 use Contao\CoreBundle\Security\User\ContaoUserProvider;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\Provider\SwissAlpineClubResourceOwner;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Oauth\ResourceOwner\SwissAlpineClubResourceOwner;
 use Symfony\Contracts\EventDispatcher\Event;
 
 final class PreInteractiveLoginEvent extends Event

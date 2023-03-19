@@ -12,63 +12,44 @@ declare(strict_types=1);
  * @link https://github.com/markocupic/swiss-alpine-club-contao-login-client-bundle
  */
 
-namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\User;
+namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\User;
 
 use Contao\BackendUser;
 use Contao\CoreBundle\ContaoCoreBundle;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\FrontendUser;
 use Contao\MemberModel;
-use Contao\Model;
 use Contao\StringUtil;
 use Contao\System;
 use Contao\UserModel;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessage;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessageManager;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\Provider\SwissAlpineClubResourceOwner;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Oauth\ResourceOwner\ResourceOwnerChecker;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Oauth\ResourceOwner\SwissAlpineClubResourceOwner;
 use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 class ContaoUser
 {
-    private string $contaoScope = '';
-    private SwissAlpineClubResourceOwner|null $resourceOwner = null;
-
     public function __construct(
         private readonly ContaoFramework $framework,
         private readonly TranslatorInterface $translator,
         private readonly PasswordHasherFactoryInterface $hasherFactory,
-        private readonly UserChecker $userChecker,
+        private readonly ResourceOwnerChecker $resourceOwnerChecker,
         private readonly ErrorMessageManager $errorMessageManager,
+        private readonly SwissAlpineClubResourceOwner $resourceOwner,
+        private readonly string $contaoScope,
     ) {
     }
 
-    /**
-     * This is the first method that has to be called.
-     *
-     * @throws \Exception
-     */
-    public function loadContaoUserFromResourceOwner(SwissAlpineClubResourceOwner $resourceOwner, string $scope): void
-    {
-        $this->resourceOwner = $resourceOwner;
-        $this->setContaoScope($scope);
-    }
-
-    public function getResourceOwner(): SwissAlpineClubResourceOwner|null
+    public function getResourceOwner(): SwissAlpineClubResourceOwner
     {
         return $this->resourceOwner;
     }
 
-    /**
-     * @throws \Exception
-     */
-    public function getContaoScope(): string|null
+    public function getContaoScope(): string
     {
-        if (empty($this->contaoScope)) {
-            throw new \Exception('No Contao scope has been set.');
-        }
-
         return $this->contaoScope;
     }
 
@@ -76,17 +57,13 @@ class ContaoUser
     {
         $model = $this->getModel();
 
-        if (null !== $model) {
-            return $model->username;
-        }
-
-        return null;
+        return $model?->username;
     }
 
     /**
      * @throws \Exception
      */
-    public function getModel(string $strTable = ''): Model|null
+    public function getModel(string $strTable = ''): MemberModel|UserModel|null
     {
         if ('tl_member' === $strTable || ContaoCoreBundle::SCOPE_FRONTEND === $this->getContaoScope()) {
             /** @var MemberModel $memberModelAdapter */
@@ -225,13 +202,13 @@ class ContaoUser
             $objMember->email = $this->resourceOwner->getEmail();
 
             // Update SAC section membership from JSON payload
-            $objMember->sectionId = serialize($this->userChecker->getAllowedSacSectionIds($this->resourceOwner));
+            $objMember->sectionId = serialize($this->resourceOwnerChecker->getAllowedSacSectionIds($this->resourceOwner, ContaoCoreBundle::SCOPE_FRONTEND));
 
             // Member has to be member of a valid SAC section
             if ($systemAdapter->getContainer()->getParameter('sac_oauth2_client.oidc.allow_frontend_login_to_predefined_section_members_only')) {
-                $objMember->isSacMember = !empty($this->userChecker->getAllowedSacSectionIds($this->resourceOwner)) ? '1' : '';
+                $objMember->isSacMember = !empty($this->resourceOwnerChecker->getAllowedSacSectionIds($this->resourceOwner, ContaoCoreBundle::SCOPE_FRONTEND)) ? '1' : '';
             } else {
-                $objMember->isSacMember = $this->userChecker->isSacMember($this->resourceOwner) ? '1' : '';
+                $objMember->isSacMember = $this->resourceOwnerChecker->isSacMember($this->resourceOwner) ? '1' : '';
             }
 
             $objMember->tstamp = time();
@@ -284,7 +261,7 @@ class ContaoUser
             $objUser->gender = 'HERR' === $this->resourceOwner->getSalutation() ? 'male' : 'female';
             $objUser->country = strtolower($this->resourceOwner->getCountryCode());
             $objUser->email = $this->resourceOwner->getEmail();
-            $objUser->sectionId = serialize($this->userChecker->getAllowedSacSectionIds($this->resourceOwner));
+            $objUser->sectionId = serialize($this->resourceOwnerChecker->getAllowedSacSectionIds($this->resourceOwner, ContaoCoreBundle::SCOPE_BACKEND));
             $objUser->tstamp = time();
 
             // Set random password
@@ -300,15 +277,8 @@ class ContaoUser
         }
     }
 
-    /**
-     * @param $username
-     */
-    public function isValidUsername($username): bool
+    public function isValidUsername(string $username): bool
     {
-        if (!\is_string($username) && (!\is_object($username) || !method_exists($username, '__toString'))) {
-            return false;
-        }
-
         $username = trim($username);
 
         // Check if username is valid
@@ -396,23 +366,6 @@ class ContaoUser
         }
 
         return $strNumber;
-    }
-
-    /**
-     * @throws \Exception
-     */
-    private function setContaoScope(string $scope): void
-    {
-        $arrAllowedScopes = [
-            ContaoCoreBundle::SCOPE_FRONTEND,
-            ContaoCoreBundle::SCOPE_BACKEND,
-        ];
-
-        if (!\in_array(strtolower($scope), $arrAllowedScopes, true)) {
-            throw new \Exception('Parameter "$scope" should be either "frontend" or "backend".');
-        }
-
-        $this->contaoScope = strtolower($scope);
     }
 
     /**

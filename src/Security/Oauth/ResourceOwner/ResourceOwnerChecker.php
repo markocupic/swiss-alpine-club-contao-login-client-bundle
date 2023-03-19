@@ -12,7 +12,7 @@ declare(strict_types=1);
  * @link https://github.com/markocupic/swiss-alpine-club-contao-login-client-bundle
  */
 
-namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\User;
+namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Oauth\ResourceOwner;
 
 use Contao\CoreBundle\ContaoCoreBundle;
 use Contao\CoreBundle\Framework\ContaoFramework;
@@ -20,17 +20,14 @@ use Contao\System;
 use Contao\Validator;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessage;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessageManager;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\Provider\SwissAlpineClubResourceOwner;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
-class UserChecker
+class ResourceOwnerChecker
 {
     /**
      * NAVISION section id regex.
      */
     public const NAV_SECTION_ID_REGEX = '/NAV_MITGLIED_S(\d+)/';
-
-    private string $contaoScope = 'frontend';
 
     public function __construct(
         private readonly ContaoFramework $framework,
@@ -83,9 +80,9 @@ class UserChecker
     /**
      * Check for allowed SAC section membership.
      */
-    public function checkIsMemberOfAllowedSection(SwissAlpineClubResourceOwner $resourceOwner): bool
+    public function checkIsMemberOfAllowedSection(SwissAlpineClubResourceOwner $resourceOwner, string $contaoScope): bool
     {
-        $arrMembership = $this->getAllowedSacSectionIds($resourceOwner);
+        $arrMembership = $this->getAllowedSacSectionIds($resourceOwner, $contaoScope);
 
         if (\count($arrMembership) > 0) {
             return true;
@@ -129,12 +126,12 @@ class UserChecker
     /**
      * Return all allowed SAC section ids a resource owner belongs to.
      */
-    public function getAllowedSacSectionIds(SwissAlpineClubResourceOwner $resourceOwner): array
+    public function getAllowedSacSectionIds(SwissAlpineClubResourceOwner $resourceOwner, string $contaoScope): array
     {
         /** @var System $systemAdapter */
         $systemAdapter = $this->framework->getAdapter(System::class);
 
-        if (ContaoCoreBundle::SCOPE_FRONTEND === $this->contaoScope) {
+        if (ContaoCoreBundle::SCOPE_FRONTEND === $contaoScope) {
             $arrAllowedGroups = $systemAdapter
                 ->getContainer()
                 ->getParameter('sac_oauth2_client.oidc.allowed_frontend_sac_section_ids')
@@ -162,17 +159,6 @@ class UserChecker
         $pattern = static::NAV_SECTION_ID_REGEX;
 
         return preg_match($pattern, $strRoles) && !empty($resourceOwner->getId()) && !empty($resourceOwner->getSacMemberId());
-    }
-
-    /**
-     * @throws \Exception
-     */
-    public function setContaoScope(string $contaoScope): void
-    {
-        if (ContaoCoreBundle::SCOPE_FRONTEND !== $contaoScope && ContaoCoreBundle::SCOPE_BACKEND !== $contaoScope) {
-            throw new \Exception('Scope should be either "backend" or "frontend".');
-        }
-        $this->contaoScope = $contaoScope;
     }
 
     /**

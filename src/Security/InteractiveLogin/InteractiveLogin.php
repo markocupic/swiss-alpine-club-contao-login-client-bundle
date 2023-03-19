@@ -12,7 +12,7 @@ declare(strict_types=1);
  * @link https://github.com/markocupic/swiss-alpine-club-contao-login-client-bundle
  */
 
-namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\InteractiveLogin;
+namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\InteractiveLogin;
 
 use Contao\BackendUser;
 use Contao\CoreBundle\ContaoCoreBundle;
@@ -24,7 +24,7 @@ use Contao\System;
 use Contao\User;
 use Contao\UserModel;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Event\PreInteractiveLoginEvent;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\User\ContaoUser;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\User\ContaoUser;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\RequestStack;

@@ -12,11 +12,11 @@ declare(strict_types=1);
  * @link https://github.com/markocupic/swiss-alpine-club-contao-login-client-bundle
  */
 
-namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Provider;
+namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Oauth\Provider;
 
 use Contao\CoreBundle\ContaoCoreBundle;
 use League\OAuth2\Client\Provider\AbstractProvider;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\Provider\Exception\Oauth2ProviderConfigurationException;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Oauth\Provider\Exception\Oauth2ProviderConfigurationException;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
 

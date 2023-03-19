@@ -24,11 +24,11 @@ use League\OAuth2\Client\Provider\AbstractProvider;
 use League\OAuth2\Client\Token\AccessToken;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Config\ContaoLogConfig;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Event\InvalidLoginAttemptEvent;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\InteractiveLogin\InteractiveLogin;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\Provider\SwissAlpineClubResourceOwner;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\User\ContaoUser;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\User\ContaoUserFactory;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\User\UserChecker;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\InteractiveLogin\InteractiveLogin;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Oauth\ResourceOwner\ResourceOwnerChecker;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Oauth\ResourceOwner\SwissAlpineClubResourceOwner;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\User\ContaoUser;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\User\ContaoUserFactory;
 use Psr\Log\LoggerInterface;
 use Safe\Exceptions\JsonException;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -44,7 +44,7 @@ class AuthenticationManager
     public function __construct(
         private readonly ContaoFramework $framework,
         private readonly RequestStack $requestStack,
-        private readonly UserChecker $userChecker,
+        private readonly ResourceOwnerChecker $resourceOwnerChecker,
         private readonly ContaoUserFactory $contaoUserFactory,
         private readonly InteractiveLogin $interactiveLogin,
         private readonly EventDispatcherInterface $eventDispatcher,
@@ -110,10 +110,8 @@ class AuthenticationManager
             $this->log($logText, __METHOD__, ContaoLogConfig::SAC_OAUTH2_DEBUG_LOG);
         }
 
-        $this->userChecker->setContaoScope($contaoScope);
-
         // Check if uuid/sub is set
-        if (!$this->userChecker->checkHasUuid($resourceOwner)) {
+        if (!$this->resourceOwnerChecker->checkHasUuid($resourceOwner)) {
             $this->dispatchInvalidLoginAttemptEvent(InvalidLoginAttemptEvent::FAILED_CHECK_HAS_UUID, $contaoScope, $resourceOwner);
 
             throw new RedirectResponseException($session->get('failurePath'));
@@ -121,7 +119,7 @@ class AuthenticationManager
 
         // Check if user is a SAC member
         if ($blnAllowLoginToSacMembersOnly) {
-            if (!$this->userChecker->checkIsSacMember($resourceOwner)) {
+            if (!$this->resourceOwnerChecker->checkIsSacMember($resourceOwner)) {
                 $this->dispatchInvalidLoginAttemptEvent(InvalidLoginAttemptEvent::FAILED_CHECK_IS_SAC_MEMBER, $contaoScope, $resourceOwner);
 
                 throw new RedirectResponseException($session->get('failurePath'));
@@ -130,7 +128,7 @@ class AuthenticationManager
 
         // Check if user is member of an allowed section
         if ($blnAllowLoginToPredefinedSectionsOnly) {
-            if (!$this->userChecker->checkIsMemberOfAllowedSection($resourceOwner)) {
+            if (!$this->resourceOwnerChecker->checkIsMemberOfAllowedSection($resourceOwner, $contaoScope)) {
                 $this->dispatchInvalidLoginAttemptEvent(InvalidLoginAttemptEvent::FAILED_CHECK_IS_MEMBER_OF_ALLOWED_SECTION, $contaoScope, $resourceOwner);
 
                 throw new RedirectResponseException($session->get('failurePath'));
@@ -141,7 +139,7 @@ class AuthenticationManager
         // This test should always be positive,
         // because creating an account at https://www.sac-cas.ch
         // requires already a valid email address
-        if (!$this->userChecker->checkHasValidEmailAddress($resourceOwner)) {
+        if (!$this->resourceOwnerChecker->checkHasValidEmailAddress($resourceOwner)) {
             $this->dispatchInvalidLoginAttemptEvent(InvalidLoginAttemptEvent::FAILED_CHECK_HAS_VALID_EMAIL_ADDRESS, $contaoScope, $resourceOwner);
 
             throw new RedirectResponseException($session->get('failurePath'));

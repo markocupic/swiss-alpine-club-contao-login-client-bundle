@@ -14,8 +14,8 @@ declare(strict_types=1);
 
 namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Event;
 
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\Provider\SwissAlpineClubResourceOwner;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\User\ContaoUser;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Oauth\ResourceOwner\SwissAlpineClubResourceOwner;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\User\ContaoUser;
 use Symfony\Contracts\EventDispatcher\Event;
 
 class InvalidLoginAttemptEvent extends Event

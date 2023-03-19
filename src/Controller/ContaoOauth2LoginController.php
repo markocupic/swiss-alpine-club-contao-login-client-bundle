@@ -14,6 +14,7 @@ declare(strict_types=1);
 
 namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller;
 
+use Contao\CoreBundle\ContaoCoreBundle;
 use Contao\CoreBundle\Csrf\ContaoCsrfTokenManager;
 use Contao\CoreBundle\Exception\InvalidRequestTokenException;
 use Contao\CoreBundle\Exception\RedirectResponseException;
@@ -24,8 +25,8 @@ use League\OAuth2\Client\Provider\AbstractProvider;
 use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use League\OAuth2\Client\Token\AccessToken;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Event\OAuth2SuccessEvent;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\Exception\BadQueryStringException;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\Provider\ProviderFactory;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Oauth\Exception\BadQueryStringException;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Oauth\Provider\ProviderFactory;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -51,7 +52,7 @@ class ContaoOauth2LoginController extends AbstractController
      */
     public function __invoke(Request $request, string $_scope): Response
     {
-        $this->framework->initialize('frontend' === $_scope);
+        $this->framework->initialize(ContaoCoreBundle::SCOPE_FRONTEND === $_scope);
 
         $provider = $this->providerFactory->createProvider($_scope);
 
