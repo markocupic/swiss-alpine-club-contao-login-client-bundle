@@ -20,7 +20,7 @@ Die Erweiterung besitzt folgende Abhängigkeiten:
 - [juststeveking/uri-builder](https://github.com/juststeveking/uri-builder)
 
 ## Hilfe/HowTo
-[The PHP League Oauth2 client](https://oauth2-client.thephpleague.com/usage/)
+[The PHP League OAuth2 client](https://oauth2-client.thephpleague.com/usage/)
 
 ## Konfiguration
 Vor der Inbetriebnahme muss die App konfiguriert werden. Erstellen Sie dazu einen neuen Abschnitt in config/config.yaml.

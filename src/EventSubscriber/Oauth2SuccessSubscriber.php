@@ -18,7 +18,7 @@ use Markocupic\SwissAlpineClubContaoLoginClientBundle\Event\OAuth2SuccessEvent;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authentication\Authenticator;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
-class Oauth2SuccessSubscriber implements EventSubscriberInterface
+class OAuth2SuccessSubscriber implements EventSubscriberInterface
 {
     private const PRIORITY = 1000;
 

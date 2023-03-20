@@ -30,7 +30,7 @@ use Symfony\Component\Routing\Annotation\Route;
 
 #[Route('/ssoauth/frontend', name: 'swiss_alpine_club_sso_login_frontend', defaults: ['_scope' => 'frontend', '_token_check' => false])]
 #[Route('/ssoauth/backend', name: 'swiss_alpine_club_sso_login_backend', defaults: ['_scope' => 'backend', '_token_check' => false])]
-class ContaoOauth2LoginController extends AbstractController
+class ContaoOAuth2LoginController extends AbstractController
 {
     private Adapter $systemAdapter;
 
