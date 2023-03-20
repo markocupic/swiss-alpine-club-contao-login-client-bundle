@@ -8,10 +8,9 @@ services:
         resource: ../src/
         exclude: [
             ../src/{ DependencyInjection,Model,Event,Session,Exception },
-            ../src/Security/Oauth/Provider/SwissAlpineClub.php,
-            ../src/Security/Oauth/ResourceOwner/SwissAlpineClubResourceOwner.php,
-            ../src/Security/Oauth/Exception/BadQueryStringException.php,
-            ../src/Security/Oauth/Provider/Exception/InvalidOauth2ProviderConfigurationException.php,
+            ../src/Client/Provider/SwissAlpineClub.php,
+            ../src/Client/OAuth2Client.php,
+            ../src/Security/OAuth/OAuthUser.php,
             ../src/Config/ContaoLogConfig.php,
             ../src/ErrorMessage/ErrorMessage.php,
             ../src/Security/User/ContaoUser.php,
@@ -22,7 +21,7 @@ services:
         arguments:
             - '%sac_oauth2_client.oidc.auth_provider_endpoint_logout%'
 
-    Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Oauth\Provider\ProviderFactory:
+    Markocupic\SwissAlpineClubContaoLoginClientBundle\Client\Provider\ProviderFactory:
         arguments:
             - '@router.default'
             - # provider config
