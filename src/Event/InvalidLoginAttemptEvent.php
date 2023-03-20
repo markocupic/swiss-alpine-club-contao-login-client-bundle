@@ -14,7 +14,7 @@ declare(strict_types=1);
 
 namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Event;
 
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Oauth\ResourceOwner\SwissAlpineClubResourceOwner;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\OAuth\OAuthUser;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\User\ContaoUser;
 use Symfony\Contracts\EventDispatcher\Event;
 
@@ -33,7 +33,7 @@ class InvalidLoginAttemptEvent extends Event
     public function __construct(
         private readonly string $causeOfError,
         private readonly string $contaoScope,
-        private readonly SwissAlpineClubResourceOwner $resourceOwner,
+        private readonly OAuthUser $resourceOwner,
         private readonly ContaoUser|null $contaoUser = null,
     ) {
     }
@@ -48,7 +48,7 @@ class InvalidLoginAttemptEvent extends Event
         return $this->contaoScope;
     }
 
-    public function getResourceOwner(): SwissAlpineClubResourceOwner
+    public function getResourceOwner(): OAuthUser
     {
         return $this->resourceOwner;
     }

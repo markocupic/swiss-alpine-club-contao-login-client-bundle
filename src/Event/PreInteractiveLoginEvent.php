@@ -15,7 +15,7 @@ declare(strict_types=1);
 namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Event;
 
 use Contao\CoreBundle\Security\User\ContaoUserProvider;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Oauth\ResourceOwner\SwissAlpineClubResourceOwner;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\OAuth\OAuthUser;
 use Symfony\Contracts\EventDispatcher\Event;
 
 final class PreInteractiveLoginEvent extends Event
@@ -26,7 +26,7 @@ final class PreInteractiveLoginEvent extends Event
         private readonly string $userIdentifier,
         private readonly string $userClass,
         private readonly ContaoUserProvider $userProvider,
-        private readonly SwissAlpineClubResourceOwner $resourceOwner,
+        private readonly OAuthUser $resourceOwner,
     ) {
     }
 
@@ -45,7 +45,7 @@ final class PreInteractiveLoginEvent extends Event
         return $this->userProvider;
     }
 
-    public function getResourceOwner(): SwissAlpineClubResourceOwner
+    public function getResourceOwner(): OAuthUser
     {
         return $this->resourceOwner;
     }

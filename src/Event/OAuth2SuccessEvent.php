@@ -14,8 +14,7 @@ declare(strict_types=1);
 
 namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Event;
 
-use League\OAuth2\Client\Provider\AbstractProvider;
-use League\OAuth2\Client\Token\AccessToken;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Client\OAuth2Client;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Contracts\EventDispatcher\Event;
 
@@ -25,20 +24,8 @@ class OAuth2SuccessEvent extends Event
 
     public function __construct(
         private readonly Request $request,
-        private readonly AbstractProvider $provider,
-        private readonly AccessToken $accessToken,
-        private readonly string $scope,
+        private readonly OAuth2Client $oAuth2Client,
     ) {
-    }
-
-    public function getAccessToken(): AccessToken
-    {
-        return $this->accessToken;
-    }
-
-    public function getProvider(): AbstractProvider
-    {
-        return $this->provider;
     }
 
     public function getRequest(): Request
@@ -46,8 +33,8 @@ class OAuth2SuccessEvent extends Event
         return $this->request;
     }
 
-    public function getScope(): string // backend or frontend
+    public function getOAuth2Client(): OAuth2Client
     {
-        return $this->scope;
+        return $this->oAuth2Client;
     }
 }

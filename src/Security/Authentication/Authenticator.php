@@ -20,23 +20,22 @@ use Contao\CoreBundle\Framework\Adapter;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\CoreBundle\Monolog\ContaoContext;
 use Contao\System;
-use League\OAuth2\Client\Provider\AbstractProvider;
-use League\OAuth2\Client\Token\AccessToken;
+use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Client\OAuth2Client;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Config\ContaoLogConfig;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Event\InvalidLoginAttemptEvent;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\InteractiveLogin\InteractiveLogin;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Oauth\ResourceOwner\ResourceOwnerChecker;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Oauth\ResourceOwner\SwissAlpineClubResourceOwner;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\OAuth\OAuthUser;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\OAuth\OAuthUserChecker;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\User\ContaoUser;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\User\ContaoUserFactory;
 use Psr\Log\LoggerInterface;
 use Safe\Exceptions\JsonException;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Session\SessionBagInterface;
 use function Safe\json_encode;
 
-class AuthenticationManager
+class Authenticator
 {
     private Adapter $system;
 
@@ -45,7 +44,7 @@ class AuthenticationManager
         private readonly ContaoUserFactory $contaoUserFactory,
         private readonly EventDispatcherInterface $eventDispatcher,
         private readonly InteractiveLogin $interactiveLogin,
-        private readonly ResourceOwnerChecker $resourceOwnerChecker,
+        private readonly OAuthUserChecker $oAuthUserChecker,
         private readonly LoggerInterface|null $logger = null,
     ) {
         // Adapters
@@ -54,13 +53,16 @@ class AuthenticationManager
 
     /**
      * @throws JsonException
+     * @throws IdentityProviderException
      */
-    public function authenticateContaoUser(Request $request, AbstractProvider $provider, AccessToken $accessToken, string $contaoScope): void
+    public function authenticateContaoUser(Request $request, OAuth2Client $oAuth2Client): void
     {
         $allowedScopes = [
             ContaoCoreBundle::SCOPE_BACKEND,
             ContaoCoreBundle::SCOPE_FRONTEND,
         ];
+
+        $contaoScope = $oAuth2Client->getContaoScope();
 
         if (!\in_array($contaoScope, $allowedScopes, true)) {
             throw new \InvalidArgumentException(sprintf('The Contao Scope must be either "%s" "%s" given.', implode('" or "', $allowedScopes), $contaoScope));
@@ -71,7 +73,7 @@ class AuthenticationManager
         $isDebugMode = $container->getParameter('sac_oauth2_client.oidc.debug_mode');
 
         // Session
-        $session = $this->getSession($request, $contaoScope);
+        $session = $oAuth2Client->getSession();
         $flashBag = $request->getSession()->getFlashBag();
         $flashBagKey = $container->getParameter('sac_oauth2_client.session.flash_bag_key');
 
@@ -87,49 +89,49 @@ class AuthenticationManager
         /** @var bool $blnAllowContaoLoginIfAccountIsDisabled */
         $blnAllowContaoLoginIfAccountIsDisabled = $container->getParameter('sac_oauth2_client.oidc.allow_'.$contaoScope.'_login_if_contao_account_is_disabled');
 
-        // Get the resource owner object
-        /** @var SwissAlpineClubResourceOwner $resourceOwner */
-        $resourceOwner = $provider->getResourceOwner($accessToken);
+        // Get the OAuth user also named "resource owner"
+        /** @var OAuthUser $oAuthUser */
+        $oAuthUser = $oAuth2Client->getOAuth2Provider()->getResourceOwner($oAuth2Client->getAccessToken());
 
         // For testing purposes only
-        //$resourceOwner->overrideData($resourceOwner->getDummyResourceOwnerData(true));
+        //$oAuthUser->overrideData($oAuthUser->getDummyResourceOwnerData(true));
 
         if ($isDebugMode) {
-            // Log resource owners details
+            // Log OAuth user details
             $logText = sprintf(
                 'SAC oauth2 debug %s login. NAME: %s - SAC MEMBER ID: %s - ROLES: %s - DATA ALL: %s',
                 $contaoScope,
-                $resourceOwner->getFullName(),
-                $resourceOwner->getSacMemberId(),
-                $resourceOwner->getRolesAsString(),
-                json_encode($resourceOwner->toArray()),
+                $oAuthUser->getFullName(),
+                $oAuthUser->getSacMemberId(),
+                $oAuthUser->getRolesAsString(),
+                json_encode($oAuthUser->toArray()),
             );
 
             $this->log($logText, __METHOD__, ContaoLogConfig::SAC_OAUTH2_DEBUG_LOG);
         }
 
         // Check if uuid/sub is set
-        if (!$this->resourceOwnerChecker->checkHasUuid($resourceOwner)) {
-            $this->dispatchInvalidLoginAttemptEvent(InvalidLoginAttemptEvent::FAILED_CHECK_HAS_UUID, $contaoScope, $resourceOwner);
+        if (!$this->oAuthUserChecker->checkHasUuid($oAuthUser)) {
+            $this->dispatchInvalidLoginAttemptEvent(InvalidLoginAttemptEvent::FAILED_CHECK_HAS_UUID, $contaoScope, $oAuthUser);
 
-            throw new RedirectResponseException($session->get('failurePath'));
+            throw new RedirectResponseException($oAuth2Client->getFailurePath());
         }
 
         // Check if user is a SAC member
         if ($blnAllowLoginToSacMembersOnly) {
-            if (!$this->resourceOwnerChecker->checkIsSacMember($resourceOwner)) {
-                $this->dispatchInvalidLoginAttemptEvent(InvalidLoginAttemptEvent::FAILED_CHECK_IS_SAC_MEMBER, $contaoScope, $resourceOwner);
+            if (!$this->oAuthUserChecker->checkIsSacMember($oAuthUser)) {
+                $this->dispatchInvalidLoginAttemptEvent(InvalidLoginAttemptEvent::FAILED_CHECK_IS_SAC_MEMBER, $contaoScope, $oAuthUser);
 
-                throw new RedirectResponseException($session->get('failurePath'));
+                throw new RedirectResponseException($oAuth2Client->getFailurePath());
             }
         }
 
         // Check if user is member of an allowed section
         if ($blnAllowLoginToPredefinedSectionsOnly) {
-            if (!$this->resourceOwnerChecker->checkIsMemberOfAllowedSection($resourceOwner, $contaoScope)) {
-                $this->dispatchInvalidLoginAttemptEvent(InvalidLoginAttemptEvent::FAILED_CHECK_IS_MEMBER_OF_ALLOWED_SECTION, $contaoScope, $resourceOwner);
+            if (!$this->oAuthUserChecker->checkIsMemberOfAllowedSection($oAuthUser, $contaoScope)) {
+                $this->dispatchInvalidLoginAttemptEvent(InvalidLoginAttemptEvent::FAILED_CHECK_IS_MEMBER_OF_ALLOWED_SECTION, $contaoScope, $oAuthUser);
 
-                throw new RedirectResponseException($session->get('failurePath'));
+                throw new RedirectResponseException($oAuth2Client->getFailurePath());
             }
         }
 
@@ -137,14 +139,14 @@ class AuthenticationManager
         // This test should always be positive,
         // because creating an account at https://www.sac-cas.ch
         // requires already a valid email address
-        if (!$this->resourceOwnerChecker->checkHasValidEmailAddress($resourceOwner)) {
-            $this->dispatchInvalidLoginAttemptEvent(InvalidLoginAttemptEvent::FAILED_CHECK_HAS_VALID_EMAIL_ADDRESS, $contaoScope, $resourceOwner);
+        if (!$this->oAuthUserChecker->checkHasValidEmailAddress($oAuthUser)) {
+            $this->dispatchInvalidLoginAttemptEvent(InvalidLoginAttemptEvent::FAILED_CHECK_HAS_VALID_EMAIL_ADDRESS, $contaoScope, $oAuthUser);
 
-            throw new RedirectResponseException($session->get('failurePath'));
+            throw new RedirectResponseException($oAuth2Client->getFailurePath());
         }
 
         // Create the user wrapper object
-        $contaoUser = $this->contaoUserFactory->loadContaoUser($resourceOwner, $contaoScope);
+        $contaoUser = $this->contaoUserFactory->loadContaoUser($oAuthUser, $contaoScope);
 
         // Create Contao frontend or backend user, if it doesn't exist.
         if (ContaoCoreBundle::SCOPE_FRONTEND === $contaoScope) {
@@ -156,9 +158,9 @@ class AuthenticationManager
         // if $contaoScope === 'backend': Check if Contao backend user exists
         // if $contaoScope === 'frontend': Check if Contao frontend user exists
         if (!$contaoUser->checkUserExists()) {
-            $this->dispatchInvalidLoginAttemptEvent(InvalidLoginAttemptEvent::FAILED_CHECK_USER_EXISTS, $contaoScope, $resourceOwner, $contaoUser);
+            $this->dispatchInvalidLoginAttemptEvent(InvalidLoginAttemptEvent::FAILED_CHECK_USER_EXISTS, $contaoScope, $oAuthUser, $contaoUser);
 
-            throw new RedirectResponseException($session->get('failurePath'));
+            throw new RedirectResponseException($oAuth2Client->getFailurePath());
         }
 
         // Allow login to frontend users only if account is disabled
@@ -181,9 +183,9 @@ class AuthenticationManager
         // if $contaoScope === 'backend': Check if tl_user.disable == '' or tl_user.login == '1' or tl_user.start and tl_user.stop are not in an allowed time range
         // if $contaoScope === 'frontend': Check if tl_member.disable == '' or tl_member.login == '1' or tl_member.start and tl_member.stop are not in an allowed time range
         if (!$contaoUser->checkIsAccountEnabled() && !$blnAllowContaoLoginIfAccountIsDisabled) {
-            $this->dispatchInvalidLoginAttemptEvent(InvalidLoginAttemptEvent::FAILED_CHECK_IS_ACCOUNT_ENABLED, $contaoScope, $resourceOwner, $contaoUser);
+            $this->dispatchInvalidLoginAttemptEvent(InvalidLoginAttemptEvent::FAILED_CHECK_IS_ACCOUNT_ENABLED, $contaoScope, $oAuthUser, $contaoUser);
 
-            throw new RedirectResponseException($session->get('failurePath'));
+            throw new RedirectResponseException($oAuth2Client->getFailurePath());
         }
 
         if ($flashBag->has($flashBagKey)) {
@@ -193,7 +195,7 @@ class AuthenticationManager
         // Log in as a Contao backend or frontend user.
         $this->interactiveLogin->login($contaoUser);
 
-        $targetPath = $session->get('targetPath');
+        $targetPath = $oAuth2Client->getTargetPath();
 
         $session->clear();
 
@@ -201,25 +203,14 @@ class AuthenticationManager
         $logText = sprintf(
             '%s User "%s" [%s] has logged in with SAC OPENID CONNECT APP.',
             ContaoCoreBundle::SCOPE_FRONTEND === $contaoScope ? 'Frontend' : 'Backend',
-            $resourceOwner->getFullName(),
-            $resourceOwner->getSacMemberId()
+            $oAuthUser->getFullName(),
+            $oAuthUser->getSacMemberId()
         );
         $this->log($logText, __METHOD__, ContaoContext::ACCESS);
 
         // All ok. The Contao user has successfully logged in.
         // Let's redirect to the target page now.
         throw new RedirectResponseException($targetPath);
-    }
-
-    private function getSession(Request $request, string $scope): SessionBagInterface
-    {
-        if ('backend' === $scope) {
-            $session = $request->getSession()->getBag('sac_oauth2_client_attr_backend');
-        } else {
-            $session = $request->getSession()->getBag('sac_oauth2_client_attr_frontend');
-        }
-
-        return $session;
     }
 
     private function log(string $logText, string $method, string $context): void
@@ -230,9 +221,9 @@ class AuthenticationManager
         );
     }
 
-    private function dispatchInvalidLoginAttemptEvent(string $causeOfError, string $contaoScope, SwissAlpineClubResourceOwner $resourceOwner, ContaoUser $contaoUser = null): void
+    private function dispatchInvalidLoginAttemptEvent(string $causeOfError, string $contaoScope, OAuthUser $oAuthUser, ContaoUser $contaoUser = null): void
     {
-        $event = new InvalidLoginAttemptEvent($causeOfError, $contaoScope, $resourceOwner, $contaoUser);
+        $event = new InvalidLoginAttemptEvent($causeOfError, $contaoScope, $oAuthUser, $contaoUser);
         $this->eventDispatcher->dispatch($event, InvalidLoginAttemptEvent::NAME);
     }
 }

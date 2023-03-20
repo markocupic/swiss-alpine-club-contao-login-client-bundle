@@ -24,8 +24,8 @@ use Contao\System;
 use Contao\UserModel;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessage;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessageManager;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Oauth\ResourceOwner\ResourceOwnerChecker;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Oauth\ResourceOwner\SwissAlpineClubResourceOwner;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\OAuth\OAuthUser;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\OAuth\OAuthUserChecker;
 use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -36,14 +36,14 @@ class ContaoUser
         private readonly ContaoFramework $framework,
         private readonly TranslatorInterface $translator,
         private readonly PasswordHasherFactoryInterface $hasherFactory,
-        private readonly ResourceOwnerChecker $resourceOwnerChecker,
+        private readonly OAuthUserChecker $resourceOwnerChecker,
         private readonly ErrorMessageManager $errorMessageManager,
-        private readonly SwissAlpineClubResourceOwner $resourceOwner,
+        private readonly OAuthUser $resourceOwner,
         private readonly string $contaoScope,
     ) {
     }
 
-    public function getResourceOwner(): SwissAlpineClubResourceOwner
+    public function getResourceOwner(): OAuthUser
     {
         return $this->resourceOwner;
     }

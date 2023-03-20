@@ -12,7 +12,7 @@ declare(strict_types=1);
  * @link https://github.com/markocupic/swiss-alpine-club-contao-login-client-bundle
  */
 
-namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Oauth\Provider;
+namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Client\Provider;
 
 use JetBrains\PhpStorm\Pure;
 use League\OAuth2\Client\Provider\AbstractProvider;
@@ -20,7 +20,7 @@ use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use League\OAuth2\Client\Provider\ResourceOwnerInterface;
 use League\OAuth2\Client\Token\AccessToken;
 use League\OAuth2\Client\Tool\BearerAuthorizationTrait;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Oauth\ResourceOwner\SwissAlpineClubResourceOwner;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\OAuth\OAuthUser;
 use Psr\Http\Message\ResponseInterface;
 
 class SwissAlpineClub extends AbstractProvider
@@ -71,7 +71,7 @@ class SwissAlpineClub extends AbstractProvider
     #[Pure]
     protected function createResourceOwner(array $response, AccessToken $token): ResourceOwnerInterface
     {
-        return new SwissAlpineClubResourceOwner($response, $this->responseResourceOwnerId);
+        return new OAuthUser($response, $this->responseResourceOwnerId);
     }
 
     protected function getDefaultScopes(): array

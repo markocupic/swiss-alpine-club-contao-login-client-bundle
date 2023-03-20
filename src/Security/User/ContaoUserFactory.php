@@ -16,8 +16,8 @@ namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\User;
 
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessageManager;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Oauth\ResourceOwner\ResourceOwnerChecker;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Oauth\ResourceOwner\SwissAlpineClubResourceOwner;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\OAuth\OAuthUser;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\OAuth\OAuthUserChecker;
 use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
@@ -27,12 +27,12 @@ final class ContaoUserFactory
         private readonly ContaoFramework $framework,
         private readonly TranslatorInterface $translator,
         private readonly PasswordHasherFactoryInterface $hasherFactory,
-        private readonly ResourceOwnerChecker $resourceOwnerChecker,
+        private readonly OAuthUserChecker $resourceOwnerChecker,
         private readonly ErrorMessageManager $errorMessageManager,
     ) {
     }
 
-    public function loadContaoUser(SwissAlpineClubResourceOwner $resourceOwner, string $contaoScope): ContaoUser
+    public function loadContaoUser(OAuthUser $resourceOwner, string $contaoScope): ContaoUser
     {
         return new ContaoUser(
             $this->framework,

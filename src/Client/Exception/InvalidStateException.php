@@ -12,8 +12,11 @@ declare(strict_types=1);
  * @link https://github.com/markocupic/swiss-alpine-club-contao-login-client-bundle
  */
 
-namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Oauth\Exception;
+namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Client\Exception;
 
-class BadQueryStringException extends \Exception
+/**
+ * Thrown if the "state" is invalid after the auth code redirect.
+ */
+class InvalidStateException extends \RuntimeException
 {
 }

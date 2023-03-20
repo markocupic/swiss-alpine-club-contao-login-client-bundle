@@ -12,8 +12,11 @@ declare(strict_types=1);
  * @link https://github.com/markocupic/swiss-alpine-club-contao-login-client-bundle
  */
 
-namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Oauth\Provider\Exception;
+namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Client\Exception;
 
-class InvalidOauth2ProviderConfigurationException extends \Exception
+/**
+ * Thrown if not all required options have been set.
+ */
+class InvalidOAuth2ProviderConfigurationException extends \RuntimeException
 {
 }

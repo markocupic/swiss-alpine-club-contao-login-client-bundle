@@ -12,11 +12,11 @@ declare(strict_types=1);
  * @link https://github.com/markocupic/swiss-alpine-club-contao-login-client-bundle
  */
 
-namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Oauth\Provider;
+namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Client\Provider;
 
 use Contao\CoreBundle\ContaoCoreBundle;
 use League\OAuth2\Client\Provider\AbstractProvider;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Oauth\Provider\Exception\Oauth2ProviderConfigurationException;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Client\Exception\InvalidOAuth2ProviderConfigurationException;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
 
@@ -64,7 +64,7 @@ class ProviderFactory
     {
         foreach ($providerConfig as $key => $value) {
             if (empty($value)) {
-                throw new Oauth2ProviderConfigurationException(sprintf('Please check your oauth2 provider configuration. The key "%s" can not be empty.', $key));
+                throw new InvalidOAuth2ProviderConfigurationException(sprintf('Please check your oauth2 provider configuration. The key "%s" can not be empty.', $key));
             }
         }
     }
