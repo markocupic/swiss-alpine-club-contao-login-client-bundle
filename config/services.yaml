@@ -35,8 +35,8 @@ services:
 
     Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessageManager:
         arguments:
-            - '%sac_oauth2_client.session.flash_bag_key%'
             - '@request_stack'
+            - '%sac_oauth2_client.session.flash_bag_key%'
 
     # Register session bags
     markocupic.sac_oauth2_client.session.factory:

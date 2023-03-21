@@ -87,9 +87,9 @@ class Authenticator
 
         // Get the OAuth user also named "resource owner"
         /** @var OAuthUser $oAuthUser */
-        $oAuthUser = $oAuth2Client->getOAuth2Provider()->getResourceOwner($oAuth2Client->getAccessToken());
+        $oAuthUser = $oAuth2Client->fetchUser();
 
-        // For testing purposes only
+        // For testing & debugging purposes only
         //$oAuthUser->overrideData($oAuthUser->getDummyResourceOwnerData(true));
 
         if ($isDebugMode) {

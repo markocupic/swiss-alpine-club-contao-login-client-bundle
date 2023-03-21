@@ -15,7 +15,6 @@ declare(strict_types=1);
 namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Event;
 
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Client\OAuth2Client;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Contracts\EventDispatcher\Event;
 
 class OAuth2SuccessEvent extends Event
@@ -23,14 +22,8 @@ class OAuth2SuccessEvent extends Event
     public const NAME = 'sac_oauth2_client.oauth2_success';
 
     public function __construct(
-        private readonly Request $request,
         private readonly OAuth2Client $oAuth2Client,
     ) {
-    }
-
-    public function getRequest(): Request
-    {
-        return $this->request;
     }
 
     public function getOAuth2Client(): OAuth2Client
