@@ -15,12 +15,13 @@ declare(strict_types=1);
 namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage;
 
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface;
 
-class ErrorMessageManager
+readonly class ErrorMessageManager
 {
     public function __construct(
-        private readonly string $flashBagKey,
-        private readonly RequestStack $requestStack,
+        private RequestStack $requestStack,
+        private string $flashBagKey,
     ) {
     }
 
@@ -29,9 +30,19 @@ class ErrorMessageManager
      */
     public function add2Flash(ErrorMessage $objErrorMsg): void
     {
-        $request = $this->requestStack->getCurrentRequest();
-        $session = $request->getSession();
+        $this->getFlashBag()->add($this->flashBagKey, $objErrorMsg->get());
+    }
 
-        $session->getFlashBag()->add($this->flashBagKey, $objErrorMsg->get());
+    /**
+     * Clear flash messages.
+     */
+    public function clearFlash(): void
+    {
+        $this->getFlashBag()->set($this->flashBagKey, []);
+    }
+
+    private function getFlashBag(): FlashBagInterface
+    {
+        return $this->requestStack->getCurrentRequest()->getSession()->getFlashBag();
     }
 }

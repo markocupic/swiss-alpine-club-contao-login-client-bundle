@@ -82,10 +82,7 @@ class ContaoOAuth2LoginController extends AbstractController
 
         // Yeah, we have an access token!
         // But the user is still not logged in against the Contao backend/frontend firewall.
-        $oauth2SuccessEvent = new OAuth2SuccessEvent(
-            $request,
-            $oAuthClient,
-        );
+        $oauth2SuccessEvent = new OAuth2SuccessEvent($oAuthClient);
 
         if (!$this->eventDispatcher->hasListeners($oauth2SuccessEvent::NAME)) {
             return new Response('Successful oauth2 login but no success handler defined.');

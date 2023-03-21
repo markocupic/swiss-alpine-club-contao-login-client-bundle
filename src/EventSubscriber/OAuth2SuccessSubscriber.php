@@ -37,10 +37,9 @@ class OAuth2SuccessSubscriber implements EventSubscriberInterface
      */
     public function onOAuth2Success(OAuth2SuccessEvent $event): void
     {
-        $request = $event->getRequest();
         $oAuth2Client = $event->getOAuth2Client();
 
         // Get the user from resource owner and login to contao firewall
-        $this->authenticator->authenticateContaoUser($request, $oAuth2Client);
+        $this->authenticator->authenticateContaoUser($oAuth2Client);
     }
 }

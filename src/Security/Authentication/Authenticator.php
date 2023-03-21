@@ -23,6 +23,7 @@ use Contao\System;
 use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Client\OAuth2Client;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Config\ContaoLogConfig;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessageManager;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Event\InvalidLoginAttemptEvent;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\InteractiveLogin\InteractiveLogin;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\OAuth\OAuthUser;
@@ -32,7 +33,6 @@ use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\User\ContaoUserFa
 use Psr\Log\LoggerInterface;
 use Safe\Exceptions\JsonException;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
-use Symfony\Component\HttpFoundation\Request;
 use function Safe\json_encode;
 
 class Authenticator
@@ -42,6 +42,7 @@ class Authenticator
     public function __construct(
         private readonly ContaoFramework $framework,
         private readonly ContaoUserFactory $contaoUserFactory,
+        private readonly ErrorMessageManager $errorMessageManager,
         private readonly EventDispatcherInterface $eventDispatcher,
         private readonly InteractiveLogin $interactiveLogin,
         private readonly OAuthUserChecker $oAuthUserChecker,
@@ -52,10 +53,10 @@ class Authenticator
     }
 
     /**
-     * @throws JsonException
      * @throws IdentityProviderException
+     * @throws JsonException
      */
-    public function authenticateContaoUser(Request $request, OAuth2Client $oAuth2Client): void
+    public function authenticateContaoUser(OAuth2Client $oAuth2Client): void
     {
         $allowedScopes = [
             ContaoCoreBundle::SCOPE_BACKEND,
@@ -71,11 +72,6 @@ class Authenticator
         $container = $this->system->getContainer();
 
         $isDebugMode = $container->getParameter('sac_oauth2_client.oidc.debug_mode');
-
-        // Session
-        $session = $oAuth2Client->getSession();
-        $flashBag = $request->getSession()->getFlashBag();
-        $flashBagKey = $container->getParameter('sac_oauth2_client.session.flash_bag_key');
 
         /** @var bool $blnAutoCreateContaoUser */
         $blnAutoCreateContaoUser = $container->getParameter('sac_oauth2_client.oidc.auto_create_'.$contaoScope.'_user');
@@ -188,16 +184,16 @@ class Authenticator
             throw new RedirectResponseException($oAuth2Client->getFailurePath());
         }
 
-        if ($flashBag->has($flashBagKey)) {
-            $flashBag->clear();
-        }
+        // The flash bag should actually be empty. Let's clear it to be on the safe side.
+        $this->errorMessageManager->clearFlash();
 
         // Log in as a Contao backend or frontend user.
         $this->interactiveLogin->login($contaoUser);
 
         $targetPath = $oAuth2Client->getTargetPath();
 
-        $session->clear();
+        // Clear the session
+        $oAuth2Client->getSession()->clear();
 
         // Contao system log
         $logText = sprintf(
