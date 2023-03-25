@@ -19,7 +19,6 @@ use Contao\CoreBundle\Exception\InvalidRequestTokenException;
 use Contao\CoreBundle\Framework\Adapter;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\System;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\Client\Exception\BadRequestParameterException;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Client\OAuth2ClientFactory;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Event\OAuth2SuccessEvent;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -49,48 +48,63 @@ class ContaoOAuth2LoginController extends AbstractController
     {
         $this->framework->initialize(ContaoCoreBundle::SCOPE_FRONTEND === $_scope);
 
-        $oAuthClient = $this->oAuth2ClientFactory->createOAuth2Client($_scope);
-
-        if (!$request->query->has('code')) {
-            if ($this->systemAdapter->getContainer()->getParameter('sac_oauth2_client.oidc.enable_csrf_token_check')) {
-                $this->validateCsrfToken($request->get('REQUEST_TOKEN'));
-            }
-
-            // Save target path to the session
-            if (!$request->request->has('targetPath')) {
-                // Target path not found in $_POST
-                throw new BadRequestParameterException('Login Error: URI parameter "targetPath" not found.');
-            }
-
-            $oAuthClient->setTargetPath(base64_decode($request->request->get('targetPath'), true));
-
-            // Save failure path to the session
-            if (!$request->request->has('failurePath')) {
-                // Failure path not found in $_POST
-                throw new BadRequestParameterException('Login Error: URI parameter "failurePath" not found.');
-            }
-
-            $oAuthClient->setFailurePath(base64_decode($request->request->get('failurePath'), true));
-
-            // Save module id path to the session
-            if (ContaoCoreBundle::SCOPE_FRONTEND === $_scope) {
-                $oAuthClient->setModuleId($request->request->get('moduleId'));
-            }
-
-            return $oAuthClient->redirect();
+        if (!$request->query->has('code') && $request->isMethod('post')) {
+            // Redirect to OAuth login page https://login.sac-cas.ch/
+            return $this->connectAction($request, $_scope);
         }
 
-        // Yeah, we have an access token!
+        return $this->getAccessTokenAction($request, $_scope);
+    }
+
+    private function connectAction(Request $request, string $_scope): Response
+    {
+        if ($this->systemAdapter->getContainer()->getParameter('sac_oauth2_client.oidc.enable_csrf_token_check')) {
+            $this->validateCsrfToken($request->get('REQUEST_TOKEN'));
+        }
+
+        if (!$request->request->has('_target_path')) {
+            // Target path not found in $_POST
+            return new Response('Invalid request. Target path not found.', Response::HTTP_BAD_REQUEST);
+        }
+
+        if (!$request->request->has('_failure_path')) {
+            return new Response('Invalid request. Failure path not found.', Response::HTTP_BAD_REQUEST);
+        }
+
+        $oAuthClient = $this->oAuth2ClientFactory->createOAuth2Client($_scope);
+        $oAuthClient->setTargetPath(base64_decode($request->request->get('_target_path'), true));
+        $oAuthClient->setFailurePath(base64_decode($request->request->get('_failure_path'), true));
+
+        // Save module id path to the session
+        if (ContaoCoreBundle::SCOPE_FRONTEND === $_scope) {
+            if (!$request->request->has('_module_id')) {
+                return new Response('Invalid request. Module id not found.', Response::HTTP_BAD_REQUEST);
+            }
+            $oAuthClient->setModuleId($request->request->get('_module_id'));
+        }
+
+        return $oAuthClient->redirect();
+    }
+
+    private function getAccessTokenAction(Request $request, string $_scope): Response
+    {
+        if (!$request->query->has('code') || !$request->query->has('state') || !$request->query->has('session_state')) {
+            return new Response('Invalid request.', Response::HTTP_BAD_REQUEST);
+        }
+
+        $oAuthClient = $this->oAuth2ClientFactory->createOAuth2Client($_scope);
+
+        // We have an access token!
         // But the user is still not logged in against the Contao backend/frontend firewall.
         $oauth2SuccessEvent = new OAuth2SuccessEvent($oAuthClient);
 
         if (!$this->eventDispatcher->hasListeners($oauth2SuccessEvent::NAME)) {
-            return new Response('Successful oauth2 login but no success handler defined.');
+            return new Response('Successful OAuth2 login but no success handler defined.');
         }
 
         // Dispatch the OAuth2 success event.
         // Use an event subscriber to ...
-        // - get a Contao user from resource owner
+        // - identify the Contao user from OAuth2 user
         // - check if user is in an allowed section, etc.
         // - and login to the Contao firewall or redirect to login-failure page
         $this->eventDispatcher->dispatch($oauth2SuccessEvent, $oauth2SuccessEvent::NAME);

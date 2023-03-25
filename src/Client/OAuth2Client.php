@@ -151,32 +151,32 @@ class OAuth2Client
 
     public function getTargetPath(): string
     {
-        return $this->getSession()->get('targetPath', null);
+        return $this->getSession()->get('_target_path', null);
     }
 
     public function getFailurePath(): string
     {
-        return $this->getSession()->get('failurePath', null);
+        return $this->getSession()->get('_failure_path', null);
     }
 
     public function getModuleId(): string
     {
-        return $this->getSession()->get('moduleId', null);
+        return $this->getSession()->get('_module_id', null);
     }
 
     public function setTargetPath(string $targetPath): void
     {
-        $this->getSession()->set('targetPath', $targetPath);
+        $this->getSession()->set('_target_path', $targetPath);
     }
 
     public function setFailurePath(string $failurePath): void
     {
-        $this->getSession()->set('failurePath', $failurePath);
+        $this->getSession()->set('_failure_path', $failurePath);
     }
 
     public function setModuleId(string $moduleId): void
     {
-        $this->getSession()->set('moduleId', $moduleId);
+        $this->getSession()->set('_module_id', $moduleId);
     }
 
     public function getSession(): SessionBagInterface

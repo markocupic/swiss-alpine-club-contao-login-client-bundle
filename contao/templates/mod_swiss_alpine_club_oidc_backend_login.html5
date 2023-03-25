@@ -6,9 +6,9 @@
       <?php if ($this->enableCsrfTokenCheck): ?>
       <input type="hidden" name="REQUEST_TOKEN" value="<?= $this->rt ?>">
       <?php endif; ?>
-      <input type="hidden" name="targetPath" value="<?= $this->targetPath ?>">
-      <input type="hidden" name="failurePath" value="<?= $this->failurePath ?>">
-      <input type="hidden" name="alwaysUseTargetPath" value="<?= $this->alwaysUseTargetPath ?>">
+      <input type="hidden" name="_target_path" value="<?= $this->targetPath ?>">
+      <input type="hidden" name="_failure_path" value="<?= $this->failurePath ?>">
+      <input type="hidden" name="_always_use_target_path" value="<?= $this->alwaysUseTargetPath ?>">
       <div class="sac-login-button-group">
         <div class="sac-login-button-prepend">
           <img src="bundles/markocupicswissalpineclubcontaologinclient/img/logo_sac_small.svg" class="sac-login-button-prepend-icon">
