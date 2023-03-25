@@ -40,10 +40,11 @@ class KernelRequestSubscriber implements EventSubscriberInterface
         $request = $e->getRequest();
 
         $GLOBALS['TL_JAVASCRIPT'][] = 'bundles/markocupicswissalpineclubcontaologinclient/js/ids-kill-session.min.js|static';
+        $GLOBALS['TL_JAVASCRIPT'][] = 'bundles/markocupicswissalpineclubcontaologinclient/js/login-button-animation.min.js|static';
+        $GLOBALS['TL_CSS'][] = 'bundles/markocupicswissalpineclubcontaologinclient/css/sac_login_button.css|static';
 
         if ($this->scopeMatcher->isBackendRequest($request)) {
             if (str_contains($request->getUri(), $this->router->generate('contao_backend_login'))) {
-                $GLOBALS['TL_CSS'][] = 'bundles/markocupicswissalpineclubcontaologinclient/css/sac_login_button.min.css|static';
                 $GLOBALS['TL_CSS'][] = 'bundles/markocupicswissalpineclubcontaologinclient/css/backend.min.css';
             }
         }

@@ -14,6 +14,7 @@ declare(strict_types=1);
 
 namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Client;
 
+use Contao\CoreBundle\ContaoCoreBundle;
 use League\OAuth2\Client\Provider\AbstractProvider;
 use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use League\OAuth2\Client\Provider\ResourceOwnerInterface;
@@ -181,7 +182,7 @@ class OAuth2Client
 
     public function getSession(): SessionBagInterface
     {
-        if ('backend' === $this->contaoScope) {
+        if (ContaoCoreBundle::SCOPE_BACKEND === $this->contaoScope) {
             $session = $this->getCurrentRequest()->getSession()->getBag('sac_oauth2_client_attr_backend');
         } else {
             $session = $this->getCurrentRequest()->getSession()->getBag('sac_oauth2_client_attr_frontend');

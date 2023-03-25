@@ -16,9 +16,7 @@ namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller;
 
 use Contao\CoreBundle\ContaoCoreBundle;
 use Contao\CoreBundle\Exception\InvalidRequestTokenException;
-use Contao\CoreBundle\Framework\Adapter;
 use Contao\CoreBundle\Framework\ContaoFramework;
-use Contao\System;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Client\OAuth2ClientFactory;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Event\OAuth2SuccessEvent;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -31,25 +29,21 @@ use Symfony\Component\Routing\Annotation\Route;
 #[Route('/ssoauth/backend', name: 'swiss_alpine_club_sso_login_backend', defaults: ['_scope' => 'backend', '_token_check' => false])]
 class ContaoOAuth2LoginController extends AbstractController
 {
-    private Adapter $systemAdapter;
-
     public function __construct(
         private readonly ContaoFramework $framework,
         private readonly EventDispatcherInterface $eventDispatcher,
         private readonly OAuth2ClientFactory $oAuth2ClientFactory,
+        private readonly string $contaoCsrfTokenName,
+        private readonly bool $enableCsrfTokenCheck,
     ) {
-        $this->systemAdapter = $this->framework->getAdapter(System::class);
     }
 
-    /**
-     * @throws \Exception
-     */
     public function __invoke(Request $request, string $_scope): Response
     {
         $this->framework->initialize(ContaoCoreBundle::SCOPE_FRONTEND === $_scope);
 
         if (!$request->query->has('code') && $request->isMethod('post')) {
-            // Redirect to OAuth login page https://login.sac-cas.ch/
+            // Redirect to OAuth2 login page at https://login.sac-cas.ch/
             return $this->connectAction($request, $_scope);
         }
 
@@ -58,24 +52,22 @@ class ContaoOAuth2LoginController extends AbstractController
 
     private function connectAction(Request $request, string $_scope): Response
     {
-        if ($this->systemAdapter->getContainer()->getParameter('sac_oauth2_client.oidc.enable_csrf_token_check')) {
+        if ($this->enableCsrfTokenCheck) {
             $this->validateCsrfToken($request->get('REQUEST_TOKEN'));
         }
 
         if (!$request->request->has('_target_path')) {
-            // Target path not found in $_POST
             return new Response('Invalid request. Target path not found.', Response::HTTP_BAD_REQUEST);
         }
 
         if (!$request->request->has('_failure_path')) {
             return new Response('Invalid request. Failure path not found.', Response::HTTP_BAD_REQUEST);
         }
-
+        // Save request params to the session
         $oAuthClient = $this->oAuth2ClientFactory->createOAuth2Client($_scope);
         $oAuthClient->setTargetPath(base64_decode($request->request->get('_target_path'), true));
         $oAuthClient->setFailurePath(base64_decode($request->request->get('_failure_path'), true));
 
-        // Save module id path to the session
         if (ContaoCoreBundle::SCOPE_FRONTEND === $_scope) {
             if (!$request->request->has('_module_id')) {
                 return new Response('Invalid request. Module id not found.', Response::HTTP_BAD_REQUEST);
@@ -111,14 +103,12 @@ class ContaoOAuth2LoginController extends AbstractController
 
         // This point should normally not be reached at all,
         // since a successful login will take you to the Contao frontend or backend.
-        return new Response('');
+        return new Response('', Response::HTTP_NO_CONTENT);
     }
 
     private function validateCsrfToken(string $token): void
     {
-        $tokenName = $this->systemAdapter->getContainer()->getParameter('contao.csrf_token_name');
-
-        if (!$this->isCsrfTokenValid($tokenName, $token)) {
+        if (!$this->isCsrfTokenValid($this->contaoCsrfTokenName, $token)) {
             throw new InvalidRequestTokenException('Invalid CSRF token. Please reload the page and try again.');
         }
     }
