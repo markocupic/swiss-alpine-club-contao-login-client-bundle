@@ -44,6 +44,11 @@
   overflow: visible;
   transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
+.sac-login-button-group button[disabled] {
+  background-color: var(--sac-login-button-bg-color-hover);
+  border-color: var(--sac-login-button-bg-color-hover);
+  opacity: 1;
+}
 .sac-login-button-group.sac-login-button-group-lg button {
   font-size: 1rem;
 }

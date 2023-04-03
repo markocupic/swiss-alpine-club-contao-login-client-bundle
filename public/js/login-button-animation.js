@@ -1,4 +1,5 @@
 "use strict";
+
 window.addEventListener('DOMContentLoaded', () => {
     let login_buttons = document.querySelectorAll('.sac-login-button-group button[type="submit"]');
     let i;
@@ -8,6 +9,7 @@ window.addEventListener('DOMContentLoaded', () => {
             login_button.addEventListener('click', (event) => {
                 event.preventDefault();
                 event.stopPropagation();
+
                 submitForm(login_button);
 
                 return false;
@@ -15,24 +17,8 @@ window.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Special treatment for bootstrap modals
-    let login_modal = document.querySelector('#loginModal');
-
-    if (login_modal) {
-        login_modal.addEventListener('shown.bs.modal', (event) => {
-            let login_button = event.target;
-            login_button.addEventListener('click', (event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                submitForm(login_button);
-
-                return false;
-            });
-        });
-    }
-
     /**
-     * Add an animation class to the button
+     * Add an animation class to the submit button
      * @param login_button
      * @returns {boolean}
      */
@@ -43,6 +29,8 @@ window.addEventListener('DOMContentLoaded', () => {
         }
 
         login_button.classList.add('button--loading');
+        login_button.setAttribute('disabled', '');
+
         window.setTimeout(() => {
             let formBe = document.getElementById('sac-oidc-login-be');
             let formFe = document.getElementById('sac-oidc-login-fe');
