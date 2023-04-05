@@ -9,9 +9,9 @@ $GLOBALS['TL_CSS'][] = 'bundles/markocupicswissalpineclubcontaologinclient/css/s
 <?php endif; ?>
 
 <?php if ($this->login): ?>
-<form action="/<?= $this->route('swiss_alpine_club_sso_login_frontend') ?>" id="sac-oidc-login-fe" method="post">
+<form action="/<?= $this->route('swiss_alpine_club_sso_login_frontend') ?>" id="sac-oidc-login-fe" class="sac-oidc-login-fe" method="post">
   <div class="formbody">
-    <input type="hidden" name="FORM_SUBMIT" value="sac-oidc-login-be">
+    <input type="hidden" name="FORM_SUBMIT" value="sac-oidc-login-fe">
     <?php if ($this->enableCsrfTokenCheck): ?>
     <input type="hidden" name="REQUEST_TOKEN" value="{{request_token}}">
     <?php endif; ?>

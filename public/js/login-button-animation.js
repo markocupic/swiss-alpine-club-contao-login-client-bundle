@@ -32,8 +32,8 @@ window.addEventListener('DOMContentLoaded', () => {
         login_button.setAttribute('disabled', '');
 
         window.setTimeout(() => {
-            let formBe = document.getElementById('sac-oidc-login-be');
-            let formFe = document.getElementById('sac-oidc-login-fe');
+            let formBe = login_button.closest('form.sac-oidc-login-be');
+            let formFe = login_button.closest('form.sac-oidc-login-fe');
 
             if (formBe) {
                 formBe.submit();
