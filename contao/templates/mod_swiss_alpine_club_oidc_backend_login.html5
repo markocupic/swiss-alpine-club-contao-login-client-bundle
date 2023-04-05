@@ -1,6 +1,6 @@
 <div id="mod_swiss_alpine_club_oidc_backend_login">
   <h1><?= $this->trans('MSC.loginBT', [], 'contao_default') ?></h1>
-  <form action="/<?= $this->route('swiss_alpine_club_sso_login_backend') ?>" id="sac-oidc-login-be" class="sac-oidc-login-be" method="post">
+  <form action="/<?= $this->route('swiss_alpine_club_sso_login_backend') ?>" id="sacOidcLoginBe" class="sac-oidc-login-be" method="post">
     <div class="formbody">
       <input type="hidden" name="FORM_SUBMIT" value="sac-oidc-login-be">
       <?php if ($this->enableCsrfTokenCheck): ?>
