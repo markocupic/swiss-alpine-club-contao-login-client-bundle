@@ -15,6 +15,7 @@ declare(strict_types=1);
 namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\User;
 
 use Contao\CoreBundle\Framework\ContaoFramework;
+use Doctrine\DBAL\Connection;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessageManager;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\OAuth\OAuthUser;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\OAuth\OAuthUserChecker;
@@ -25,6 +26,7 @@ final class ContaoUserFactory
 {
     public function __construct(
         private readonly ContaoFramework $framework,
+        private readonly Connection $connection,
         private readonly TranslatorInterface $translator,
         private readonly PasswordHasherFactoryInterface $hasherFactory,
         private readonly OAuthUserChecker $resourceOwnerChecker,
@@ -36,6 +38,7 @@ final class ContaoUserFactory
     {
         return new ContaoUser(
             $this->framework,
+            $this->connection,
             $this->translator,
             $this->hasherFactory,
             $this->resourceOwnerChecker,

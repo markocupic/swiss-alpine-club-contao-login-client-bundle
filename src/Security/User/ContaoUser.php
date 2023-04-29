@@ -22,6 +22,7 @@ use Contao\MemberModel;
 use Contao\StringUtil;
 use Contao\System;
 use Contao\UserModel;
+use Doctrine\DBAL\Connection;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessage;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessageManager;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\OAuth\OAuthUser;
@@ -34,6 +35,7 @@ class ContaoUser
 {
     public function __construct(
         private readonly ContaoFramework $framework,
+        private readonly Connection $connection,
         private readonly TranslatorInterface $translator,
         private readonly PasswordHasherFactoryInterface $hasherFactory,
         private readonly OAuthUserChecker $resourceOwnerChecker,
@@ -188,30 +190,27 @@ class ContaoUser
 
         if (null !== $objMember) {
             // Update member details from JSON payload
-            $objMember->mobile = $this->beautifyPhoneNumber($this->resourceOwner->getPhoneMobile());
-            $objMember->phone = $this->beautifyPhoneNumber($this->resourceOwner->getPhonePrivate());
-            $objMember->uuid = $this->resourceOwner->getId();
-            $objMember->lastname = $this->resourceOwner->getLastName();
-            $objMember->firstname = $this->resourceOwner->getFirstName();
-            $objMember->street = $this->resourceOwner->getStreet();
-            $objMember->city = $this->resourceOwner->getCity();
-            $objMember->postal = $this->resourceOwner->getPostal();
-            $objMember->dateOfBirth = false !== strtotime($this->resourceOwner->getDateOfBirth()) ? strtotime($this->resourceOwner->getDateOfBirth()) : 0;
-            $objMember->gender = 'HERR' === $this->resourceOwner->getSalutation() ? 'male' : 'female';
-            $objMember->country = strtolower($this->resourceOwner->getCountryCode());
-            $objMember->email = $this->resourceOwner->getEmail();
-
-            // Update SAC section membership from JSON payload
-            $objMember->sectionId = serialize($this->resourceOwnerChecker->getAllowedSacSectionIds($this->resourceOwner, ContaoCoreBundle::SCOPE_FRONTEND));
+            $set = [
+                'mobile' => $this->beautifyPhoneNumber($this->resourceOwner->getPhoneMobile()),
+                'phone' => $this->beautifyPhoneNumber($this->resourceOwner->getPhonePrivate()),
+                'uuid' => $this->resourceOwner->getId(),
+                'lastname' => $this->resourceOwner->getLastName(),
+                'firstname' => $this->resourceOwner->getFirstName(),
+                'street' => $this->resourceOwner->getStreet(),
+                'city' => $this->resourceOwner->getCity(),
+                'postal' => $this->resourceOwner->getPostal(),
+                'dateOfBirth' => false !== strtotime($this->resourceOwner->getDateOfBirth()) ? strtotime($this->resourceOwner->getDateOfBirth()) : 0,
+                'gender' => 'HERR' === $this->resourceOwner->getSalutation() ? 'male' : 'female',
+                'email' => $this->resourceOwner->getEmail(),
+                'sectionId' => serialize($this->resourceOwnerChecker->getAllowedSacSectionIds($this->resourceOwner, ContaoCoreBundle::SCOPE_FRONTEND)),
+            ];
 
             // Member has to be member of a valid SAC section
             if ($systemAdapter->getContainer()->getParameter('sac_oauth2_client.oidc.allow_frontend_login_to_predefined_section_members_only')) {
-                $objMember->isSacMember = !empty($this->resourceOwnerChecker->getAllowedSacSectionIds($this->resourceOwner, ContaoCoreBundle::SCOPE_FRONTEND)) ? '1' : '';
+                $set['isSacMember'] = !empty($this->resourceOwnerChecker->getAllowedSacSectionIds($this->resourceOwner, ContaoCoreBundle::SCOPE_FRONTEND)) ? '1' : '';
             } else {
-                $objMember->isSacMember = $this->resourceOwnerChecker->isSacMember($this->resourceOwner) ? '1' : '';
+                $set['isSacMember'] = $this->resourceOwnerChecker->isSacMember($this->resourceOwner) ? '1' : '';
             }
-
-            $objMember->tstamp = time();
 
             // Add member groups
             $arrGroups = $stringUtilAdapter->deserialize($objMember->groups, true);
@@ -224,19 +223,24 @@ class ContaoUser
                     }
                 }
 
-                $objMember->groups = serialize($arrGroups);
+                $set['groups'] = serialize($arrGroups);
             }
 
             // Set random password
             if (empty($objMember->password)) {
                 $encoder = $this->hasherFactory->getPasswordHasher(FrontendUser::class);
-                $objMember->password = $encoder->hash(substr(md5((string) random_int(900009, 111111111111)), 0, 8), null);
+                $set['password'] = $encoder->hash(substr(md5((string) random_int(900009, 111111111111)), 0, 8), null);
             }
 
-            // Save
-            $objMember->save();
+            if ($this->connection->update('tl_member', $set, ['id' => $objMember->id])) {
+                $set = [
+                    'tstamp' => time(),
+                ];
 
-            $objMember->refresh();
+                $this->connection->update('tl_member', $set, ['id' => $objMember->id]);
+
+                $objMember->refresh();
+            }
         }
     }
 
@@ -248,32 +252,37 @@ class ContaoUser
         $objUser = $this->getModel('tl_user');
 
         if (null !== $objUser) {
-            $objUser->mobile = $this->beautifyPhoneNumber($this->resourceOwner->getPhoneMobile());
-            $objUser->phone = $this->beautifyPhoneNumber($this->resourceOwner->getPhonePrivate());
-            $objUser->uuid = $this->resourceOwner->getId();
-            $objUser->lastname = $this->resourceOwner->getLastName();
-            $objUser->firstname = $this->resourceOwner->getFirstName();
-            $objUser->name = $this->resourceOwner->getFullName();
-            $objUser->street = $this->resourceOwner->getStreet();
-            $objUser->city = $this->resourceOwner->getCity();
-            $objUser->postal = $this->resourceOwner->getPostal();
-            $objUser->dateOfBirth = false !== strtotime($this->resourceOwner->getDateOfBirth()) ? strtotime($this->resourceOwner->getDateOfBirth()) : 0;
-            $objUser->gender = 'HERR' === $this->resourceOwner->getSalutation() ? 'male' : 'female';
-            $objUser->country = strtolower($this->resourceOwner->getCountryCode());
-            $objUser->email = $this->resourceOwner->getEmail();
-            $objUser->sectionId = serialize($this->resourceOwnerChecker->getAllowedSacSectionIds($this->resourceOwner, ContaoCoreBundle::SCOPE_BACKEND));
-            $objUser->tstamp = time();
+            $set = [
+                'mobile' => $this->beautifyPhoneNumber($this->resourceOwner->getPhoneMobile()),
+                'phone' => $this->beautifyPhoneNumber($this->resourceOwner->getPhonePrivate()),
+                'uuid' => $this->resourceOwner->getId(),
+                'lastname' => $this->resourceOwner->getLastName(),
+                'firstname' => $this->resourceOwner->getFirstName(),
+                'name' => $this->resourceOwner->getFullName(),
+                'street' => $this->resourceOwner->getStreet(),
+                'city' => $this->resourceOwner->getCity(),
+                'postal' => $this->resourceOwner->getPostal(),
+                'dateOfBirth' => false !== strtotime($this->resourceOwner->getDateOfBirth()) ? strtotime($this->resourceOwner->getDateOfBirth()) : 0,
+                'gender' => 'HERR' === $this->resourceOwner->getSalutation() ? 'male' : 'female',
+                'email' => $this->resourceOwner->getEmail(),
+                'sectionId' => serialize($this->resourceOwnerChecker->getAllowedSacSectionIds($this->resourceOwner, ContaoCoreBundle::SCOPE_BACKEND)),
+            ];
 
             // Set random password
             if (empty($objUser->password)) {
-                $passwordHasher = $this->hasherFactory->getPasswordHasher(BackendUser::class);
-                $objUser->password = $passwordHasher->hash(substr(md5((string) random_int(900009, 111111111111)), 0, 8), null);
+                $encoder = $this->hasherFactory->getPasswordHasher(BackendUser::class);
+                $set['password'] = $encoder->hash(substr(md5((string) random_int(900009, 111111111111)), 0, 8), null);
             }
 
-            // Save
-            $objUser->save();
+            if ($this->connection->update('tl_user', $set, ['id' => $objUser->id])) {
+                $set = [
+                    'tstamp' => time(),
+                ];
 
-            $objUser->refresh();
+                $this->connection->update('tl_user', $set, ['id' => $objUser->id]);
+
+                $objUser->refresh();
+            }
         }
     }
 
@@ -380,13 +389,16 @@ class ContaoUser
         }
 
         if (null === $this->getModel('tl_member')) {
-            $objNew = new MemberModel();
-            $objNew->username = $sacMemberId;
-            $objNew->sacMemberId = $sacMemberId;
-            $objNew->uuid = $this->resourceOwner->getId();
-            $objNew->dateAdded = time();
-            $objNew->tstamp = time();
-            $objNew->save();
+            $set = [
+                'username' => $sacMemberId,
+                'sacMemberId' => $sacMemberId,
+                'uuid' => $this->resourceOwner->getId(),
+                'dateAdded' => time(),
+                'tstamp' => $sacMemberId,
+            ];
+
+            $this->connection->insert('tl_member', $set);
+
             $this->updateFrontendUser();
         }
     }
