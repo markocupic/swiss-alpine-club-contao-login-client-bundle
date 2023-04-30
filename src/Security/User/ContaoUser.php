@@ -191,6 +191,9 @@ class ContaoUser
         if (null !== $objMember) {
             // Update member details from JSON payload
             $set = [
+                // Be sure to set the correct data type!
+                // Otherwise, the record will be updated
+                // due to wrong type cast only.
                 'mobile' => $this->beautifyPhoneNumber($this->resourceOwner->getPhoneMobile()),
                 'phone' => $this->beautifyPhoneNumber($this->resourceOwner->getPhonePrivate()),
                 'uuid' => $this->resourceOwner->getId(),
@@ -199,7 +202,7 @@ class ContaoUser
                 'street' => $this->resourceOwner->getStreet(),
                 'city' => $this->resourceOwner->getCity(),
                 'postal' => $this->resourceOwner->getPostal(),
-                'dateOfBirth' => false !== strtotime($this->resourceOwner->getDateOfBirth()) ? strtotime($this->resourceOwner->getDateOfBirth()) : 0,
+                'dateOfBirth' => false !== strtotime($this->resourceOwner->getDateOfBirth()) ? (string) strtotime($this->resourceOwner->getDateOfBirth()) : 0,
                 'gender' => 'HERR' === $this->resourceOwner->getSalutation() ? 'male' : 'female',
                 'email' => $this->resourceOwner->getEmail(),
                 'sectionId' => serialize($this->resourceOwnerChecker->getAllowedSacSectionIds($this->resourceOwner, ContaoCoreBundle::SCOPE_FRONTEND)),
@@ -253,6 +256,9 @@ class ContaoUser
 
         if (null !== $objUser) {
             $set = [
+                // Be sure to set the correct data type!
+                // Otherwise, the record will be updated
+                // due to wrong type cast only.
                 'mobile' => $this->beautifyPhoneNumber($this->resourceOwner->getPhoneMobile()),
                 'phone' => $this->beautifyPhoneNumber($this->resourceOwner->getPhonePrivate()),
                 'uuid' => $this->resourceOwner->getId(),
@@ -262,7 +268,7 @@ class ContaoUser
                 'street' => $this->resourceOwner->getStreet(),
                 'city' => $this->resourceOwner->getCity(),
                 'postal' => $this->resourceOwner->getPostal(),
-                'dateOfBirth' => false !== strtotime($this->resourceOwner->getDateOfBirth()) ? strtotime($this->resourceOwner->getDateOfBirth()) : 0,
+                'dateOfBirth' => false !== strtotime($this->resourceOwner->getDateOfBirth()) ? (string) strtotime($this->resourceOwner->getDateOfBirth()) : '0',
                 'gender' => 'HERR' === $this->resourceOwner->getSalutation() ? 'male' : 'female',
                 'email' => $this->resourceOwner->getEmail(),
                 'sectionId' => serialize($this->resourceOwnerChecker->getAllowedSacSectionIds($this->resourceOwner, ContaoCoreBundle::SCOPE_BACKEND)),
