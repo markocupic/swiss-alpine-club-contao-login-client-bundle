@@ -23,6 +23,7 @@ use Contao\StringUtil;
 use Contao\System;
 use Contao\UserModel;
 use Doctrine\DBAL\Connection;
+use Markocupic\SacEventToolBundle\DataContainer\Util;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessage;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessageManager;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\OAuth\OAuthUser;
@@ -41,6 +42,7 @@ class ContaoUser
         private readonly OAuthUserChecker $resourceOwnerChecker,
         private readonly ErrorMessageManager $errorMessageManager,
         private readonly OAuthUser $resourceOwner,
+        private readonly Util $util,
         private readonly string $contaoScope,
     ) {
     }
@@ -189,6 +191,11 @@ class ContaoUser
         $objMember = $this->getModel('tl_member');
 
         if (null !== $objMember) {
+            // Correctly format the section ids (the key is important!): e.g. [0 => '4250', 2 => '4252'] -> user is member of two SAC Sektionen/Ortsgruppen
+            $arrSectionIdsUserIsAllowed = array_map('strval', $this->resourceOwnerChecker->getAllowedSacSectionIds($this->resourceOwner, ContaoCoreBundle::SCOPE_FRONTEND));
+            $arrSectionIdsAll = array_map('strval', array_keys($this->util->listSacSections()));
+            $arrSectionIds = array_filter($arrSectionIdsAll, static fn ($v, $k) => \in_array($v, $arrSectionIdsUserIsAllowed, true), ARRAY_FILTER_USE_BOTH);
+
             // Update member details from JSON payload
             $set = [
                 // Be sure to set the correct data type!
@@ -205,7 +212,7 @@ class ContaoUser
                 'dateOfBirth' => false !== strtotime($this->resourceOwner->getDateOfBirth()) ? (string) strtotime($this->resourceOwner->getDateOfBirth()) : 0,
                 'gender' => 'HERR' === $this->resourceOwner->getSalutation() ? 'male' : 'female',
                 'email' => $this->resourceOwner->getEmail(),
-                'sectionId' => serialize($this->resourceOwnerChecker->getAllowedSacSectionIds($this->resourceOwner, ContaoCoreBundle::SCOPE_FRONTEND)),
+                'sectionId' => serialize($arrSectionIds),
             ];
 
             // Member has to be member of a valid SAC section
@@ -255,6 +262,11 @@ class ContaoUser
         $objUser = $this->getModel('tl_user');
 
         if (null !== $objUser) {
+            // Correctly format the section ids (the key is important!): e.g. [0 => '4250', 2 => '4252'] -> user is member of two SAC Sektionen/Ortsgruppen
+            $arrSectionIdsUserIsAllowed = array_map('strval', $this->resourceOwnerChecker->getAllowedSacSectionIds($this->resourceOwner, ContaoCoreBundle::SCOPE_BACKEND));
+            $arrSectionIdsAll = array_map('strval', array_keys($this->util->listSacSections()));
+            $arrSectionIds = array_filter($arrSectionIdsAll, static fn ($v, $k) => \in_array($v, $arrSectionIdsUserIsAllowed, true), ARRAY_FILTER_USE_BOTH);
+
             $set = [
                 // Be sure to set the correct data type!
                 // Otherwise, the record will be updated
@@ -271,7 +283,7 @@ class ContaoUser
                 'dateOfBirth' => false !== strtotime($this->resourceOwner->getDateOfBirth()) ? (string) strtotime($this->resourceOwner->getDateOfBirth()) : '0',
                 'gender' => 'HERR' === $this->resourceOwner->getSalutation() ? 'male' : 'female',
                 'email' => $this->resourceOwner->getEmail(),
-                'sectionId' => serialize($this->resourceOwnerChecker->getAllowedSacSectionIds($this->resourceOwner, ContaoCoreBundle::SCOPE_BACKEND)),
+                'sectionId' => serialize($arrSectionIds),
             ];
 
             // Set random password

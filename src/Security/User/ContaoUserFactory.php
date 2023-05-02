@@ -16,6 +16,7 @@ namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\User;
 
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Doctrine\DBAL\Connection;
+use Markocupic\SacEventToolBundle\DataContainer\Util;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessageManager;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\OAuth\OAuthUser;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\OAuth\OAuthUserChecker;
@@ -31,6 +32,7 @@ final class ContaoUserFactory
         private readonly PasswordHasherFactoryInterface $hasherFactory,
         private readonly OAuthUserChecker $resourceOwnerChecker,
         private readonly ErrorMessageManager $errorMessageManager,
+        private readonly Util $util,
     ) {
     }
 
@@ -44,6 +46,7 @@ final class ContaoUserFactory
             $this->resourceOwnerChecker,
             $this->errorMessageManager,
             $resourceOwner,
+            $this->util,
             $contaoScope,
         );
     }
