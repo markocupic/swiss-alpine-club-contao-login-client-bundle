@@ -69,14 +69,22 @@ class ContaoUser
      */
     public function getModel(string $strTable = ''): MemberModel|UserModel|null
     {
-        if ('tl_member' === $strTable || ContaoCoreBundle::SCOPE_FRONTEND === $this->getContaoScope()) {
+        if ('' === $strTable) {
+            if (ContaoCoreBundle::SCOPE_FRONTEND === $this->getContaoScope()) {
+                $strTable = 'tl_member';
+            } elseif (ContaoCoreBundle::SCOPE_BACKEND === $this->getContaoScope()) {
+                $strTable = 'tl_user';
+            }
+        }
+
+        if ('tl_member' === $strTable) {
             /** @var MemberModel $memberModelAdapter */
             $memberModelAdapter = $this->framework->getAdapter(MemberModel::class);
 
             return $memberModelAdapter->findByUsername($this->resourceOwner->getSacMemberId());
         }
 
-        if ('tl_user' === $strTable || ContaoCoreBundle::SCOPE_BACKEND === $this->getContaoScope()) {
+        if ('tl_user' === $strTable) {
             /** @var UserModel $userModelAdapter */
             $userModelAdapter = $this->framework->getAdapter(UserModel::class);
 
