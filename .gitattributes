@@ -2,7 +2,6 @@
 /.github export-ignore
 /tests export-ignore
 /.gitattributes export-ignore
-/.ecs export-ignore
 /.gitignore export-ignore
 /phpunit.xml.dist export-ignore
 /.travis.yaml export-ignore
