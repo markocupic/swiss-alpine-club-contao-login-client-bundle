@@ -163,7 +163,7 @@ class OAuthUser implements ResourceOwnerInterface
             'sub' => '0e59877743a-2122-11e8-91a0-00505684a4ad',
             'telefong' => '041 984 13 50',
             'familienname' => 'Rébuffat',
-            'strasse' => 'Schloss Juval',
+            'strasse' => 'Rue de chamois',
             'vorname' => 'Gaston',
             'Roles' => 'NAV_BULLETIN,NAV_EINZEL_00999999,NAV_D,NAV_STAMMSEKTION_S00009999,NAV_EINZEL_S00009999,NAV_EINZEL_S00009999,NAV_S00009999,NAV_F1540,NAV_BULLETIN_S00009999,Internal/everyone,NAV_NAVISION,NAV_EINZEL,NAV_MITGLIED_S00009999,NAV_HERR,NAV_F1004V,NAV_F1004V_S00009999,NAV_BULLETIN_S00009999_PAPIER',
             'contact_number' => '999999',
@@ -175,7 +175,7 @@ class OAuthUser implements ResourceOwnerInterface
             'kanton' => 'ST',
             'korrespondenzsprache' => 'D',
             'telefonp' => '099 999 99 99',
-            'email' => 'm.cupic@gmx.ch',
+            'email' => 'g.rebuffat@chamonix.fr',
             'plz' => '6208',
         ];
     }
