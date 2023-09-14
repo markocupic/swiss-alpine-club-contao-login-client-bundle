@@ -241,7 +241,7 @@ class ContaoUser
                     }
                 }
 
-                $set['groups'] = serialize($arrGroups);
+                $set[$this->connection->quoteIdentifier('groups')] = serialize($arrGroups);
             }
 
             // Set random password
