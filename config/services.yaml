@@ -2,9 +2,6 @@ services:
     _defaults:
         autowire: true
         autoconfigure: true
-        bind:
-            $contaoCsrfTokenName: '%contao.csrf_token_name%'
-            $enableCsrfTokenCheck: '%sac_oauth2_client.oidc.enable_csrf_token_check%'
 
     Markocupic\SwissAlpineClubContaoLoginClientBundle\:
         resource: ../src/
@@ -17,6 +14,16 @@ services:
             ../src/ErrorMessage/ErrorMessage.php,
             ../src/Security/User/ContaoUser.php,
         ]
+
+    Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\ContaoOAuth2LoginController:
+        public: true
+        arguments:
+            - '@contao.framework'
+            - '@contao.csrf.token_manager'
+            - '@event_dispatcher'
+            - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\Client\OAuth2ClientFactory'
+            - '%contao.csrf_token_name%'
+            - '%sac_oauth2_client.oidc.enable_csrf_token_check%'
 
     Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\GetLogoutEndpointController:
         public: true

@@ -15,6 +15,7 @@ declare(strict_types=1);
 namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller;
 
 use Contao\CoreBundle\ContaoCoreBundle;
+use Contao\CoreBundle\Csrf\ContaoCsrfTokenManager;
 use Contao\CoreBundle\Exception\InvalidRequestTokenException;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Client\OAuth2ClientFactory;
@@ -24,6 +25,7 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Csrf\CsrfToken;
 
 #[Route('/ssoauth/frontend', name: 'swiss_alpine_club_sso_login_frontend', defaults: ['_scope' => 'frontend', '_token_check' => false])]
 #[Route('/ssoauth/backend', name: 'swiss_alpine_club_sso_login_backend', defaults: ['_scope' => 'backend', '_token_check' => false])]
@@ -31,9 +33,10 @@ class ContaoOAuth2LoginController extends AbstractController
 {
     public function __construct(
         private readonly ContaoFramework $framework,
+        private readonly ContaoCsrfTokenManager $tokenManager,
         private readonly EventDispatcherInterface $eventDispatcher,
         private readonly OAuth2ClientFactory $oAuth2ClientFactory,
-        private readonly string $contaoCsrfTokenName,
+        private readonly string $csrfTokenName,
         private readonly bool $enableCsrfTokenCheck,
     ) {
     }
@@ -106,9 +109,11 @@ class ContaoOAuth2LoginController extends AbstractController
         return new Response('', Response::HTTP_NO_CONTENT);
     }
 
-    private function validateCsrfToken(string $token): void
+    private function validateCsrfToken(string $strToken): void
     {
-        if (!$this->isCsrfTokenValid($this->contaoCsrfTokenName, $token)) {
+        $token = new CsrfToken($this->csrfTokenName, $strToken);
+
+        if (!$this->tokenManager->isTokenValid($token)) {
             throw new InvalidRequestTokenException('Invalid CSRF token. Please reload the page and try again.');
         }
     }
