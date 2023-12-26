@@ -49,6 +49,10 @@ services:
             - '@request_stack'
             - '%sac_oauth2_client.session.flash_bag_key%'
 
+    Markocupic\SwissAlpineClubContaoLoginClientBundle\EventListener\Contao\ParseBackendTemplateListener:
+        arguments:
+            - '@service_container'
+
     # Register session bags
     markocupic.sac_oauth2_client.session.factory:
         class: Markocupic\SwissAlpineClubContaoLoginClientBundle\Session\SessionFactory

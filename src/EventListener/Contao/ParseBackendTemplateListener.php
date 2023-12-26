@@ -16,39 +16,25 @@ namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\EventListener\Contao
 
 use Contao\BackendTemplate;
 use Contao\CoreBundle\DependencyInjection\Attribute\AsHook;
-use Contao\CoreBundle\Framework\ContaoFramework;
-use Contao\CoreBundle\InsertTag\InsertTagParser;
-use Contao\Environment;
-use Contao\System;
-use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\DependencyInjection\Container;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Routing\RouterInterface;
 
 #[AsHook('parseBackendTemplate')]
 class ParseBackendTemplateListener
 {
     public function __construct(
-        private readonly RequestStack $requestStack,
-        private readonly ContaoFramework $framework,
+        private readonly Container $container,
     ) {
     }
 
     /**
-     * Add SSO login button to the backend login form.
-     *
-     * @param $strContent
-     * @param $strTemplate
-     *
-     * @return mixed
+     * @throws \Exception
      */
-    public function __invoke($strContent, $strTemplate): string
+    public function __invoke(string $strContent, string $strTemplate): string
     {
         if ('be_login' === $strTemplate) {
-            /** @var System $systemAdapter */
-            $systemAdapter = $this->framework->getAdapter(System::class);
-
-            /** @var Environment $environmentAdapter */
-            $environmentAdapter = $this->framework->getAdapter(Environment::class);
-
-            if (!$systemAdapter->getContainer()->getParameter('sac_oauth2_client.oidc.enable_backend_sso')) {
+            if (!$this->container->getParameter('sac_oauth2_client.oidc.enable_backend_sso')) {
                 return $strContent;
             }
 
@@ -56,62 +42,27 @@ class ParseBackendTemplateListener
 
             // Get request token (disabled by default)
             $template->rt = '';
-            $template->enableCsrfTokenCheck = false;
+            $template->enable_csrf_token_check = false;
 
-            if ($systemAdapter->getContainer()->getParameter('sac_oauth2_client.oidc.enable_csrf_token_check')) {
-                if (preg_match('/name="REQUEST_TOKEN"\s+value=\"([^\']*?)\"/', $strContent, $matches)) {
-                    $template->rt = $matches[1];
-                    $template->enableCsrfTokenCheck = true;
-                }
+            if ($this->container->getParameter('sac_oauth2_client.oidc.enable_csrf_token_check')) {
+                $template->rt = $this->getRequestToken();
+                $template->enable_csrf_token_check = true;
             }
 
-            $template->targetPath = '';
+            $template->target_path = $this->getTargetPath($strContent);
+            $template->failure_path = $this->getFailurePath();
+            $template->always_use_target_path = $this->getAlwaysUseTargetPath($strContent);
+            $template->error = $this->getErrorMessage();
+            $template->disable_contao_login = $this->container->getParameter('sac_oauth2_client.backend.disable_contao_login');
 
-            if (preg_match('/name="_target_path"\s+value=\"([^\']*?)\"/', $strContent, $matches)) {
-                $template->targetPath = $matches[1];
-            }
+            // Replace insert tags
+            $ssoLoginForm = $this->container->get('contao.insert_tag.parser')->replaceInline($template->parse());
 
-            $failurePath = $environmentAdapter->get('url').'/contao';
-            $template->failurePath = base64_encode($failurePath);
-
-            $template->alwaysUseTargetPath = '';
-
-            if (preg_match('/name="_always_use_target_path"\s+value=\"([^\']*?)\"/', $strContent, $matches)) {
-                $template->alwaysUseTargetPath = (string) $matches[1];
-            }
-
-            // Check for error messages
-            $flashBagKey = $systemAdapter->getContainer()->getParameter('sac_oauth2_client.session.flash_bag_key');
-            $session = $this->requestStack->getCurrentRequest()->getSession();
-            $flashBag = $session->getFlashBag()->get($flashBagKey);
-
-            if (\count($flashBag) > 0) {
-                $arrError = [];
-
-                foreach ($flashBag[0] as $k => $v) {
-                    $arrError[$k] = $v;
-                }
-
-                $template->error = $arrError;
-            }
-
-            $template->disableContaoLogin = $systemAdapter->getContainer()->getParameter('sac_oauth2_client.backend.disable_contao_login');
-
-            $strAppendBefore = '<form';
-
-            /** @var InsertTagParser $parser */
-            $parser = $systemAdapter->getContainer()->get('contao.insert_tag.parser');
-
-            // Parse SSO Login form
-            $ssoLoginForm = $parser->replaceInline($template->parse());
-
-            // Prepend sso login form to contao login form
-            $strContent = str_replace($strAppendBefore, $ssoLoginForm.$strAppendBefore, $strContent);
+            // Prepend SAC SSO login form
+            $strContent = str_replace('<form', $ssoLoginForm.'<form', $strContent);
 
             // Remove Contao login form
-            $blnDisableContaoLogin = $systemAdapter->getContainer()->getParameter('sac_oauth2_client.backend.disable_contao_login');
-
-            if (true === $blnDisableContaoLogin) {
+            if ($this->container->getParameter('sac_oauth2_client.backend.disable_contao_login')) {
                 $strContent = preg_replace('/<form class="tl_login_form"[^>]*>(.*?)<\/form>/is', '', $strContent);
             }
 
@@ -120,5 +71,73 @@ class ParseBackendTemplateListener
         }
 
         return $strContent;
+    }
+
+    private function getRequestToken(): string
+    {
+        $tokenName = $this->container->getParameter('contao.csrf_token_name');
+
+        if (null === $tokenName) {
+            return '';
+        }
+
+        return $this->container->get('contao.csrf.token_manager')->getToken($tokenName)->getValue();
+    }
+
+    private function getTargetPath(string $strContent): string
+    {
+        $targetPath = '';
+
+        if (preg_match('/name="_target_path"\s+value=\"([^\']*?)\"/', $strContent, $matches)) {
+            $targetPath = $matches[1];
+        }
+
+        return $targetPath;
+    }
+
+    private function getFailurePath(): string
+    {
+        /** @var RouterInterface $router */
+        $router = $this->container->get('router');
+
+        return base64_encode($router->generate('contao_backend', [], UrlGeneratorInterface::ABSOLUTE_URL));
+    }
+
+    private function getAlwaysUseTargetPath(string $strContent): string
+    {
+        $targetPath = '';
+
+        if (preg_match('/name="_always_use_target_path"\s+value=\"([^\']*?)\"/', $strContent, $matches)) {
+            $targetPath = $matches[1];
+        }
+
+        return $targetPath;
+    }
+
+    /**
+     * Retrieve first error message.
+     *
+     * @throws \Exception
+     */
+    private function getErrorMessage(): array|null
+    {
+        $flashBag = $this->container->get('request_stack')
+            ->getCurrentRequest()
+            ->getSession()
+            ->getFlashBag()
+            ->get($this->container->getParameter('sac_oauth2_client.session.flash_bag_key'))
+        ;
+
+        if (!empty($flashBag)) {
+            $arrError = [];
+
+            foreach ($flashBag[0] as $k => $v) {
+                $arrError[$k] = $v;
+            }
+
+            return $arrError;
+        }
+
+        return null;
     }
 }

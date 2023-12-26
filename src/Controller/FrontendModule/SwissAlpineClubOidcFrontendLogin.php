@@ -17,7 +17,6 @@ namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\FrontendM
 use Contao\CoreBundle\Controller\FrontendModule\AbstractFrontendModuleController;
 use Contao\CoreBundle\DependencyInjection\Attribute\AsFrontendModule;
 use Contao\CoreBundle\Framework\ContaoFramework;
-use Contao\Environment;
 use Contao\FrontendUser;
 use Contao\ModuleModel;
 use Contao\PageModel;
@@ -46,70 +45,64 @@ class SwissAlpineClubOidcFrontendLogin extends AbstractFrontendModuleController
 
     protected function getResponse(Template $template, ModuleModel $model, Request $request): Response|null
     {
-        /** @var Environment $environmentAdapter */
-        $environmentAdapter = $this->framework->getAdapter(Environment::class);
-
-        /** @var PageModel $pageModelAdapter */
-        $pageModelAdapter = $this->framework->getAdapter(PageModel::class);
-
-        /** @var System $systemAdapter */
-        $systemAdapter = $this->framework->getAdapter(System::class);
-
-        /** @var StringUtil $stringUtilAdapter */
-        $stringUtilAdapter = $this->framework->getAdapter(StringUtil::class);
-
-        /** @var Uri $urlAdapter */
-        $uriAdapter = $this->framework->getAdapter(Uri::class);
-
-        // Get logged in member object
         if (($user = $this->security->getUser()) instanceof FrontendUser) {
-            $template->loggedInAs = $this->translator->trans('MSC.loggedInAs', [$user->username], 'contao_default');
-            $template->username = $user->username;
-            $template->logout = true;
+            $template->has_logged_in_user = true;
+            $template->user = $user;
         } else {
-            $strRedirect = $environmentAdapter->get('base').$environmentAdapter->get('request');
+            // Get adapters
+            $pageModelAdapter = $this->framework->getAdapter(PageModel::class);
+            $systemAdapter = $this->framework->getAdapter(System::class);
+            $stringUtilAdapter = $this->framework->getAdapter(StringUtil::class);
+            $uriAdapter = $this->framework->getAdapter(Uri::class);
 
-            if (!$model->redirectBack && $model->jumpTo > 0) {
+            $strRedirect = $this->requestStack->getCurrentRequest()->getUri();
+
+            if (!$model->redirectBack && $model->jumpTo) {
                 $redirectPage = $pageModelAdapter->findByPk($model->jumpTo);
                 $strRedirect = $redirectPage instanceof PageModel ? $redirectPage->getAbsoluteUrl() : $strRedirect;
             }
 
-            // Csrf token check is disabled by default
-            $template->enableCsrfTokenCheck = $systemAdapter->getContainer()->getParameter('sac_oauth2_client.oidc.enable_csrf_token_check');
-
-            // Since Contao 4.9 urls are base64 encoded
-            $template->targetPath = $stringUtilAdapter->specialchars(base64_encode($strRedirect));
-
+            $template->target_path = $stringUtilAdapter->specialchars(base64_encode($strRedirect));
             $uri = $uriAdapter->fromString($request->getUri());
             $uri->addQueryParam('sso_error', 'true');
-            $template->failurePath = $stringUtilAdapter->specialchars(base64_encode($uri->toString()));
-
-            $template->login = true;
-
-            $template->btnLbl = empty($model->swiss_alpine_club_oidc_frontend_login_btn_lbl) ? $this->translator->trans('MSC.loginWithSacSso', [], 'contao_default') : $model->swiss_alpine_club_oidc_frontend_login_btn_lbl;
-
-            $request = $this->requestStack->getCurrentRequest();
-
-            // Check for error messages & start session only if there was an error
-            if ($request->query->has('sso_error')) {
-                $session = $request->getSession();
-                $flashBagKey = $systemAdapter->getContainer()->getParameter('sac_oauth2_client.session.flash_bag_key');
-                $flashBag = $session->getFlashBag()->get($flashBagKey);
-
-                if (\count($flashBag) > 0) {
-                    $arrError = [];
-
-                    foreach ($flashBag[0] as $k => $v) {
-                        if ('level' === $k) {
-                            $arrError['bs-alert-class'] = 'error' === $v ? 'danger' : $v;
-                        }
-                        $arrError[$k] = $v;
-                    }
-                    $template->error = $arrError;
-                }
-            }
+            $template->failure_path = $stringUtilAdapter->specialchars(base64_encode($uri->toString()));
+            $template->has_logged_in_user = false;
+            $template->btn_lbl = empty($model->swiss_alpine_club_oidc_frontend_login_btn_lbl) ? $this->translator->trans('MSC.loginWithSacSso', [], 'contao_default') : $model->swiss_alpine_club_oidc_frontend_login_btn_lbl;
+            $template->error = $this->getErrorMessage();
+            $template->enable_csrf_token_check = $systemAdapter->getContainer()->getParameter('sac_oauth2_client.oidc.enable_csrf_token_check');
         }
 
         return $template->getResponse();
+    }
+
+    /**
+     * Retrieve first error message.
+     *
+     * @throws \Exception
+     */
+    private function getErrorMessage(): array|null
+    {
+        /** @var System $systemAdapter */
+        $systemAdapter = $this->framework->getAdapter(System::class);
+        $container = $systemAdapter->getContainer();
+
+        $flashBag = $this->requestStack
+            ->getCurrentRequest()
+            ->getSession()
+            ->getFlashBag()
+            ->get($container->getParameter('sac_oauth2_client.session.flash_bag_key'))
+        ;
+
+        if (!empty($flashBag)) {
+            $arrError = [];
+
+            foreach ($flashBag[0] as $k => $v) {
+                $arrError[$k] = $v;
+            }
+
+            return $arrError;
+        }
+
+        return null;
     }
 }

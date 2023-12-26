@@ -1,0 +1,62 @@
+{% do addCssResource('bundles/markocupicswissalpineclubcontaologinclient/css/sac_login_button.css|static') %}
+
+{% extends '@Contao/block_unsearchable' %}
+
+{% block content %}
+
+    {% if not has_logged_in_user %}
+        <form action="{{ path('swiss_alpine_club_sso_login_frontend') }}" id="sacOidcLoginFe_{{ id }}" class="sac-oidc-login-fe" method="post">
+            <div class="formbody">
+                <input type="hidden" name="FORM_SUBMIT" value="sac-oidc-login-fe">
+                {% if enable_csrf_token_check|default %}
+                    <input type="hidden" name="REQUEST_TOKEN" value="{{ '{{request_token}}' }}">
+                {% endif %}
+                <input type="hidden" name="_target_path" value="{{ target_path }}">
+                <input type="hidden" name="_failure_path" value="{{ failure_path }}">
+                <input type="hidden" name="_module_id" value="{{ id }}">
+                <div class="sac-login-button-group sac-login-button-group-lg">
+                    <div class="sac-login-button-prepend">
+                        <img src="bundles/markocupicswissalpineclubcontaologinclient/img/logo_sac_small.svg" alt="SAC Logo" class="sac-login-button-prepend-icon">
+                    </div>
+                    <button type="submit"><span class="sac-login-button-text">{{ btn_lbl }} <span style="font-size:1rem;">&#8594</span></span></button>
+                </div>
+            </div>
+        </form>
+
+        {% if error|default %}
+            <div class="trigger-ids-kill-session sac-oidc-error {{ error.level }} backend">
+                {% if error.matter|default %}
+                    <div class="error-matter-box error-box">
+                        <h1 class="error-title mt-0">{{ ('MSC.'~error.level~'.Matter')|trans({}, 'contao_default') }}</h1>
+                        <p class="error-matter small">{{ error.matter }}</p>
+                    </div>
+                {% endif %}
+
+                {% if error.howToFix|default %}
+                    <div class="error-how-to-fix-box error-box">
+                        <h1 class="error-title mt-0">{{ 'MSC.errorHowToFix'|trans({}, 'contao_default') }}</h1>
+                        <p class="error-how-to-fix small">{{ error.howToFix }}</p>
+                    </div>
+                {% endif %}
+
+                {% if error.explain|default %}
+                    <div class="error-explain-box error-box">
+                        <h1 class="error-title mt-0">{{ 'MSC.errorExplain'|trans({}, 'contao_default') }}</h1>
+                        <p class="error-explain small">{{ error.explain }}</p>
+                    </div>
+                {% endif %}
+            </div>
+        {% endif %}
+    {% else %}
+        <p class="login_info">
+            {{ 'MSC.loggedInAs'|trans([user.firstname~' '~user.lastname], 'contao_default') }}
+            <br>
+            {{ 'MSC.lastLogin.1'|trans([user.lastLogin|date('d.m.Y')], 'contao_default') }}
+        </p>
+
+        <div>
+            <a href="{{ path('contao_frontend_logout') }}" data-href="{{ path('contao_frontend_logout') }}" class="trigger-ids-kill-session" title="{{ 'MSC.logout'|trans([], 'contao_default') }}">{{ 'MSC.logout'|trans([], 'contao_default') }}</a>
+        </div>
+    {% endif %}
+
+{% endblock %}

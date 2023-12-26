@@ -1,11 +1,11 @@
 "use strict";
 window.onload = function () {
     // Frontend logout
-    let elFeLogoutButton = document.querySelectorAll('.trigger-ids-kill-session[data-href]');
-    if (elFeLogoutButton.length) {
+    let feLogoutBtn = document.querySelectorAll('.trigger-ids-kill-session[data-href]');
+    if (feLogoutBtn.length) {
         let i;
-        for (i = 0; i < elFeLogoutButton.length; ++i) {
-            elFeLogoutButton[i].addEventListener("click", function (e) {
+        for (i = 0; i < feLogoutBtn.length; ++i) {
+            feLogoutBtn[i].addEventListener("click", (e) => {
                 e.preventDefault();
                 logout(e.target.getAttribute('data-href'));
             });
@@ -13,11 +13,11 @@ window.onload = function () {
     }
 
     // Backend logout
-    let elBeLogoutButton = document.querySelectorAll('#tmenu a[href$="contao/logout"]');
-    if (elBeLogoutButton.length) {
+    let beLogoutBtn = document.querySelectorAll('#tmenu a[href$="contao/logout"]');
+    if (beLogoutBtn.length) {
         let i;
-        for (i = 0; i < elBeLogoutButton.length; ++i) {
-            elBeLogoutButton[i].addEventListener("click", function (e) {
+        for (i = 0; i < beLogoutBtn.length; ++i) {
+            beLogoutBtn[i].addEventListener("click", (e) => {
                 e.preventDefault();
                 logout(e.target.getAttribute('href'));
             });
@@ -26,15 +26,15 @@ window.onload = function () {
 
     // Kill session if login has been aborted due to errors
     if (document.querySelectorAll('.trigger-ids-kill-session.sac-oidc-error').length) {
-        logout('',false);
-    }
-    else if (RegExp("^/contao\/login(.*)$", "g").test(window.location.pathname)) {
+        logout('', false);
+    } else if (RegExp("^/contao\/login(.*)$", "g").test(window.location.pathname)) {
         //logout('');
     }
 
     /**
      * Get logout endpoint, logout and redirect
      * @param url
+     * @param reload
      */
     function logout(url, reload = true) {
 
@@ -44,19 +44,19 @@ window.onload = function () {
         fetch('/_contao/logout');
 
         // Get logout endpoint
-        fetch('/ssoauth/get_logout_endpoint').then(function (response) {
+        fetch('/ssoauth/get_logout_endpoint').then((response) => {
             return response.json();
         }).then(function (json) {
             // Logout
             return fetch(json.logout_endpoint_url, {
                 credentials: 'include',
                 mode: 'no-cors'
-            }).then(function (response) {
-                if(reload){
+            }).then((response) => {
+                if (reload) {
                     window.location.href = url;
                 }
             }).catch(function () {
-                if(reload){
+                if (reload) {
                     window.location.href = url;
                 }
             });

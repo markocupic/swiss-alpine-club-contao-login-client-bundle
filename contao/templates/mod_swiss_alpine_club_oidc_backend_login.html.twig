@@ -1,0 +1,53 @@
+<div id="mod_swiss_alpine_club_oidc_backend_login">
+    <h1>{{ 'MSC.loginBT'|trans({}, 'contao_default') }}</h1>
+    <form action="{{ path('swiss_alpine_club_sso_login_backend') }}" id="sacOidcLoginBe" class="sac-oidc-login-be" method="post">
+        <div class="formbody">
+            <input type="hidden" name="FORM_SUBMIT" value="sac-oidc-login-be">
+            {% if enable_csrf_token_check|default %}
+                <input type="hidden" name="REQUEST_TOKEN" value="{{ rt }}">
+            {% endif %}
+            <input type="hidden" name="_target_path" value="{{ target_path }}">
+            <input type="hidden" name="_failure_path" value="{{ failure_path }}">
+            <input type="hidden" name="_always_use_target_path" value="{{ always_use_target_path }}">
+            <div class="sac-login-button-group">
+                <div class="sac-login-button-prepend">
+                    <img src="/bundles/markocupicswissalpineclubcontaologinclient/img/logo_sac_small.svg" alt="SAC Logo" class="sac-login-button-prepend-icon">
+                </div>
+                <button type="submit"><span class="sac-login-button-text">{{ 'MSC.loginWithSacSso'|trans({}, 'contao_default') }} <span style="font-size:1rem">&#8594</span></span></button>
+            </div>
+            <div class="sac-login-fe-link">
+                <a href="/" class="footer_preview">{{ 'MSC.feLink'|trans({}, 'contao_default') }} ›</a>
+            </div>
+        </div>
+    </form>
+
+    {% if error|default %}
+        <div class="trigger-ids-kill-session sac-oidc-error {{ error.level }} backend">
+            {% if error.matter|default %}
+                <div class="error-matter-box error-box">
+                    <h1 class="error-title mt-0">{{ ('MSC.'~error.level~'.Matter')|trans({}, 'contao_default') }}</h1>
+                    <p class="error-matter small">{{ error.matter }}</p>
+                </div>
+            {% endif %}
+
+            {% if error.howToFix|default %}
+                <div class="error-how-to-fix-box error-box">
+                    <h1 class="error-title mt-0">{{ 'MSC.errorHowToFix'|trans({}, 'contao_default') }}</h1>
+                    <p class="error-how-to-fix small">{{ error.howToFix }}</p>
+                </div>
+            {% endif %}
+
+            {% if error.explain|default %}
+                <div class="error-explain-box error-box">
+                    <h1 class="error-title mt-0">{{ 'MSC.errorExplain'|trans({}, 'contao_default') }}</h1>
+                    <p class="error-explain small">{{ error.explain }}</p>
+                </div>
+            {% endif %}
+        </div>
+    {% endif %}
+    {% if not disable_contao_login|default %}
+        <div class="login-button-separator-container">
+            <div class="login-button-separator">{{ 'MSC.or'|trans({}, 'contao_default') }}</div>
+        </div>
+    {% endif %}
+</div>
