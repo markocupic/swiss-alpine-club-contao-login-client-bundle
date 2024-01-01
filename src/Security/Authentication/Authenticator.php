@@ -21,8 +21,10 @@ use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\CoreBundle\Monolog\ContaoContext;
 use Contao\System;
 use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Client\Exception\InvalidStateException;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Client\OAuth2Client;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Config\ContaoLogConfig;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessage;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessageManager;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Event\InvalidLoginAttemptEvent;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\InteractiveLogin\InteractiveLogin;
@@ -33,6 +35,7 @@ use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\User\ContaoUserFa
 use Psr\Log\LoggerInterface;
 use Safe\Exceptions\JsonException;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use function Safe\json_encode;
 
 class Authenticator
@@ -46,6 +49,7 @@ class Authenticator
         private readonly EventDispatcherInterface $eventDispatcher,
         private readonly InteractiveLogin $interactiveLogin,
         private readonly OAuthUserChecker $oAuthUserChecker,
+        private readonly TranslatorInterface $translator,
         private readonly LoggerInterface|null $logger = null,
     ) {
         // Adapters
@@ -85,9 +89,35 @@ class Authenticator
         /** @var bool $blnAllowContaoLoginIfAccountIsDisabled */
         $blnAllowContaoLoginIfAccountIsDisabled = $container->getParameter('sac_oauth2_client.oidc.allow_'.$contaoScope.'_login_if_contao_account_is_disabled');
 
-        // Get the OAuth user also named "resource owner"
-        /** @var OAuthUser $oAuthUser */
-        $oAuthUser = $oAuth2Client->fetchUser();
+        try {
+            // Get the OAuth user also named "resource owner"
+            /** @var OAuthUser $oAuthUser */
+            $oAuthUser = $oAuth2Client->fetchUser();
+        } catch (InvalidStateException $e) {
+            $this->log($e->getMessage().' Code: '.$e->getCode(), __METHOD__, ContaoLogConfig::SAC_OAUTH2_DEBUG_LOG);
+
+            $this->errorMessageManager->add2Flash(
+                new ErrorMessage(
+                    ErrorMessage::LEVEL_ERROR,
+                    $this->translator->trans('ERR.sacOidcLoginError_invalidState_matter', [], 'contao_default'),
+                    $this->translator->trans('ERR.sacOidcLoginError_invalidState_howToFix', [], 'contao_default'),
+                )
+            );
+
+            throw new RedirectResponseException($oAuth2Client->getFailurePath());
+        } catch (\Exception $e) {
+            $this->log($e->getMessage().' Code: '.$e->getCode(), __METHOD__, ContaoLogConfig::SAC_OAUTH2_DEBUG_LOG);
+
+            $this->errorMessageManager->add2Flash(
+                new ErrorMessage(
+                    ErrorMessage::LEVEL_ERROR,
+                    $this->translator->trans('ERR.sacOidcLoginError_unexpectedError_matter', [], 'contao_default'),
+                    $this->translator->trans('ERR.sacOidcLoginError_unexpectedError_howToFix', [], 'contao_default'),
+                )
+            );
+
+            throw new RedirectResponseException($oAuth2Client->getFailurePath());
+        }
 
         // For testing & debugging purposes only
         //$oAuthUser->overrideData($oAuthUser->getDummyResourceOwnerData(true));

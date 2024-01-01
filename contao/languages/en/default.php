@@ -52,3 +52,11 @@ $GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_invalidUuid_explain'] = '';
 $GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_invalidEmail_matter'] = 'Hallo %s{{br}}Schön bist du hier. Leider hat die Überprüfung deiner vom Identity Provider an uns übermittelten Daten fehlgeschlagen.';
 $GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_invalidEmail_howToFix'] = 'Du hast noch keine gültige E-Mail-Adresse hinterlegt. Bitte logge dich auf https://www.sac-cas.ch mit deinem Account ein und hinterlege deine E-Mail-Adresse.';
 $GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_invalidEmail_explain'] = 'Einige Anwendungen (z.B. Event-Tool) auf diesem Portal setzen eine gültige E-Mail-Adresse voraus.';
+
+$GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_invalidState_matter'] = 'Leider ist es beim Versuch dich einzuloggen zu einem Fehler gekommen (Invalid State Exception).';
+$GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_invalidState_howToFix'] = 'Bitte probiere dich nochmals einzuloggen.';
+$GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_invalidState_explain'] = '';
+
+$GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_unexpectedError_matter'] = 'Leider ist es beim Versuch dich einzuloggen zu einem unerwarteten Fehler gekommen.';
+$GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_unexpectedError_howToFix'] = 'Bitte probiere dich nochmals einzuloggen.';
+$GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_unexpectedError_explain'] = '';

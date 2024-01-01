@@ -5,7 +5,7 @@ declare(strict_types=1);
 /*
  * This file is part of Swiss Alpine Club Contao Login Client Bundle.
  *
- * (c) Marko Cupic 2023 <m.cupic@gmx.ch>
+ * (c) Marko Cupic 2024 <m.cupic@gmx.ch>
  * @license MIT
  * For the full copyright and license information,
  * please view the LICENSE file that was distributed with this source code.
@@ -89,8 +89,8 @@ class ContaoOAuth2LoginController extends AbstractController
 
         $oAuthClient = $this->oAuth2ClientFactory->createOAuth2Client($_scope);
 
-        // We have an access token!
-        // But the user is still not logged in against the Contao backend/frontend firewall.
+        // Get the access token!
+        // Log in User.
         $oauth2SuccessEvent = new OAuth2SuccessEvent($oAuthClient);
 
         if (!$this->eventDispatcher->hasListeners($oauth2SuccessEvent::NAME)) {

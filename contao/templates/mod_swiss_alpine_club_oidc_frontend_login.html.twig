@@ -27,22 +27,22 @@
             <div class="trigger-ids-kill-session sac-oidc-error {{ error.level }} backend">
                 {% if error.matter|default %}
                     <div class="error-matter-box error-box">
-                        <h1 class="error-title mt-0">{{ ('MSC.'~error.level~'.Matter')|trans({}, 'contao_default') }}</h1>
-                        <p class="error-matter small">{{ error.matter }}</p>
+                        <h1 class="error-title mt-4 mb-2">{{ ('MSC.'~error.level~'Matter')|trans({}, 'contao_default') }}</h1>
+                        <p class="error-matter small m-0">{{ error.matter }}</p>
                     </div>
                 {% endif %}
 
                 {% if error.howToFix|default %}
                     <div class="error-how-to-fix-box error-box">
-                        <h1 class="error-title mt-0">{{ 'MSC.errorHowToFix'|trans({}, 'contao_default') }}</h1>
-                        <p class="error-how-to-fix small">{{ error.howToFix }}</p>
+                        <h1 class="error-title mt-4 mb-2">{{ 'MSC.errorHowToFix'|trans({}, 'contao_default') }}</h1>
+                        <p class="error-how-to-fix small m-0">{{ error.howToFix }}</p>
                     </div>
                 {% endif %}
 
                 {% if error.explain|default %}
                     <div class="error-explain-box error-box">
-                        <h1 class="error-title mt-0">{{ 'MSC.errorExplain'|trans({}, 'contao_default') }}</h1>
-                        <p class="error-explain small">{{ error.explain }}</p>
+                        <h1 class="error-title mt-4 mb-2">{{ 'MSC.errorExplain'|trans({}, 'contao_default') }}</h1>
+                        <p class="error-explain small m-0">{{ error.explain }}</p>
                     </div>
                 {% endif %}
             </div>

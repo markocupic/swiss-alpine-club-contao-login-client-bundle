@@ -25,7 +25,7 @@
         <div class="trigger-ids-kill-session sac-oidc-error {{ error.level }} backend">
             {% if error.matter|default %}
                 <div class="error-matter-box error-box">
-                    <h1 class="error-title mt-0">{{ ('MSC.'~error.level~'.Matter')|trans({}, 'contao_default') }}</h1>
+                    <h1 class="error-title mt-0">{{ ('MSC.'~error.level~'Matter')|trans({}, 'contao_default') }}</h1>
                     <p class="error-matter small">{{ error.matter }}</p>
                 </div>
             {% endif %}
