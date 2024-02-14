@@ -9,7 +9,7 @@
             <div class="formbody">
                 <input type="hidden" name="FORM_SUBMIT" value="sac-oidc-login-fe">
                 {% if enable_csrf_token_check|default %}
-                    <input type="hidden" name="REQUEST_TOKEN" value="{{ '{{request_token}}' }}">
+                    <input type="hidden" name="REQUEST_TOKEN" value="{{ insert_tag('request_token') }}">
                 {% endif %}
                 <input type="hidden" name="_target_path" value="{{ target_path }}">
                 <input type="hidden" name="_failure_path" value="{{ failure_path }}">
