@@ -195,10 +195,6 @@ class Authenticator
             $contaoUser->enableLogin();
         }
 
-        // if $contaoScope === 'backend': Set tl_user.locked = 0
-        // if $contaoScope === 'frontend': Set tl_member.locked = 0
-        $contaoUser->unlock();
-
         // Set tl_user.loginAttempts = 0
         $contaoUser->resetLoginAttempts();
 

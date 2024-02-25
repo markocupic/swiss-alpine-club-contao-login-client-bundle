@@ -331,7 +331,7 @@ class ContaoUser
     public function enableLogin(): void
     {
         if (($model = $this->getModel()) !== null) {
-            $model->disable = '';
+            $model->disable = false;
             $model->save();
             $model->refresh();
         }
@@ -347,19 +347,7 @@ class ContaoUser
         }
 
         if (($model = $this->getModel()) !== null) {
-            $model->login = '1';
-            $model->save();
-            $model->refresh();
-        }
-    }
-
-    /**
-     * @throws \Exception
-     */
-    public function unlock(): void
-    {
-        if (($model = $this->getModel()) !== null) {
-            $model->locked = 0;
+            $model->login = true;
             $model->save();
             $model->refresh();
         }

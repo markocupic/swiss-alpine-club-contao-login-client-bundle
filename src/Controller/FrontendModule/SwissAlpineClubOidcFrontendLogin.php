@@ -15,6 +15,7 @@ declare(strict_types=1);
 namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\FrontendModule;
 
 use Contao\CoreBundle\Controller\FrontendModule\AbstractFrontendModuleController;
+use Contao\CoreBundle\Csrf\ContaoCsrfTokenManager;
 use Contao\CoreBundle\DependencyInjection\Attribute\AsFrontendModule;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\FrontendUser;
@@ -40,6 +41,7 @@ class SwissAlpineClubOidcFrontendLogin extends AbstractFrontendModuleController
         private readonly Security $security,
         private readonly RequestStack $requestStack,
         private readonly TranslatorInterface $translator,
+        private readonly ContaoCsrfTokenManager $csrfTokenManager,
     ) {
     }
 
@@ -69,7 +71,11 @@ class SwissAlpineClubOidcFrontendLogin extends AbstractFrontendModuleController
             $template->has_logged_in_user = false;
             $template->btn_lbl = empty($model->swiss_alpine_club_oidc_frontend_login_btn_lbl) ? $this->translator->trans('MSC.loginWithSacSso', [], 'contao_default') : $model->swiss_alpine_club_oidc_frontend_login_btn_lbl;
             $template->error = $this->getErrorMessage();
-            $template->enable_csrf_token_check = $systemAdapter->getContainer()->getParameter('sac_oauth2_client.oidc.enable_csrf_token_check');
+            $enableTokenCheck = $systemAdapter->getContainer()->getParameter('sac_oauth2_client.oidc.enable_csrf_token_check');
+            $template->enable_csrf_token_check = $enableTokenCheck;
+            if($enableTokenCheck){
+                $template->request_token = $this->csrfTokenManager->getDefaultTokenValue();
+            }
         }
 
         return $template->getResponse();
