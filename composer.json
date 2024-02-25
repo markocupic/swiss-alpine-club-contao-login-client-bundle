@@ -24,7 +24,7 @@
     "require": {
         "php": "^8.2",
         "league/oauth2-client": "^2.6",
-        "contao/core-bundle": "^4.13",
+        "contao/core-bundle": "^5.3",
         "juststeveking/uri-builder": "^3.0",
         "markocupic/contao-twig-assets": "^1.0",
         "markocupic/sac-event-tool-bundle": "*"

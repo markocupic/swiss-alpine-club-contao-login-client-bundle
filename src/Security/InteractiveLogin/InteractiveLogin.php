@@ -60,7 +60,7 @@ class InteractiveLogin
         /** @var UserModel $userModelAdapter */
         $userModelAdapter = $this->framework->getAdapter(UserModel::class);
 
-        $providerKey = ContaoCoreBundle::SCOPE_FRONTEND === $contaoUser->getContaoScope() ? static::SECURED_AREA_FRONTEND : static::SECURED_AREA_BACKEND;
+        $firewallName = ContaoCoreBundle::SCOPE_FRONTEND === $contaoUser->getContaoScope() ? static::SECURED_AREA_FRONTEND : static::SECURED_AREA_BACKEND;
 
         $userIdentifier = $contaoUser->getIdentifier();
 
@@ -83,7 +83,7 @@ class InteractiveLogin
 
         // Load user by identifier (sac member id)
         $userClass = ContaoCoreBundle::SCOPE_FRONTEND === $contaoUser->getContaoScope() ? FrontendUser::class : BackendUser::class;
-        $userProvider = new ContaoUserProvider($this->framework, $session, $userClass, $this->logger);
+        $userProvider = new ContaoUserProvider($this->framework, $userClass);
 
         // Dispatch the PreInteractiveLoginEvent
         $event = new PreInteractiveLoginEvent($userIdentifier, $userClass, $userProvider, $contaoUser->getResourceOwner());
@@ -91,11 +91,11 @@ class InteractiveLogin
 
         $user = $userProvider->loadUserByIdentifier($userIdentifier);
 
-        $token = new UsernamePasswordToken($user, null, $providerKey, $user->getRoles());
+        $token = new UsernamePasswordToken($user, $firewallName, $user->getRoles());
         $this->tokenStorage->setToken($token);
 
         // Save the token to the session
-        $session->set('_security_'.$providerKey, serialize($token));
+        $session->set('_security_'.$firewallName, serialize($token));
         $session->save();
 
         // Fire the login event manually
