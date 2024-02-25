@@ -43,7 +43,7 @@ class SwissAlpineClubOidcFrontendLogin extends AbstractFrontendModuleController
     ) {
     }
 
-    protected function getResponse(Template $template, ModuleModel $model, Request $request): Response|null
+    protected function getResponse(Template $template, ModuleModel $model, Request $request): Response
     {
         if (($user = $this->security->getUser()) instanceof FrontendUser) {
             $template->has_logged_in_user = true;
