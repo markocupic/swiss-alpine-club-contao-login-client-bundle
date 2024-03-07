@@ -225,9 +225,9 @@ class ContaoUser
 
             // Member has to be member of a valid SAC section
             if ($systemAdapter->getContainer()->getParameter('sac_oauth2_client.oidc.allow_frontend_login_to_predefined_section_members_only')) {
-                $set['isSacMember'] = !empty($this->resourceOwnerChecker->getAllowedSacSectionIds($this->resourceOwner, ContaoCoreBundle::SCOPE_FRONTEND)) ? '1' : '';
+                $set['isSacMember'] = !empty($this->resourceOwnerChecker->getAllowedSacSectionIds($this->resourceOwner, ContaoCoreBundle::SCOPE_FRONTEND)) ? 1 : 0;
             } else {
-                $set['isSacMember'] = $this->resourceOwnerChecker->isSacMember($this->resourceOwner) ? '1' : '';
+                $set['isSacMember'] = $this->resourceOwnerChecker->isSacMember($this->resourceOwner) ? 1 : 0;
             }
 
             // Add member groups
