@@ -14,21 +14,24 @@ declare(strict_types=1);
 
 namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\FrontendModule;
 
+use Codefog\HasteBundle\UrlParser;
 use Contao\CoreBundle\Controller\FrontendModule\AbstractFrontendModuleController;
 use Contao\CoreBundle\Csrf\ContaoCsrfTokenManager;
 use Contao\CoreBundle\DependencyInjection\Attribute\AsFrontendModule;
 use Contao\CoreBundle\Framework\ContaoFramework;
+use Contao\CoreBundle\Twig\FragmentTemplate;
 use Contao\FrontendUser;
 use Contao\ModuleModel;
 use Contao\PageModel;
 use Contao\StringUtil;
 use Contao\System;
-use Contao\Template;
-use JustSteveKing\UriBuilder\Uri;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\SacLoginStartController;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Security\Core\Security;
+use Symfony\Component\HttpFoundation\UriSigner;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Routing\RouterInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 #[AsFrontendModule(SwissAlpineClubOidcFrontendLogin::TYPE, category: 'user', template: 'mod_swiss_alpine_club_oidc_frontend_login')]
@@ -37,44 +40,60 @@ class SwissAlpineClubOidcFrontendLogin extends AbstractFrontendModuleController
     public const TYPE = 'swiss_alpine_club_oidc_frontend_login';
 
     public function __construct(
-        private readonly ContaoFramework $framework,
-        private readonly Security $security,
-        private readonly RequestStack $requestStack,
-        private readonly TranslatorInterface $translator,
         private readonly ContaoCsrfTokenManager $csrfTokenManager,
+        private readonly ContaoFramework $framework,
+        private readonly RouterInterface $router,
+        private readonly Security $security,
+        private readonly TranslatorInterface $translator,
+        private readonly UriSigner $uriSigner,
+        private readonly UrlParser $urlParser,
     ) {
     }
 
-    protected function getResponse(Template $template, ModuleModel $model, Request $request): Response
+    protected function getResponse(FragmentTemplate $template, ModuleModel $model, Request $request): Response
     {
         if (($user = $this->security->getUser()) instanceof FrontendUser) {
-            $template->has_logged_in_user = true;
-            $template->user = $user;
+            $template->set('has_logged_in_user', true);
+            $template->set('user', $user);
         } else {
             // Get adapters
             $pageModelAdapter = $this->framework->getAdapter(PageModel::class);
             $systemAdapter = $this->framework->getAdapter(System::class);
             $stringUtilAdapter = $this->framework->getAdapter(StringUtil::class);
-            $uriAdapter = $this->framework->getAdapter(Uri::class);
 
-            $strRedirect = $this->requestStack->getCurrentRequest()->getUri();
+            // Generate the form action
+            $action = $this->router->generate(SacLoginStartController::LOGIN_ROUTE_FRONTEND, [], UrlGeneratorInterface::ABSOLUTE_URL);
+            $template->set('action', $this->uriSigner->sign($action));
+
+            // Set the target path
+            $strRedirect = $request->getUri();
 
             if (!$model->redirectBack && $model->jumpTo) {
                 $redirectPage = $pageModelAdapter->findByPk($model->jumpTo);
                 $strRedirect = $redirectPage instanceof PageModel ? $redirectPage->getAbsoluteUrl() : $strRedirect;
             }
 
-            $template->target_path = $stringUtilAdapter->specialchars(base64_encode($strRedirect));
-            $uri = $uriAdapter->fromString($request->getUri());
-            $uri->addQueryParam('sso_error', 'true');
-            $template->failure_path = $stringUtilAdapter->specialchars(base64_encode($uri->toString()));
-            $template->has_logged_in_user = false;
-            $template->btn_lbl = empty($model->swiss_alpine_club_oidc_frontend_login_btn_lbl) ? $this->translator->trans('MSC.loginWithSacSso', [], 'contao_default') : $model->swiss_alpine_club_oidc_frontend_login_btn_lbl;
-            $template->error = $this->getErrorMessage();
+            $template->set('target_path', $stringUtilAdapter->specialchars(base64_encode($strRedirect)));
+
+            // Set the failure path
+            $uri = $this->urlParser->addQueryString('sso_error=true', $request->getUri());
+            $template->set('failure_path', $stringUtilAdapter->specialchars(base64_encode($uri)));
+
+            // Do not show the login form if there is a logged in frontend user.
+            $template->set('has_logged_in_user', false);
+
+            // Get the button label
+            $template->set('btn_lbl', empty($model->swiss_alpine_club_oidc_frontend_login_btn_lbl) ? $this->translator->trans('MSC.loginWithSacSso', [], 'contao_default') : $model->swiss_alpine_club_oidc_frontend_login_btn_lbl);
+
+            // Get login error messages from session
+            $template->set('error', $this->getErrorMessage($request));
+
+            // Check if token check is enabled
             $enableTokenCheck = $systemAdapter->getContainer()->getParameter('sac_oauth2_client.oidc.enable_csrf_token_check');
-            $template->enable_csrf_token_check = $enableTokenCheck;
-            if($enableTokenCheck){
-                $template->request_token = $this->csrfTokenManager->getDefaultTokenValue();
+            $template->set('enable_csrf_token_check', $enableTokenCheck);
+
+            if ($enableTokenCheck) {
+                $template->set('request_token', $this->csrfTokenManager->getDefaultTokenValue());
             }
         }
 
@@ -86,14 +105,13 @@ class SwissAlpineClubOidcFrontendLogin extends AbstractFrontendModuleController
      *
      * @throws \Exception
      */
-    private function getErrorMessage(): array|null
+    private function getErrorMessage(Request $request): array|null
     {
         /** @var System $systemAdapter */
         $systemAdapter = $this->framework->getAdapter(System::class);
         $container = $systemAdapter->getContainer();
 
-        $flashBag = $this->requestStack
-            ->getCurrentRequest()
+        $flashBag = $request
             ->getSession()
             ->getFlashBag()
             ->get($container->getParameter('sac_oauth2_client.session.flash_bag_key'))

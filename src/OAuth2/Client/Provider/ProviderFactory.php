@@ -5,32 +5,41 @@ declare(strict_types=1);
 /*
  * This file is part of Swiss Alpine Club Contao Login Client Bundle.
  *
- * (c) Marko Cupic 2023 <m.cupic@gmx.ch>
+ * (c) Marko Cupic 2024 <m.cupic@gmx.ch>
  * @license MIT
  * For the full copyright and license information,
  * please view the LICENSE file that was distributed with this source code.
  * @link https://github.com/markocupic/swiss-alpine-club-contao-login-client-bundle
  */
 
-namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Client\Provider;
+namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\OAuth2\Client\Provider;
 
 use Contao\CoreBundle\ContaoCoreBundle;
 use League\OAuth2\Client\Provider\AbstractProvider;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\Client\Exception\InvalidOAuth2ProviderConfigurationException;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\OAuth2\Client\Exception\InvalidOAuth2ProviderConfigurationException;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
 
-class ProviderFactory
+readonly class ProviderFactory
 {
     public function __construct(
-        private readonly RouterInterface $router,
-        private readonly array $providerConfig,
+        private RouterInterface $router,
+        private array $providerConfig,
     ) {
     }
 
-    public function createProvider(string $contaoScope): AbstractProvider
+    public function createProvider(Request $request): AbstractProvider
     {
-        $redirectRoute = ContaoCoreBundle::SCOPE_BACKEND === $contaoScope ? $this->providerConfig['redirectRouteBackend'] : $this->providerConfig['redirectRouteFrontend'];
+        $redirectRoute = match ($request->attributes->get('_scope')) {
+            ContaoCoreBundle::SCOPE_BACKEND => $this->providerConfig['redirectRouteBackend'],
+            ContaoCoreBundle::SCOPE_FRONTEND => $this->providerConfig['redirectRouteFrontend'],
+            default => null,
+        };
+
+        if (null === $redirectRoute) {
+            throw new \Exception('Scope must be "backend" or "frontend".');
+        }
 
         $providerConfig = [
             // The client ID assigned to you by the provider

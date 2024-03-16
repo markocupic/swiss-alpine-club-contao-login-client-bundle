@@ -5,7 +5,7 @@
 {% block content %}
 
     {% if not has_logged_in_user %}
-        <form action="{{ path('swiss_alpine_club_sso_login_frontend') }}" id="sacOidcLoginFe_{{ id }}" class="sac-oidc-login-fe" method="post">
+        <form action="{{ action }}" id="sacOidcLoginFe_{{ id }}" class="sac-oidc-login-fe" method="post">
             <div class="formbody">
                 <input type="hidden" name="FORM_SUBMIT" value="sac-oidc-login-fe">
                 {% if enable_csrf_token_check %}

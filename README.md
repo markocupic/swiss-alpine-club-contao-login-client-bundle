@@ -2,27 +2,31 @@
 
 # SAC Login (OAuth2 client für Contao)
 
-Diese Erweiterung für das [Contao CMS](https://contao.org) ermöglicht die Implementierung 
+Diese Erweiterung für das [Contao CMS](https://contao.org) ermöglicht die Implementierung
 des Single Sign-On Logins des [Schweizerischen Alpen Clubs (SAC)](https://www.sac-cas.ch).
 
 SAC Mitglieder der Sektion können sich mit ihrer Mitgliedsnummer und ihrem Passwort, welches sie auf der Webseite des [SAC Zentralverbandes](https://www.sac-cas.ch) verwalten, im Front- sowie im Backend anmelden.
 
-| SAC Login Button | Login Formular Schweizerischer Alpenclub |
-|-|-|
-| ![SAC Login](docs/img/screenshot_backend_readme.png) | ![SAC Login](docs/img/screenshot_remote_login_form_readme.png) |
-| Bei Klick auf den Login Button erfolgt die Weiterleitug zum Login Formular des Schweizerischen Alpenclubs | Login Formular Schweizerischer Alpenclub |
+| SAC Login Button                                                                                          | Login Formular Schweizerischer Alpenclub                       |
+|-----------------------------------------------------------------------------------------------------------|----------------------------------------------------------------|
+| ![SAC Login](docs/img/screenshot_backend_readme.png)                                                      | ![SAC Login](docs/img/screenshot_remote_login_form_readme.png) |
+| Bei Klick auf den Login Button erfolgt die Weiterleitug zum Login Formular des Schweizerischen Alpenclubs | Login Formular Schweizerischer Alpenclub                       |
 
 ## Dependencies
+
 Die Erweiterung besitzt folgende Abhängigkeiten:
+
 - [contao/contao](https://github.com/contao/contao)
-- [markocupic/sac-event-tool-bundle](https://github.com/markocupic/sac-event-tool-bundle) 
+- [markocupic/sac-event-tool-bundle](https://github.com/markocupic/sac-event-tool-bundle)
 - [thephpleague/oauth2-client](https://github.com/thephpleague/oauth2-client)
-- [juststeveking/uri-builder](https://github.com/juststeveking/uri-builder)
+- [codefog/contao-haste](https://github.com/codefog/contao-haste)
 
 ## Hilfe/HowTo
+
 [The PHP League OAuth2 client](https://oauth2-client.thephpleague.com/usage/)
 
 ## Konfiguration
+
 Vor der Inbetriebnahme muss die App konfiguriert werden. Erstellen Sie dazu einen neuen Abschnitt in config/config.yaml.
 
 ```
@@ -34,10 +38,11 @@ sac_oauth2_client:
     client_id: '### Get your client id form SAC Schweiz ###'
     client_secret: '### Get your client secret form SAC Schweiz ###'
     enable_backend_sso: true
-    
+
     # defaults
-    client_auth_endpoint_frontend_route: 'swiss_alpine_club_sso_login_frontend'
-    client_auth_endpoint_backend_route: 'swiss_alpine_club_sso_login_backend'
+    debug_mode: false
+    client_auth_endpoint_frontend_route: 'sac_login_redirect_frontend'
+    client_auth_endpoint_backend_route: 'sac_login_redirect_backend'
     debug_mode: false # Log resource owners details (Contao backend log)
     auth_provider_endpoint_authorize: 'https://ids01.sac-cas.ch:443/oauth2/authorize'
     auth_provider_endpoint_token: 'https://ids01.sac-cas.ch:443/oauth2/token'
@@ -71,8 +76,3 @@ sac_oauth2_client:
       - 4254 # OG Rigi
 
 ```
-
-## PreInteractiveLoginEvent
-Der **PreInteractiveLoginEvent** wird getriggert bevor der Contao User Provider den Frontend oder Backend User lädt. 
-Mit einem **Event Listener** oder **Event Subscriber** lassen sich so vor dem Contao Login Vorgang unter anderem Manipulationen am User Account vornehmen. 
-

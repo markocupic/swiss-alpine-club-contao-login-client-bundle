@@ -5,7 +5,7 @@ declare(strict_types=1);
 /*
  * This file is part of Swiss Alpine Club Contao Login Client Bundle.
  *
- * (c) Marko Cupic 2023 <m.cupic@gmx.ch>
+ * (c) Marko Cupic 2024 <m.cupic@gmx.ch>
  * @license MIT
  * For the full copyright and license information,
  * please view the LICENSE file that was distributed with this source code.
@@ -18,6 +18,7 @@ use Contao\CoreBundle\ContaoCoreBundle;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\System;
 use Contao\Validator;
+use League\OAuth2\Client\Provider\ResourceOwnerInterface;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessage;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessageManager;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -31,15 +32,15 @@ class OAuthUserChecker
 
     public function __construct(
         private readonly ContaoFramework $framework,
-        private readonly TranslatorInterface $translator,
         private readonly ErrorMessageManager $errorMessageManager,
+        private readonly TranslatorInterface $translator,
     ) {
     }
 
     /**
      * Check if OAuth user has a valid uuid/sub.
      */
-    public function checkHasUuid(OAuthUser $oAuthUser): bool
+    public function checkHasUuid(ResourceOwnerInterface $oAuthUser): bool
     {
         /** @var System $systemAdapter */
         if (empty($oAuthUser->getId())) {
@@ -60,7 +61,7 @@ class OAuthUserChecker
     /**
      * Check if OAuth user is a SAC member.
      */
-    public function checkIsSacMember(OAuthUser $oAuthUser): bool
+    public function checkIsSacMember(ResourceOwnerInterface $oAuthUser): bool
     {
         if (!$this->isSacMember($oAuthUser)) {
             $this->errorMessageManager->add2Flash(
@@ -80,7 +81,7 @@ class OAuthUserChecker
     /**
      * Check for allowed SAC section membership.
      */
-    public function checkIsMemberOfAllowedSection(OAuthUser $oAuthUser, string $contaoScope): bool
+    public function checkIsMemberOfAllowedSection(ResourceOwnerInterface $oAuthUser, string $contaoScope): bool
     {
         $arrMembership = $this->getAllowedSacSectionIds($oAuthUser, $contaoScope);
 
@@ -102,7 +103,7 @@ class OAuthUserChecker
     /**
      * Check if OAuth user has a valid email address.
      */
-    public function checkHasValidEmailAddress(OAuthUser $oAuthUser): bool
+    public function checkHasValidEmailAddress(ResourceOwnerInterface $oAuthUser): bool
     {
         /** @var Validator $validatorAdapter */
         $validatorAdapter = $this->framework->getAdapter(Validator::class);
@@ -126,7 +127,7 @@ class OAuthUserChecker
     /**
      * Return all allowed SAC section ids a OAuth user belongs to.
      */
-    public function getAllowedSacSectionIds(OAuthUser $oAuthUser, string $contaoScope): array
+    public function getAllowedSacSectionIds(ResourceOwnerInterface $oAuthUser, string $contaoScope): array
     {
         /** @var System $systemAdapter */
         $systemAdapter = $this->framework->getAdapter(System::class);
@@ -151,7 +152,7 @@ class OAuthUserChecker
     /**
      * Check if OAuth user is member of a SAC section.
      */
-    public function isSacMember(OAuthUser $oAuthUser): bool
+    public function isSacMember(ResourceOwnerInterface $oAuthUser): bool
     {
         $strRoles = $oAuthUser->getRolesAsString();
 
@@ -164,7 +165,7 @@ class OAuthUserChecker
     /**
      * Return all SAC section ids a OAuth user belongs to.
      */
-    private function getSacSectionIds(OAuthUser $oAuthUser): array
+    private function getSacSectionIds(ResourceOwnerInterface $oAuthUser): array
     {
         $strRoles = $oAuthUser->getRolesAsString();
 

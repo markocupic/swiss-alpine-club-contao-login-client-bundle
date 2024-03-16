@@ -14,17 +14,22 @@ declare(strict_types=1);
 
 namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\EventListener\Contao;
 
-use Contao\BackendTemplate;
 use Contao\CoreBundle\DependencyInjection\Attribute\AsHook;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\SacLoginStartController;
 use Symfony\Component\DependencyInjection\Container;
+use Symfony\Component\HttpFoundation\UriSigner;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
+use Twig\Environment;
 
 #[AsHook('parseBackendTemplate')]
-class ParseBackendTemplateListener
+readonly class ParseBackendTemplateListener
 {
     public function __construct(
-        private readonly Container $container,
+        private Container $container,
+        private Environment $twig,
+        private RouterInterface $router,
+        private UriSigner $uriSigner,
     ) {
     }
 
@@ -33,33 +38,42 @@ class ParseBackendTemplateListener
      */
     public function __invoke(string $strContent, string $strTemplate): string
     {
-        if ('be_login' === $strTemplate) {
+        if (str_starts_with($strTemplate, 'be_login')) {
             if (!$this->container->getParameter('sac_oauth2_client.oidc.enable_backend_sso')) {
                 return $strContent;
             }
 
-            $template = new BackendTemplate('mod_swiss_alpine_club_oidc_backend_login');
+            $template = [];
 
             // Get request token (disabled by default)
-            $template->rt = '';
-            $template->enable_csrf_token_check = false;
+            $template['rt'] = '';
+            $template['enable_csrf_token_check'] = false;
 
             if ($this->container->getParameter('sac_oauth2_client.oidc.enable_csrf_token_check')) {
-                $template->rt = $this->getRequestToken();
-                $template->enable_csrf_token_check = true;
+                $template['rt'] = $this->getRequestToken();
+                $template['enable_csrf_token_check'] = true;
             }
 
-            $template->target_path = $this->getTargetPath($strContent);
-            $template->failure_path = $this->getFailurePath();
-            $template->always_use_target_path = $this->getAlwaysUseTargetPath($strContent);
-            $template->error = $this->getErrorMessage();
-            $template->disable_contao_login = $this->container->getParameter('sac_oauth2_client.backend.disable_contao_login');
+            $action = $this->router->generate(SacLoginStartController::LOGIN_ROUTE_BACKEND,[], UrlGeneratorInterface::ABSOLUTE_URL);
+            $template['action'] = $this->uriSigner->sign($action);
+
+            $template['target_path'] = $this->getTargetPath($strContent);
+            $template['failure_path'] = $this->getFailurePath();
+            $template['always_use_target_path'] = $this->getAlwaysUseTargetPath($strContent);
+            $template['error'] = $this->getErrorMessage();
+            $template['disable_contao_login'] = $this->container->getParameter('sac_oauth2_client.backend.disable_contao_login');
+
+            // Render the oauth button container template
+            $strSacLoginForm = $this->twig->render(
+                '@MarkocupicSwissAlpineClubContaoLoginClient/backend/swiss_alpine_club_oidc_backend_login.html.twig',
+                $template,
+            );
 
             // Replace insert tags
-            $ssoLoginForm = $this->container->get('contao.insert_tag.parser')->replaceInline($template->parse());
+            $strSacLoginForm = $this->container->get('contao.insert_tag.parser')->replaceInline($strSacLoginForm);
 
             // Prepend SAC SSO login form
-            $strContent = str_replace('<form', $ssoLoginForm.'<form', $strContent);
+            $strContent = str_replace('<form', $strSacLoginForm.'<form', $strContent);
 
             // Remove Contao login form
             if ($this->container->getParameter('sac_oauth2_client.backend.disable_contao_login')) {

@@ -23,31 +23,31 @@ use Contao\StringUtil;
 use Contao\System;
 use Contao\UserModel;
 use Doctrine\DBAL\Connection;
+use League\OAuth2\Client\Provider\ResourceOwnerInterface;
 use Markocupic\SacEventToolBundle\DataContainer\Util;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessage;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessageManager;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\OAuth\OAuthUser;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\OAuth\OAuthUserChecker;
 use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
-use Symfony\Component\Security\Core\Security;
+use Symfony\Component\Security\Http\Authenticator\Passport\Badge\UserBadge;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
-class ContaoUser
+readonly class ContaoUser
 {
     public function __construct(
-        private readonly ContaoFramework $framework,
-        private readonly Connection $connection,
-        private readonly TranslatorInterface $translator,
-        private readonly PasswordHasherFactoryInterface $hasherFactory,
-        private readonly OAuthUserChecker $resourceOwnerChecker,
-        private readonly ErrorMessageManager $errorMessageManager,
-        private readonly OAuthUser $resourceOwner,
-        private readonly Util $util,
-        private readonly string $contaoScope,
+        private ContaoFramework $framework,
+        private Connection $connection,
+        private TranslatorInterface $translator,
+        private PasswordHasherFactoryInterface $hasherFactory,
+        private OAuthUserChecker $resourceOwnerChecker,
+        private ErrorMessageManager $errorMessageManager,
+        private ResourceOwnerInterface $resourceOwner,
+        private Util $util,
+        private string $contaoScope,
     ) {
     }
 
-    public function getResourceOwner(): OAuthUser
+    public function getResourceOwner(): ResourceOwnerInterface
     {
         return $this->resourceOwner;
     }
@@ -318,7 +318,7 @@ class ContaoUser
 
         // Check if username is valid
         // Security::MAX_USERNAME_LENGTH = 4096;
-        if (\strlen($username) > Security::MAX_USERNAME_LENGTH) {
+        if (\strlen($username) > UserBadge::MAX_USERNAME_LENGTH) {
             return false;
         }
 
@@ -380,7 +380,7 @@ class ContaoUser
             }
 
             // Search for 0799871234 and replace it with 079 987 12 34
-            $pattern = '/^([0]{1})([0-9]{2})([0-9]{3})([0-9]{2})([0-9]{2})$/';
+            $pattern = '/^(0)([0-9]{2})([0-9]{3})([0-9]{2})([0-9]{2})$/';
 
             if (preg_match($pattern, $strNumber)) {
                 $replace = '$1$2 $3 $4 $5';

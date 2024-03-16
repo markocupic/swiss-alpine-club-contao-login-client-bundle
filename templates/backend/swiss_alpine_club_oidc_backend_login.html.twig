@@ -1,6 +1,6 @@
 <div id="mod_swiss_alpine_club_oidc_backend_login">
     <h1>{{ 'MSC.loginBT'|trans({}, 'contao_default') }}</h1>
-    <form action="{{ path('swiss_alpine_club_sso_login_backend') }}" id="sacOidcLoginBe" class="sac-oidc-login-be" method="post">
+    <form action="{{ action }}" id="sacOidcLoginBe" class="sac-oidc-login-be" method="post">
         <div class="formbody">
             <input type="hidden" name="FORM_SUBMIT" value="sac-oidc-login-be">
             {% if enable_csrf_token_check|default %}

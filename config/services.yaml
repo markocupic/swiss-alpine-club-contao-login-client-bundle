@@ -2,28 +2,29 @@ services:
     _defaults:
         autowire: true
         autoconfigure: true
+        bind:
+            $authenticationSuccessHandler: '@contao.security.authentication_success_handler'
 
     Markocupic\SwissAlpineClubContaoLoginClientBundle\:
         resource: ../src/
         exclude: [
-            ../src/{ DependencyInjection,Model,Event,Session,Exception },
-            ../src/Client/Provider/SwissAlpineClub.php,
-            ../src/Client/OAuth2Client.php,
+            ../src/{ DependencyInjection,Model,Session,Exception },
+            ../src/Security/Authenticator/Exception/*.php,
+            ../src/OAuth2/Client/Provider/SwissAlpineClub.php,
+            ../src/OAuth2/Client/OAuth2Client.php,
             ../src/Security/OAuth/OAuthUser.php,
             ../src/Config/ContaoLogConfig.php,
             ../src/ErrorMessage/ErrorMessage.php,
             ../src/Security/User/ContaoUser.php,
         ]
 
-    Markocupic\SwissAlpineClubContaoLoginClientBundle\Client\OAuth2ClientFactory: ~
-
-    Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\ContaoOAuth2LoginController:
+    Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\SacLoginRedirectController:
         public: true
         arguments:
             - '@contao.framework'
             - '@contao.csrf.token_manager'
             - '@event_dispatcher'
-            - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\Client\OAuth2ClientFactory'
+            - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\OAuth2\Client\OAuth2ClientFactory'
             - '%contao.csrf_token_name%'
             - '%sac_oauth2_client.oidc.enable_csrf_token_check%'
 
@@ -32,7 +33,7 @@ services:
         arguments:
             - '%sac_oauth2_client.oidc.auth_provider_endpoint_logout%'
 
-    Markocupic\SwissAlpineClubContaoLoginClientBundle\Client\Provider\ProviderFactory:
+    Markocupic\SwissAlpineClubContaoLoginClientBundle\OAuth2\Client\Provider\ProviderFactory:
         arguments:
             - '@router.default'
             - # provider config

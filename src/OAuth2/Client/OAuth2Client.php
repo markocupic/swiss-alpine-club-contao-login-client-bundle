@@ -12,7 +12,7 @@ declare(strict_types=1);
  * @link https://github.com/markocupic/swiss-alpine-club-contao-login-client-bundle
  */
 
-namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Client;
+namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\OAuth2\Client;
 
 use Contao\CoreBundle\ContaoCoreBundle;
 use League\OAuth2\Client\Provider\AbstractProvider;
@@ -20,12 +20,11 @@ use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use League\OAuth2\Client\Provider\ResourceOwnerInterface;
 use League\OAuth2\Client\Token\AccessToken;
 use League\OAuth2\Client\Token\AccessTokenInterface;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\Client\Exception\InvalidStateException;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\Client\Exception\MissingAuthorizationCodeException;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\Client\Provider\ProviderFactory;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\OAuth2\Client\Provider\ProviderFactory;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator\Exception\InvalidStateAuthenticationException;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator\Exception\MissingAuthCodeAuthenticationException;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Session\SessionBagInterface;
 
 class OAuth2Client
@@ -35,8 +34,7 @@ class OAuth2Client
 
     public function __construct(
         private readonly ProviderFactory $providerFactory,
-        private readonly RequestStack $requestStack,
-        private readonly string $contaoScope,
+        private readonly Request $request,
     ) {
     }
 
@@ -48,6 +46,8 @@ class OAuth2Client
      * @param array $options Extra options to pass to the Provider's getAuthorizationUrl()
      *                       method. For example, <code>scope</code> is a common option.
      *                       Generally, these become query parameters when redirecting.
+     *
+     * @throws \Exception
      */
     public function redirect(array $scopes = [], array $options = []): RedirectResponse
     {
@@ -69,23 +69,21 @@ class OAuth2Client
      * Call this after the user is redirected back to get the access token.
      * Add additional options ($options) that should be passed to the getAccessToken() of the underlying provider.
      *
-     * @throws InvalidStateException
-     * @throws MissingAuthorizationCodeException
      * @throws IdentityProviderException
      */
     public function getAccessToken(array $options = []): AccessToken|AccessTokenInterface
     {
         $expectedState = $this->getSession()->get(self::OAUTH2_SESSION_STATE_KEY);
-        $actualState = $this->getCurrentRequest()->get('state');
+        $actualState = $this->request->get('state');
 
         if (!$actualState || ($actualState !== $expectedState)) {
-            throw new InvalidStateException('Invalid state');
+            throw new InvalidStateAuthenticationException(InvalidStateAuthenticationException::MESSAGE);
         }
 
-        $code = $this->getCurrentRequest()->get('code');
+        $code = $this->request->get('code');
 
         if (!$code) {
-            throw new MissingAuthorizationCodeException('No "code" parameter was found (usually this is a query parameter)!');
+            throw new MissingAuthCodeAuthenticationException(MissingAuthCodeAuthenticationException::MESSAGE);
         }
 
         return $this->getOAuth2Provider()->getAccessToken(
@@ -122,6 +120,8 @@ class OAuth2Client
      *
      * Only use this if you don't need the access token, but only
      * need the user.
+     *
+     * @throws IdentityProviderException
      */
     public function fetchUser(): ResourceOwnerInterface
     {
@@ -140,14 +140,34 @@ class OAuth2Client
             return $this->oAuthProvider;
         }
 
-        $this->oAuthProvider = $this->providerFactory->createProvider($this->contaoScope);
+        $this->oAuthProvider = $this->providerFactory->createProvider($this->request);
 
         return $this->oAuthProvider;
     }
 
-    public function getContaoScope(): string|null
+	public function hasValidOAuth2State():bool
+	{
+
+		if (empty($this->request->query->get('state'))) {
+			return false;
+		}
+
+		$bag = $this->getSession();
+
+		if (empty($bag->get('oauth2state'))) {
+			return false;
+		}
+
+		if ($this->request->query->get('state') !== $bag->get('oauth2state')) {
+			return false;
+		}
+
+		return true;
+	}
+
+    public function getAlwaysUseTargetPath(): string
     {
-        return $this->contaoScope;
+        return $this->getSession()->get('_always_use_target_path', '0') ? '1' : '0';
     }
 
     public function getTargetPath(): string
@@ -160,9 +180,14 @@ class OAuth2Client
         return $this->getSession()->get('_failure_path', null);
     }
 
-    public function getModuleId(): string
+    public function getModuleId(): string|null
     {
         return $this->getSession()->get('_module_id', null);
+    }
+
+    public function setAlwaysUseTargetPath(bool $blnAlwaysUseTargetPath): void
+    {
+        $this->getSession()->set('_always_use_target_path', (string) $blnAlwaysUseTargetPath);
     }
 
     public function setTargetPath(string $targetPath): void
@@ -182,23 +207,18 @@ class OAuth2Client
 
     public function getSession(): SessionBagInterface
     {
-        if (ContaoCoreBundle::SCOPE_BACKEND === $this->contaoScope) {
-            $session = $this->getCurrentRequest()->getSession()->getBag('sac_oauth2_client_attr_backend');
-        } else {
-            $session = $this->getCurrentRequest()->getSession()->getBag('sac_oauth2_client_attr_frontend');
+        $session = $this->request->getSession();
+
+        $bag = match ($this->request->attributes->get('_scope')) {
+            ContaoCoreBundle::SCOPE_BACKEND => $session->getBag('sac_oauth2_client_attr_backend'),
+            ContaoCoreBundle::SCOPE_FRONTEND => $session->getBag('sac_oauth2_client_attr_frontend'),
+            default => null,
+        };
+
+        if (null === $bag) {
+            throw new \Exception('Scope must be "backend" or "frontend".');
         }
 
-        return $session;
-    }
-
-    private function getCurrentRequest(): Request
-    {
-        $request = $this->requestStack->getCurrentRequest();
-
-        if (!$request) {
-            throw new \LogicException('There is no "current request", and it is needed to perform this action');
-        }
-
-        return $request;
+        return $bag;
     }
 }

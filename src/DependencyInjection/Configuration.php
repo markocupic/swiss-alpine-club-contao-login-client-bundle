@@ -5,7 +5,7 @@ declare(strict_types=1);
 /*
  * This file is part of Swiss Alpine Club Contao Login Client Bundle.
  *
- * (c) Marko Cupic 2023 <m.cupic@gmx.ch>
+ * (c) Marko Cupic 2024 <m.cupic@gmx.ch>
  * @license MIT
  * For the full copyright and license information,
  * please view the LICENSE file that was distributed with this source code.
@@ -56,11 +56,11 @@ class Configuration implements ConfigurationInterface
                         ->end()
                         ->scalarNode('client_auth_endpoint_frontend_route')
                             ->cannotBeEmpty()
-                            ->defaultValue('swiss_alpine_club_sso_login_frontend')
+                            ->defaultValue('sac_login_redirect_frontend')
                         ->end()
                         ->scalarNode('client_auth_endpoint_backend_route')
                             ->cannotBeEmpty()
-                            ->defaultValue('swiss_alpine_club_sso_login_backend')
+                            ->defaultValue('sac_login_redirect_backend')
                         ->end()
                         ->scalarNode('auth_provider_endpoint_logout')
                             ->cannotBeEmpty()

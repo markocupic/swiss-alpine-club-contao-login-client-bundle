@@ -1,41 +1,41 @@
 # SSO Login configuration
 sac_oauth2_client:
-  oidc:
-    # required
-    client_id: '###'
-    client_secret: '###'
-    enable_backend_sso: true
+    oidc:
+        # required
+        client_id: '###'
+        client_secret: '###'
+        enable_backend_sso: true
 
-    # defaults
-    client_auth_endpoint_frontend_route: 'swiss_alpine_club_sso_login_frontend'
-    client_auth_endpoint_backend_route: 'swiss_alpine_club_sso_login_backend'
-    auth_provider_endpoint_authorize: 'https://ids01.sac-cas.ch:443/oauth2/authorize'
-    auth_provider_endpoint_token: 'https://ids01.sac-cas.ch:443/oauth2/token'
-    auth_provider_endpoint_userinfo: 'https://ids01.sac-cas.ch:443/oauth2/userinfo'
-    auth_provider_endpoint_logout: 'https://ids01.sac-cas.ch/oidc/logout'
+        # defaults
+        client_auth_endpoint_frontend_route: 'sac_login_redirect_frontend'
+        client_auth_endpoint_backend_route: 'sac_login_redirect_backend'
+        auth_provider_endpoint_authorize: 'https://ids01.sac-cas.ch:443/oauth2/authorize'
+        auth_provider_endpoint_token: 'https://ids01.sac-cas.ch:443/oauth2/token'
+        auth_provider_endpoint_userinfo: 'https://ids01.sac-cas.ch:443/oauth2/userinfo'
+        auth_provider_endpoint_logout: 'https://ids01.sac-cas.ch/oidc/logout'
 
-    # optional frontend user settings
-    add_to_frontend_user_groups:
-    # - 9 # Standard Mitgliedergruppe
-    auto_create_frontend_user: false
-    allow_frontend_login_to_sac_members_only: true
-    allow_frontend_login_to_predefined_section_members_only: true
-    allow_frontend_login_if_contao_account_is_disabled: false
-    allowed_frontend_sac_section_ids:
-    # - 4250 # Stammsektion
-    # - 4251 # OG Surental
-    # - 4252 # OG Napf
-    # - 4253 # OG Hochdorf
-    # - 4254 # OG Rigi
+        # optional frontend user settings
+        add_to_frontend_user_groups:
+        # - 9 # Standard Mitgliedergruppe
+        auto_create_frontend_user: false
+        allow_frontend_login_to_sac_members_only: true
+        allow_frontend_login_to_predefined_section_members_only: true
+        allow_frontend_login_if_contao_account_is_disabled: false
+        allowed_frontend_sac_section_ids:
+        # - 4250 # Stammsektion
+        # - 4251 # OG Surental
+        # - 4252 # OG Napf
+        # - 4253 # OG Hochdorf
+        # - 4254 # OG Rigi
 
-    # optional backend user settings
-    auto_create_backend_user: false
-    allow_backend_login_to_sac_members_only: true
-    allow_backend_login_to_predefined_section_members_only: true
-    allow_backend_login_if_contao_account_is_disabled: false
-    allowed_backend_sac_section_ids:
-    # - 4250 # Stammsektion
-    # - 4251 # OG Surental
-    # - 4252 # OG Napf
-    # - 4253 # OG Hochdorf
-    # - 4254 # OG Rigi
+        # optional backend user settings
+        auto_create_backend_user: false
+        allow_backend_login_to_sac_members_only: true
+        allow_backend_login_to_predefined_section_members_only: true
+        allow_backend_login_if_contao_account_is_disabled: false
+        allowed_backend_sac_section_ids:
+        # - 4250 # Stammsektion
+        # - 4251 # OG Surental
+        # - 4252 # OG Napf
+        # - 4253 # OG Hochdorf
+        # - 4254 # OG Rigi
