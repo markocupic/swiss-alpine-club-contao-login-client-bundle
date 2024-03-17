@@ -16,8 +16,8 @@ namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticat
 
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
 
-class InvalidStateAuthenticationException extends AuthenticationException
+class ContaoFrontendUserNotFoundAuthenticationException extends AuthenticationException
 {
-    public const MESSAGE = 'Authentication process aborted! Invalid state parameter passed in callback URL.';
-	public const KEY = 'invalidState';
+    public const MESSAGE = 'Authentication process aborted! Contao frontend user not found.';
+	public const KEY = 'contaoFrontendUserNotFound';
 }

@@ -37,10 +37,8 @@ readonly class ContaoUser
     public function __construct(
         private ContaoFramework $framework,
         private Connection $connection,
-        private TranslatorInterface $translator,
         private PasswordHasherFactoryInterface $hasherFactory,
         private OAuthUserChecker $resourceOwnerChecker,
-        private ErrorMessageManager $errorMessageManager,
         private ResourceOwnerInterface $resourceOwner,
         private Util $util,
         private string $contaoScope,
@@ -111,27 +109,21 @@ readonly class ContaoUser
     /**
      * @throws \Exception
      */
-    public function checkUserExists(): bool
+    public function checkFrontendUserExists(): bool
     {
         if (empty($this->resourceOwner->getSacMemberId()) || !$this->userExists()) {
-            if (ContaoCoreBundle::SCOPE_FRONTEND === $this->getContaoScope()) {
-                $this->errorMessageManager->add2Flash(
-                    new ErrorMessage(
-                        ErrorMessage::LEVEL_WARNING,
-                        $this->translator->trans('ERR.sacOidcLoginError_userDoesNotExist_matter', [$this->resourceOwner->getFirstName()], 'contao_default'),
-                        $this->translator->trans('ERR.sacOidcLoginError_userDoesNotExist_howToFix', [], 'contao_default'),
-                        $this->translator->trans('ERR.sacOidcLoginError_userDoesNotExist_explain', [], 'contao_default'),
-                    )
-                );
-            } else {
-                $this->errorMessageManager->add2Flash(
-                    new ErrorMessage(
-                        ErrorMessage::LEVEL_WARNING,
-                        $this->translator->trans('ERR.sacOidcLoginError_backendUserNotFound_matter', [$this->resourceOwner->getFirstName()], 'contao_default'),
-                    )
-                );
-            }
+            return false;
+        }
 
+        return true;
+    }
+
+    /**
+     * @throws \Exception
+     */
+    public function checkBackendUserExists(): bool
+    {
+        if (empty($this->resourceOwner->getSacMemberId()) || !$this->userExists()) {
             return false;
         }
 
@@ -172,15 +164,6 @@ readonly class ContaoUser
                 }
             }
         }
-
-        $this->errorMessageManager->add2Flash(
-            new ErrorMessage(
-                ErrorMessage::LEVEL_WARNING,
-                $this->translator->trans('ERR.sacOidcLoginError_accountDisabled_matter', [$this->resourceOwner->getFirstName()], 'contao_default'),
-                '',
-                $this->translator->trans('ERR.sacOidcLoginError_accountDisabled_explain', [], 'contao_default'),
-            )
-        );
 
         return false;
     }

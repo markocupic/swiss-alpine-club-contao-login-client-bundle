@@ -145,25 +145,24 @@ class OAuth2Client
         return $this->oAuthProvider;
     }
 
-	public function hasValidOAuth2State():bool
-	{
+    public function hasValidOAuth2State(): bool
+    {
+        if (empty($this->request->query->get('state'))) {
+            return false;
+        }
 
-		if (empty($this->request->query->get('state'))) {
-			return false;
-		}
+        $bag = $this->getSession();
 
-		$bag = $this->getSession();
+        if (empty($bag->get('oauth2state'))) {
+            return false;
+        }
 
-		if (empty($bag->get('oauth2state'))) {
-			return false;
-		}
+        if ($this->request->query->get('state') !== $bag->get('oauth2state')) {
+            return false;
+        }
 
-		if ($this->request->query->get('state') !== $bag->get('oauth2state')) {
-			return false;
-		}
-
-		return true;
-	}
+        return true;
+    }
 
     public function getAlwaysUseTargetPath(): string
     {
@@ -172,12 +171,12 @@ class OAuth2Client
 
     public function getTargetPath(): string
     {
-        return $this->getSession()->get('_target_path', null);
+        return $this->getSession()->get('_target_path', '');
     }
 
     public function getFailurePath(): string
     {
-        return $this->getSession()->get('_failure_path', null);
+        return $this->getSession()->get('_failure_path', '');
     }
 
     public function getModuleId(): string|null

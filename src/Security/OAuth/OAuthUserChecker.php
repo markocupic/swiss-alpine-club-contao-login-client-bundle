@@ -47,8 +47,8 @@ class OAuthUserChecker
             $this->errorMessageManager->add2Flash(
                 new ErrorMessage(
                     ErrorMessage::LEVEL_WARNING,
-                    $this->translator->trans('ERR.sacOidcLoginError_invalidUuid_matter', [], 'contao_default'),
-                    $this->translator->trans('ERR.sacOidcLoginError_invalidUuid_howToFix', [], 'contao_default'),
+                    $this->translator->trans('ERR.sacOidcLoginError_resourceOwnerHasInvalidUuid_matter', [], 'contao_default'),
+                    $this->translator->trans('ERR.sacOidcLoginError_resourceOwnerHasInvalidUuid_howToFix', [], 'contao_default'),
                 )
             );
 
@@ -67,8 +67,8 @@ class OAuthUserChecker
             $this->errorMessageManager->add2Flash(
                 new ErrorMessage(
                     ErrorMessage::LEVEL_WARNING,
-                    $this->translator->trans('ERR.sacOidcLoginError_userIsNotSacMember_matter', [$oAuthUser->getFirstName()], 'contao_default'),
-                    $this->translator->trans('ERR.sacOidcLoginError_userIsNotSacMember_howToFix', [], 'contao_default'),
+                    $this->translator->trans('ERR.sacOidcLoginError_missingSacMembership_matter', [$oAuthUser->getFirstName()], 'contao_default'),
+                    $this->translator->trans('ERR.sacOidcLoginError_missingSacMembership_howToFix', [], 'contao_default'),
                 )
             );
 
@@ -112,9 +112,9 @@ class OAuthUserChecker
             $this->errorMessageManager->add2Flash(
                 new ErrorMessage(
                     ErrorMessage::LEVEL_WARNING,
-                    $this->translator->trans('ERR.sacOidcLoginError_invalidEmail_matter', [$oAuthUser->getFirstName()], 'contao_default'),
-                    $this->translator->trans('ERR.sacOidcLoginError_invalidEmail_howToFix', [], 'contao_default'),
-                    $this->translator->trans('ERR.sacOidcLoginError_invalidEmail_explain', [], 'contao_default'),
+                    $this->translator->trans('ERR.sacOidcLoginError_resourceOwnerHasInvalidEmail_matter', [$oAuthUser->getFirstName()], 'contao_default'),
+                    $this->translator->trans('ERR.sacOidcLoginError_resourceOwnerHasInvalidEmail_howToFix', [], 'contao_default'),
+                    $this->translator->trans('ERR.sacOidcLoginError_resourceOwnerHasInvalidEmail_explain', [], 'contao_default'),
                 )
             );
 

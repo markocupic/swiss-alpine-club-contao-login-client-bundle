@@ -20,9 +20,7 @@ use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\CoreBundle\Monolog\ContaoContext;
 use Contao\CoreBundle\Routing\ScopeMatcher;
 use Contao\CoreBundle\Security\Authentication\AuthenticationSuccessHandler;
-use Contao\MemberModel;
 use Contao\System;
-use Contao\UserModel;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Types\Types;
 use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
@@ -32,13 +30,16 @@ use Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessage;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessageManager;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\OAuth2\Client\OAuth2Client;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\OAuth2\Client\OAuth2ClientFactory;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator\Exception\ContaoBackendUserNotFoundAuthenticationException;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator\Exception\ContaoFrontendUserNotFoundAuthenticationException;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator\Exception\ContaoUserDisabledAuthenticationException;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator\Exception\ContaoUserNotFoundAuthenticationException;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator\Exception\InvalidStateAuthenticationException;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator\Exception\MissingAuthCodeAuthenticationException;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator\Exception\MissingSacMembershipAuthenticationException;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator\Exception\NotMemberOfAllowedSectionAuthenticationException;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator\Exception\NotSacMemberAuthenticationException;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator\Exception\UuidNotFoundAuthenticationException;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator\Exception\ResourceOwnerHasInvalidEmailAuthenticationException;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator\Exception\ResourceOwnerHasInvalidUuidAuthenticationException;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator\Exception\UnexpectedAuthenticationException;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\OAuth\OAuthUserChecker;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\User\ContaoUserFactory;
 use Psr\Log\LoggerInterface;
@@ -136,11 +137,17 @@ class Authenticator extends AbstractAuthenticator
             $oAuth2Client = $this->oAuth2ClientFactory->createOAuth2Client($request);
 
             if (empty($request->query->get('code'))) {
-                throw new MissingAuthCodeAuthenticationException(MissingAuthCodeAuthenticationException::MESSAGE);
+                $this->throwWithMessage(
+                    ErrorMessage::LEVEL_ERROR,
+                    MissingAuthCodeAuthenticationException::class,
+                );
             }
 
             if (!$oAuth2Client->hasValidOAuth2State()) {
-                throw new InvalidStateAuthenticationException(InvalidStateAuthenticationException::MESSAGE);
+                $this->throwWithMessage(
+                    ErrorMessage::LEVEL_ERROR,
+                    InvalidStateAuthenticationException::class,
+                );
             }
 
             $oAuth2Provider = $oAuth2Client->getOAuth2Provider();
@@ -166,39 +173,49 @@ class Authenticator extends AbstractAuthenticator
                     json_encode($resourceOwner->toArray()),
                 );
 
-	            $this->contaoAccessLogger->info(
-		            $logText,
-		            ['contao' => new ContaoContext(__METHOD__, ContaoLogConfig::SAC_OAUTH2_DEBUG_LOG)],
-	            );
+                $this->contaoAccessLogger->info(
+                    $logText,
+                    ['contao' => new ContaoContext(__METHOD__, ContaoLogConfig::SAC_OAUTH2_DEBUG_LOG)],
+                );
             }
 
             // Check if uuid/sub is set
             if (!$this->oAuthUserChecker->checkHasUuid($oAuthUser)) {
-                throw new UuidNotFoundAuthenticationException(UuidNotFoundAuthenticationException::MESSAGE);
+                $this->throwWithMessage(
+                    ErrorMessage::LEVEL_WARNING,
+                    ResourceOwnerHasInvalidUuidAuthenticationException::class,
+                );
+            }
+
+            if (!$this->oAuthUserChecker->checkHasValidEmailAddress($oAuthUser)) {
+                $this->throwWithMessage(
+                    ErrorMessage::LEVEL_WARNING,
+                    ResourceOwnerHasInvalidEmailAuthenticationException::class,
+                    [$oAuthUser->getFirstName()]
+                );
             }
 
             // Check if user is a SAC member
             if ($blnAllowLoginToSacMembersOnly) {
                 if (!$this->oAuthUserChecker->checkIsSacMember($oAuthUser)) {
-                    throw new NotSacMemberAuthenticationException(NotSacMemberAuthenticationException::MESSAGE);
+                    $this->throwWithMessage(
+                        ErrorMessage::LEVEL_WARNING,
+                        MissingSacMembershipAuthenticationException::class,
+                        [$oAuthUser->getFirstName()]
+                    );
                 }
             }
 
             // Check if user is member of an allowed section
             if ($blnAllowLoginToPredefinedSectionsOnly) {
                 if (!$this->oAuthUserChecker->checkIsMemberOfAllowedSection($oAuthUser, $contaoScope)) {
-                    throw new NotMemberOfAllowedSectionAuthenticationException(NotMemberOfAllowedSectionAuthenticationException::MESSAGE);
+                    $this->throwWithMessage(
+                        ErrorMessage::LEVEL_WARNING,
+                        NotMemberOfAllowedSectionAuthenticationException::class,
+                        [$oAuthUser->getFirstName()],
+                    );
                 }
             }
-
-            $this->errorMessageManager->add2Flash(
-                new ErrorMessage(
-                    ErrorMessage::LEVEL_WARNING,
-                    $this->translator->trans('ERR.sacOidcLoginError_invalidEmail_matter', [$oAuthUser->getFirstName()], 'contao_default'),
-                    $this->translator->trans('ERR.sacOidcLoginError_invalidEmail_howToFix', [], 'contao_default'),
-                    $this->translator->trans('ERR.sacOidcLoginError_invalidEmail_explain', [], 'contao_default'),
-                )
-            );
 
             // Create the user wrapper object
             $contaoUser = $this->contaoUserFactory->loadContaoUser($oAuthUser, $contaoScope);
@@ -210,10 +227,23 @@ class Authenticator extends AbstractAuthenticator
                 }
             }
 
-            // if $contaoScope === 'backend': Check if Contao backend user exists
-            // if $contaoScope === 'frontend': Check if Contao frontend user exists
-            if (!$contaoUser->checkUserExists()) {
-                throw new ContaoUserNotFoundAuthenticationException(ContaoUserNotFoundAuthenticationException::MESSAGE);
+            // Check if Contao user exists
+            if (ContaoCoreBundle::SCOPE_FRONTEND === $contaoScope) {
+                if (!$contaoUser->checkFrontendUserExists()) {
+                    $this->throwWithMessage(
+                        ErrorMessage::LEVEL_WARNING,
+                        ContaoFrontendUserNotFoundAuthenticationException::class,
+                        [$oAuthUser->getFirstName()],
+                    );
+                }
+            } else {
+                if (!$contaoUser->checkBackendUserExists()) {
+                    $this->throwWithMessage(
+                        ErrorMessage::LEVEL_WARNING,
+                        ContaoBackendUserNotFoundAuthenticationException::class,
+                        [$oAuthUser->getFirstName()],
+                    );
+                }
             }
 
             // Allow login to frontend users only if account is not disabled
@@ -232,26 +262,24 @@ class Authenticator extends AbstractAuthenticator
             // if $contaoScope === 'backend': Check if tl_user.disable === '' or tl_user.login === '1' or tl_user.start and tl_user.stop are not in an allowed time range
             // if $contaoScope === 'frontend': Check if tl_member.disable === '' or tl_member.login === '1' or tl_member.start and tl_member.stop are not in an allowed time range
             if (!$contaoUser->checkIsAccountEnabled() && !$blnAllowContaoLoginIfAccountIsDisabled) {
-                throw new ContaoUserDisabledAuthenticationException(ContaoUserDisabledAuthenticationException::MESSAGE);
+                $this->throwWithMessage(
+                    ErrorMessage::LEVEL_WARNING,
+                    ContaoUserDisabledAuthenticationException::class,
+                    [$oAuthUser->getFirstName()],
+                );
             }
+
+            return new SelfValidatingPassport(new UserBadge($contaoUser->getIdentifier()));
         } catch (IdentityProviderException|AuthenticationException $e) {
             throw new AuthenticationException($e->getMessage());
         } catch (\Exception $e) {
-            $this->errorMessageManager->add2Flash(
-                new ErrorMessage(
-                    ErrorMessage::LEVEL_WARNING,
-                    $this->translator->trans('ERR.sacOidcLoginError_unexpectedError_matter', [], 'contao_default'),
-                    $this->translator->trans('ERR.sacOidcLoginError_unexpectedError_howToFix', [], 'contao_default'),
-                    $this->translator->trans('ERR.sacOidcLoginError_unexpectedError_explain', [], 'contao_default'),
-                )
+            $this->throwWithMessage(
+                ErrorMessage::LEVEL_ERROR,
+                UnexpectedAuthenticationException::class,
             );
 
             throw new AuthenticationException($e->getMessage());
         }
-
-        $strTable = ContaoCoreBundle::SCOPE_BACKEND === $contaoScope ? UserModel::getTable() : MemberModel::getTable();
-
-        return new SelfValidatingPassport(new UserBadge($contaoUser->getModel($strTable)->username));
     }
 
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, $firewallName): Response|null
@@ -259,7 +287,6 @@ class Authenticator extends AbstractAuthenticator
         $oAuth2Client = $this->oAuth2ClientFactory->createOAuth2Client($request);
         $request->request->set('_target_path', $oAuth2Client->getTargetPath());
         $request->request->set('_always_use_target_path', $oAuth2Client->getTargetPath());
-        $request->request->set('_failure_path', $oAuth2Client->getFailurePath());
 
         // Clear the session
         $this->getSessionBag($request)->clear();
@@ -337,5 +364,23 @@ class Authenticator extends AbstractAuthenticator
         }
 
         return $request->getSession()->getBag('sac_oauth2_client_attr_frontend');
+    }
+
+    protected function throwWithMessage(string $errLevel, string $exceptionClass, array $argsA = [], array $argsB = [], array $argsC = []): void
+    {
+        $msgKeyA = sprintf('ERR.sacOidcLoginError_%s_matter', $exceptionClass::KEY);
+        $msgKeyB = sprintf('ERR.sacOidcLoginError_%s_howToFix', $exceptionClass::KEY);
+        $msgKeyC = sprintf('ERR.sacOidcLoginError_%s_explain', $exceptionClass::KEY);
+
+        $this->errorMessageManager->add2Flash(
+            new ErrorMessage(
+                $errLevel,
+                $this->translator->trans($msgKeyA, $argsA, 'contao_default'),
+                $this->translator->trans($msgKeyB, $argsB, 'contao_default'),
+                $this->translator->trans($msgKeyC, $argsC, 'contao_default'),
+            )
+        );
+
+        throw new $exceptionClass($exceptionClass::MESSAGE);
     }
 }

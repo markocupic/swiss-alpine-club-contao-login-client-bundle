@@ -16,7 +16,8 @@ namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticat
 
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
 
-class NotSacMemberAuthenticationException extends AuthenticationException
+class UnexpectedAuthenticationException extends AuthenticationException
 {
-    public const MESSAGE = 'Authentication process aborted! Resource owner is not a SAC member.';
+    public const MESSAGE = 'There has been an unexpected error.';
+    public const KEY = 'unexpected';
 }

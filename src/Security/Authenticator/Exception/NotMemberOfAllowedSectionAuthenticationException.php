@@ -19,4 +19,5 @@ use Symfony\Component\Security\Core\Exception\AuthenticationException;
 class NotMemberOfAllowedSectionAuthenticationException extends AuthenticationException
 {
     public const MESSAGE = 'Authentication process aborted! Resource owner is not member of an allowed SAC section.';
+	public const KEY = 'notMemberOfAllowedSection';
 }

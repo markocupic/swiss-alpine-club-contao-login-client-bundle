@@ -16,7 +16,8 @@ namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticat
 
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
 
-class ContaoUserNotFoundAuthenticationException extends AuthenticationException
+class ResourceOwnerHasInvalidEmailAuthenticationException extends AuthenticationException
 {
-    public const MESSAGE = 'Authentication process aborted! Contao user not found.';
+    public const MESSAGE = 'Authentication process aborted! Resource owner has no/invalid email address.';
+	public const KEY = 'resourceOwnerHasInvalidEmail';
 }

@@ -16,8 +16,8 @@ namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticat
 
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
 
-class InvalidStateAuthenticationException extends AuthenticationException
+class MissingSacMembershipAuthenticationException extends AuthenticationException
 {
-    public const MESSAGE = 'Authentication process aborted! Invalid state parameter passed in callback URL.';
-	public const KEY = 'invalidState';
+    public const MESSAGE = 'Authentication process aborted! Resource owner is not a SAC member.';
+	public const KEY = 'missingSacMembership';
 }

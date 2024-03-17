@@ -16,7 +16,8 @@ namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticat
 
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
 
-class UuidNotFoundAuthenticationException extends AuthenticationException
+class ResourceOwnerHasInvalidUuidAuthenticationException extends AuthenticationException
 {
     public const MESSAGE = 'Authentication process aborted! Resource owner has no UUID.';
+    public const KEY = 'resourceOwnerHasInvalidUuid';
 }
