@@ -160,10 +160,12 @@ class Authenticator extends AbstractAuthenticator
             // Get the resource owner object.
             $resourceOwner = $oAuth2Client->fetchUserFromToken($accessToken);
 
+            // Create the resource owner wrapper,
+            // with which we will now do a handful of checks.
             $oAuthUser = $oAuth2Provider->getResourceOwner($accessToken);
 
             if ($isDebugMode) {
-                // Add OAuth claims to Contao system log
+                // Store OAuth claims to Contao system log.
                 $logText = sprintf(
                     'SAC oauth2 debug %s login. NAME: %s - SAC MEMBER ID: %s - ROLES: %s - DATA ALL: %s',
                     $contaoScope,
@@ -179,7 +181,7 @@ class Authenticator extends AbstractAuthenticator
                 );
             }
 
-            // Check if uuid/sub is set
+            // Check if we can find a UUID in resource owner claims.
             if (!$this->oAuthUserChecker->checkHasUuid($oAuthUser)) {
                 $this->throwWithMessage(
                     ErrorMessage::LEVEL_WARNING,
@@ -187,6 +189,7 @@ class Authenticator extends AbstractAuthenticator
                 );
             }
 
+            // Check if we can find an email address in the resource owner claims.
             if (!$this->oAuthUserChecker->checkHasValidEmailAddress($oAuthUser)) {
                 $this->throwWithMessage(
                     ErrorMessage::LEVEL_WARNING,
@@ -195,7 +198,7 @@ class Authenticator extends AbstractAuthenticator
                 );
             }
 
-            // Check if user is a SAC member
+            // Check if the resource owner is a member of the Swiss Alpine Club (SAC).
             if ($blnAllowLoginToSacMembersOnly) {
                 if (!$this->oAuthUserChecker->checkIsSacMember($oAuthUser)) {
                     $this->throwWithMessage(
@@ -206,7 +209,7 @@ class Authenticator extends AbstractAuthenticator
                 }
             }
 
-            // Check if user is member of an allowed section
+            // Check if the resource owner is a member of an allowed Swiss Alpine Club section.
             if ($blnAllowLoginToPredefinedSectionsOnly) {
                 if (!$this->oAuthUserChecker->checkIsMemberOfAllowedSection($oAuthUser, $contaoScope)) {
                     $this->throwWithMessage(
@@ -217,7 +220,7 @@ class Authenticator extends AbstractAuthenticator
                 }
             }
 
-            // Create the user wrapper object
+            // Create the Contao user wrapper.
             $contaoUser = $this->contaoUserFactory->loadContaoUser($oAuthUser, $contaoScope);
 
             // Create Contao frontend or backend user, if it doesn't exist.
@@ -227,7 +230,7 @@ class Authenticator extends AbstractAuthenticator
                 }
             }
 
-            // Check if Contao user exists
+            // Check if we can find the resource owner in Contao.
             if (ContaoCoreBundle::SCOPE_FRONTEND === $contaoScope) {
                 if (!$contaoUser->checkFrontendUserExists()) {
                     $this->throwWithMessage(
@@ -246,21 +249,17 @@ class Authenticator extends AbstractAuthenticator
                 }
             }
 
-            // Allow login to frontend users only if account is not disabled
-            if (ContaoCoreBundle::SCOPE_FRONTEND === $contaoScope) {
-                // Set tl_member.disable = ''
+            // Allow login to frontend users only if account is not disabled.
+            if ($blnAllowContaoLoginIfAccountIsDisabled && ContaoCoreBundle::SCOPE_FRONTEND === $contaoScope) {
+                // Set tl_member.disable = false
                 $contaoUser->enableLogin();
             }
 
             // Set tl_user.loginAttempts = 0
             $contaoUser->resetLoginAttempts();
 
-            // Update tl_member and tl_user
-            $contaoUser->updateFrontendUser();
-            $contaoUser->updateBackendUser();
-
-            // if $contaoScope === 'backend': Check if tl_user.disable === '' or tl_user.login === '1' or tl_user.start and tl_user.stop are not in an allowed time range
-            // if $contaoScope === 'frontend': Check if tl_member.disable === '' or tl_member.login === '1' or tl_member.start and tl_member.stop are not in an allowed time range
+            // if $contaoScope === 'backend': Check if tl_user.disable === false or tl_user.login === true or tl_user.start and tl_user.stop are not in an allowed time range
+            // if $contaoScope === 'frontend': Check if tl_member.disable === false or tl_member.login === true or tl_member.start and tl_member.stop are not in an allowed time range
             if (!$contaoUser->checkIsAccountEnabled() && !$blnAllowContaoLoginIfAccountIsDisabled) {
                 $this->throwWithMessage(
                     ErrorMessage::LEVEL_WARNING,
@@ -268,6 +267,10 @@ class Authenticator extends AbstractAuthenticator
                     [$oAuthUser->getFirstName()],
                 );
             }
+
+            // Update tl_member and tl_user.
+            $contaoUser->updateFrontendUser();
+            $contaoUser->updateBackendUser();
 
             return new SelfValidatingPassport(new UserBadge($contaoUser->getIdentifier()));
         } catch (IdentityProviderException|AuthenticationException $e) {
@@ -277,8 +280,6 @@ class Authenticator extends AbstractAuthenticator
                 ErrorMessage::LEVEL_ERROR,
                 UnexpectedAuthenticationException::class,
             );
-
-            throw new AuthenticationException($e->getMessage());
         }
     }
 
