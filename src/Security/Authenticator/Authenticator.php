@@ -43,6 +43,7 @@ use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator\Exc
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\OAuth\OAuthUserChecker;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\User\ContaoUserFactory;
 use Psr\Log\LoggerInterface;
+use Scheb\TwoFactorBundle\Security\Http\Authenticator\TwoFactorAuthenticator;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -81,6 +82,10 @@ class Authenticator extends AbstractAuthenticator
         if (!$request->attributes->has('_scope')) {
             return false;
         }
+
+	    if (!$request->attributes->has('_code')) {
+		    return false;
+	    }
 
         return match ($request->attributes->get('_route')) {
             SacLoginRedirectController::ROUTE_BACKEND => true,
@@ -283,11 +288,26 @@ class Authenticator extends AbstractAuthenticator
         }
     }
 
+    /**
+     * Bypass 2FA for this authenticator.
+     */
+    public function createToken(Passport $passport, string $firewallName): TokenInterface
+    {
+        $token = parent::createToken($passport, $firewallName);
+
+        // Bypass 2FA for this authenticator
+        $token->setAttribute(TwoFactorAuthenticator::FLAG_2FA_COMPLETE, true);
+
+        return $token;
+    }
+
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, $firewallName): Response|null
     {
         $oAuth2Client = $this->oAuth2ClientFactory->createOAuth2Client($request);
         $request->request->set('_target_path', $oAuth2Client->getTargetPath());
         $request->request->set('_always_use_target_path', $oAuth2Client->getTargetPath());
+
+        $token->setAttribute(TwoFactorAuthenticator::FLAG_2FA_COMPLETE, true);
 
         // Clear the session
         $this->getSessionBag($request)->clear();
