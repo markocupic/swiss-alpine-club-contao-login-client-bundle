@@ -34,7 +34,7 @@ final readonly class ContaoUserFactory
 
     public function loadContaoUser(ResourceOwnerInterface $resourceOwner, string $contaoScope): ContaoUser
     {
-        return new ContaoUser(
+		return new ContaoUser(
             $this->framework,
             $this->connection,
             $this->hasherFactory,
