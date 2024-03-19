@@ -25,12 +25,9 @@ use Contao\UserModel;
 use Doctrine\DBAL\Connection;
 use League\OAuth2\Client\Provider\ResourceOwnerInterface;
 use Markocupic\SacEventToolBundle\DataContainer\Util;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessage;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessageManager;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\OAuth\OAuthUserChecker;
 use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
 use Symfony\Component\Security\Http\Authenticator\Passport\Badge\UserBadge;
-use Symfony\Contracts\Translation\TranslatorInterface;
 
 readonly class ContaoUser
 {
@@ -331,18 +328,6 @@ readonly class ContaoUser
 
         if (($model = $this->getModel()) !== null) {
             $model->login = true;
-            $model->save();
-            $model->refresh();
-        }
-    }
-
-    /**
-     * @throws \Exception
-     */
-    public function resetLoginAttempts(): void
-    {
-        if (($model = $this->getModel()) !== null) {
-            $model->loginAttempts = 0;
             $model->save();
             $model->refresh();
         }
