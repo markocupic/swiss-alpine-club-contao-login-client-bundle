@@ -21,6 +21,7 @@ use Contao\CoreBundle\Monolog\ContaoContext;
 use Contao\CoreBundle\Routing\ScopeMatcher;
 use Contao\CoreBundle\Security\Authentication\AuthenticationSuccessHandler;
 use Contao\System;
+use Contao\User;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Types\Types;
 use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
@@ -61,6 +62,8 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 
 class Authenticator extends AbstractAuthenticator
 {
+    public const NAME = 'SAC_OAUTH2_AUTHENTICATOR';
+
     public function __construct(
         private readonly AuthenticationSuccessHandler $authenticationSuccessHandler,
         private readonly Connection $connection,
@@ -79,13 +82,17 @@ class Authenticator extends AbstractAuthenticator
 
     public function supports(Request $request): bool
     {
-        if (!$request->attributes->has('_scope')) {
+        $isContaoScope = match ($request->attributes->get('_scope')) {
+            ContaoCoreBundle::SCOPE_BACKEND, ContaoCoreBundle::SCOPE_FRONTEND => true,
+            default => false,
+        };
+
+        if (!$isContaoScope) {
             return false;
         }
 
         return match ($request->attributes->get('_route')) {
-            SacLoginRedirectController::ROUTE_BACKEND => true,
-            SacLoginRedirectController::ROUTE_FRONTEND => true,
+            SacLoginRedirectController::ROUTE_BACKEND, SacLoginRedirectController::ROUTE_FRONTEND => true,
             default => false,
         };
     }
@@ -225,14 +232,14 @@ class Authenticator extends AbstractAuthenticator
             $contaoUser = $this->contaoUserFactory->loadContaoUser($oAuthUser, $contaoScope);
 
             // Create Contao frontend or backend user, if it doesn't exist.
-            if (ContaoCoreBundle::SCOPE_FRONTEND === $contaoScope) {
+            if ($this->scopeMatcher->isFrontendRequest($request)) {
                 if ($blnAutoCreateContaoUser) {
                     $contaoUser->createIfNotExists();
                 }
             }
 
             // Check if we can find the resource owner in Contao.
-            if (ContaoCoreBundle::SCOPE_FRONTEND === $contaoScope) {
+            if ($this->scopeMatcher->isFrontendRequest($request)) {
                 if (!$contaoUser->checkFrontendUserExists()) {
                     $this->throwWithMessage(
                         ErrorMessage::LEVEL_WARNING,
@@ -251,16 +258,13 @@ class Authenticator extends AbstractAuthenticator
             }
 
             // Allow login to frontend users only if account is not disabled.
-            if ($blnAllowContaoLoginIfAccountIsDisabled && ContaoCoreBundle::SCOPE_FRONTEND === $contaoScope) {
+            if ($blnAllowContaoLoginIfAccountIsDisabled && $this->scopeMatcher->isFrontendRequest($request)) {
                 // Set tl_member.disable = false
                 $contaoUser->enableLogin();
             }
 
-            // Set tl_user.loginAttempts = 0
-            $contaoUser->resetLoginAttempts();
-
-            // if $contaoScope === 'backend': Check if tl_user.disable === false or tl_user.login === true or tl_user.start and tl_user.stop are not in an allowed time range
-            // if $contaoScope === 'frontend': Check if tl_member.disable === false or tl_member.login === true or tl_member.start and tl_member.stop are not in an allowed time range
+            // if contao scope is 'backend': Check if tl_user.disable === false or tl_user.login === true or tl_user.start and tl_user.stop are not in an allowed time range
+            // if contao scope is 'frontend': Check if tl_member.disable === false or tl_member.login === true or tl_member.start and tl_member.stop are not in an allowed time range
             if (!$contaoUser->checkIsAccountEnabled() && !$blnAllowContaoLoginIfAccountIsDisabled) {
                 $this->throwWithMessage(
                     ErrorMessage::LEVEL_WARNING,
@@ -291,8 +295,17 @@ class Authenticator extends AbstractAuthenticator
     {
         $token = parent::createToken($passport, $firewallName);
 
-        // Bypass 2FA for this authenticator
-        $token->setAttribute(TwoFactorAuthenticator::FLAG_2FA_COMPLETE, true);
+        $token->setAttribute('AUTHENTICATOR', self::NAME);
+
+        $user = $token->getUser();
+
+        if (!$user instanceof User) {
+            return $token;
+        }
+
+        if ($user->useTwoFactor) {
+            $token->setAttribute(TwoFactorAuthenticator::FLAG_2FA_COMPLETE, true);
+        }
 
         return $token;
     }
@@ -302,7 +315,7 @@ class Authenticator extends AbstractAuthenticator
         $oAuth2Client = $this->oAuth2ClientFactory->createOAuth2Client($request);
         $request->request->set('_target_path', $oAuth2Client->getTargetPath());
         $request->request->set('_always_use_target_path', $oAuth2Client->getTargetPath());
-		
+
         // Clear the session
         $this->getSessionBag($request)->clear();
 
