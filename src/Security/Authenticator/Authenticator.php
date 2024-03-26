@@ -32,6 +32,7 @@ use Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessageM
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\OAuth2\Client\OAuth2Client;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\OAuth2\Client\OAuth2ClientFactory;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator\Exception\ContaoBackendUserNotFoundAuthenticationException;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator\Exception\ContaoFrontendUserLoginNotEnabledAuthenticationException;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator\Exception\ContaoFrontendUserNotFoundAuthenticationException;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator\Exception\ContaoUserDisabledAuthenticationException;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator\Exception\InvalidStateAuthenticationException;
@@ -260,15 +261,26 @@ class Authenticator extends AbstractAuthenticator
             // Allow login to frontend users only if account is not disabled.
             if ($blnAllowContaoLoginIfAccountIsDisabled && $this->scopeMatcher->isFrontendRequest($request)) {
                 // Set tl_member.disable = false
-                $contaoUser->enableLogin();
+                $contaoUser->activateMemberAccount();
             }
 
-            // if contao scope is 'backend': Check if tl_user.disable === false or tl_user.login === true or tl_user.start and tl_user.stop are not in an allowed time range
-            // if contao scope is 'frontend': Check if tl_member.disable === false or tl_member.login === true or tl_member.start and tl_member.stop are not in an allowed time range
-            if (!$contaoUser->checkIsAccountEnabled() && !$blnAllowContaoLoginIfAccountIsDisabled) {
+            // Check if tl_member.login is set to true
+            if ($this->scopeMatcher->isFrontendRequest($request)) {
+                if (!$contaoUser->checkFrontendLoginIsEnabled()) {
+                    $this->throwWithMessage(
+                        ErrorMessage::LEVEL_WARNING,
+	                    ContaoFrontendUserLoginNotEnabledAuthenticationException::class,
+                        [$oAuthUser->getFirstName()],
+                    );
+                }
+            }
+
+            // if contao scope is 'backend': Check if tl_user.disable === false or tl_user.start and tl_user.stop are not in an allowed time range
+            // if contao scope is 'frontend': Check if tl_member.disable === false or tl_member.start and tl_member.stop are not in an allowed time range
+            if (!$contaoUser->checkAccountIsNotDisabled() && !$blnAllowContaoLoginIfAccountIsDisabled) {
                 $this->throwWithMessage(
                     ErrorMessage::LEVEL_WARNING,
-                    ContaoUserDisabledAuthenticationException::class,
+	                ContaoUserDisabledAuthenticationException::class,
                     [$oAuthUser->getFirstName()],
                 );
             }
@@ -370,7 +382,7 @@ class Authenticator extends AbstractAuthenticator
 
         // Get the failure path
         $oAuth2Client = $this->oAuth2ClientFactory->createOAuth2Client($request);
-        $failurePath = $oAuth2Client->getFailurePath();
+        $failurePath = base64_decode($oAuth2Client->getFailurePath(), true);
 
         // Let's play it safe and make sure we always have a redirect URL.
         if (!$failurePath) {

@@ -57,7 +57,11 @@ $GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_contaoBackendUserNotFound_matter']
 $GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_contaoBackendUserNotFound_howToFix'] = 'Wenn du denkst, dass es sich um einen Irrtum handelt, dann melde dich mit deinem Anliegen bei unserem Webmaster.';
 $GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_contaoBackendUserNotFound_explain'] = 'Das Backend unserer Webseite ist nur Funktionären zugänglich.';
 
-$GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_contaoUserDisabled_matter'] = 'Hallo %s{{br}}Schön bist du hier. Da dein Konto deaktiviert ist, ist eine Anmeldung derzeit nicht möglich.';
+$GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_contaoFrontendUserLoginNotEnabled_matter'] = 'Hallo %s{{br}}Schön bist du hier. Da dein Login im Moment nicht aktiv ist (login = false), ist eine Anmeldung derzeit nicht möglich.';
+$GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_contaoFrontendUserLoginNotEnabled_howToFix'] = 'Melde dich bei unserem Webmaster, sollte es sich hierbei um einen Irrtum handeln.';
+$GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_contaoFrontendUserLoginNotEnabled_explain'] = '';
+
+$GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_contaoUserDisabled_matter'] = 'Hallo %s{{br}}Schön bist du hier. Da dein Konto deaktiviert ist (disable = true), ist eine Anmeldung derzeit nicht möglich.';
 $GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_contaoUserDisabled_howToFix'] = 'Melde dich bei unserem Webmaster, sollte es sich hierbei um einen Irrtum handeln.';
 $GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_contaoUserDisabled_explain'] = '';
 
