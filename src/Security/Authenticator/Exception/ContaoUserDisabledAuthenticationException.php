@@ -19,5 +19,5 @@ use Symfony\Component\Security\Core\Exception\AuthenticationException;
 class ContaoUserDisabledAuthenticationException extends AuthenticationException
 {
     public const MESSAGE = 'Authentication process aborted! Contao user is disabled.';
-	public const KEY = 'contaoUserDisabled';
+    public const KEY = 'contaoUserDisabled';
 }

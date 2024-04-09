@@ -19,5 +19,5 @@ use Symfony\Component\Security\Core\Exception\AuthenticationException;
 class MissingSacMembershipAuthenticationException extends AuthenticationException
 {
     public const MESSAGE = 'Authentication process aborted! Resource owner is not a SAC member.';
-	public const KEY = 'missingSacMembership';
+    public const KEY = 'missingSacMembership';
 }

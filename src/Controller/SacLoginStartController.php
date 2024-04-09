@@ -100,7 +100,6 @@ class SacLoginStartController extends AbstractController
         return $this->authenticator->start($request);
     }
 
-
     protected function validateCsrfToken(string $strToken, ContaoCsrfTokenManager $tokenManager, string $csrfTokenName): void
     {
         $token = new CsrfToken($csrfTokenName, $strToken);

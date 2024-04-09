@@ -99,7 +99,7 @@ class OAuthUser implements ResourceOwnerInterface
 
     public function getSacMemberId(): string
     {
-        return ltrim($this->arrData['contact_number'] ?? '', "0");
+        return ltrim($this->arrData['contact_number'] ?? '', '0');
     }
 
     public function getEmail(): string

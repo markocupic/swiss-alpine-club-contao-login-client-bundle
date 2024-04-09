@@ -18,6 +18,6 @@ use Symfony\Component\Security\Core\Exception\AuthenticationException;
 
 class ContaoFrontendUserLoginNotEnabledAuthenticationException extends AuthenticationException
 {
-	public const MESSAGE = 'Authentication process aborted! Contao frontend user login is not enabled.';
-	public const KEY = 'contaoFrontendUserLoginNotEnabled';
+    public const MESSAGE = 'Authentication process aborted! Contao frontend user login is not enabled.';
+    public const KEY = 'contaoFrontendUserLoginNotEnabled';
 }

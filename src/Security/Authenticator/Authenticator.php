@@ -5,7 +5,7 @@ declare(strict_types=1);
 /*
  * This file is part of Swiss Alpine Club Contao Login Client Bundle.
  *
- * (c) Marko Cupic 2023 <m.cupic@gmx.ch>
+ * (c) Marko Cupic 2024 <m.cupic@gmx.ch>
  * @license MIT
  * For the full copyright and license information,
  * please view the LICENSE file that was distributed with this source code.
@@ -36,7 +36,6 @@ use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator\Exc
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator\Exception\ContaoFrontendUserNotFoundAuthenticationException;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator\Exception\ContaoUserDisabledAuthenticationException;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator\Exception\InvalidStateAuthenticationException;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator\Exception\MissingAuthCodeAuthenticationException;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator\Exception\MissingSacMembershipAuthenticationException;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator\Exception\NotMemberOfAllowedSectionAuthenticationException;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator\Exception\ResourceOwnerHasInvalidEmailAuthenticationException;
@@ -83,6 +82,10 @@ class Authenticator extends AbstractAuthenticator
 
     public function supports(Request $request): bool
     {
+        if (empty($request->query->get('code'))) {
+            return false;
+        }
+
         $isContaoScope = match ($request->attributes->get('_scope')) {
             ContaoCoreBundle::SCOPE_BACKEND, ContaoCoreBundle::SCOPE_FRONTEND => true,
             default => false,
@@ -144,13 +147,6 @@ class Authenticator extends AbstractAuthenticator
         try {
             /** @var OAuth2Client $client */
             $oAuth2Client = $this->oAuth2ClientFactory->createOAuth2Client($request);
-
-            if (empty($request->query->get('code'))) {
-                $this->throwWithMessage(
-                    ErrorMessage::LEVEL_ERROR,
-                    MissingAuthCodeAuthenticationException::class,
-                );
-            }
 
             if (!$oAuth2Client->hasValidOAuth2State()) {
                 $this->throwWithMessage(
@@ -269,7 +265,7 @@ class Authenticator extends AbstractAuthenticator
                 if (!$contaoUser->checkFrontendLoginIsEnabled()) {
                     $this->throwWithMessage(
                         ErrorMessage::LEVEL_WARNING,
-	                    ContaoFrontendUserLoginNotEnabledAuthenticationException::class,
+                        ContaoFrontendUserLoginNotEnabledAuthenticationException::class,
                         [$oAuthUser->getFirstName()],
                     );
                 }
@@ -280,7 +276,7 @@ class Authenticator extends AbstractAuthenticator
             if (!$contaoUser->checkAccountIsNotDisabled() && !$blnAllowContaoLoginIfAccountIsDisabled) {
                 $this->throwWithMessage(
                     ErrorMessage::LEVEL_WARNING,
-	                ContaoUserDisabledAuthenticationException::class,
+                    ContaoUserDisabledAuthenticationException::class,
                     [$oAuthUser->getFirstName()],
                 );
             }
@@ -293,6 +289,8 @@ class Authenticator extends AbstractAuthenticator
         } catch (IdentityProviderException|AuthenticationException $e) {
             throw new AuthenticationException($e->getMessage());
         } catch (\Exception $e) {
+            $this->contaoAccessLogger->info($e->getMessage());
+
             $this->throwWithMessage(
                 ErrorMessage::LEVEL_ERROR,
                 UnexpectedAuthenticationException::class,

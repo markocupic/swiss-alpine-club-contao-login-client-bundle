@@ -19,4 +19,5 @@ use Symfony\Component\Security\Core\Exception\AuthenticationException;
 class MissingAuthCodeAuthenticationException extends AuthenticationException
 {
     public const MESSAGE = 'Authentication process aborted! No "code" parameter was found (usually this is a query parameter)! Did you authorize our app?';
+    public const KEY = 'missingAuthCode';
 }
