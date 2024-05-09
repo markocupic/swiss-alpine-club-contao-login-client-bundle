@@ -66,6 +66,7 @@ class Authenticator extends AbstractAuthenticator
     public const NAME = 'SAC_OAUTH2_AUTHENTICATOR';
 
     public function __construct(
+        #[Autowire('@contao.security.authentication_success_handler')]
         private readonly AuthenticationSuccessHandler $authenticationSuccessHandler,
         private readonly Connection $connection,
         private readonly ContaoFramework $framework,

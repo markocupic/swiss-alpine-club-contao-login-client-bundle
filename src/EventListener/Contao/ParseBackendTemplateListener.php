@@ -15,9 +15,10 @@ declare(strict_types=1);
 namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\EventListener\Contao;
 
 use Contao\CoreBundle\DependencyInjection\Attribute\AsHook;
+use Contao\CoreBundle\InsertTag\InsertTagParser;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\SacLoginStartController;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
-use Symfony\Component\DependencyInjection\Container;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\UriSigner;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
@@ -30,8 +31,9 @@ use Twig\Error\SyntaxError;
 readonly class ParseBackendTemplateListener
 {
     public function __construct(
-        private Container $container,
         private Environment $twig,
+        private InsertTagParser $insertTagParser,
+        private RequestStack $requestStack,
         private RouterInterface $router,
         private UriSigner $uriSigner,
         #[Autowire('%sac_oauth2_client.oidc.enable_backend_sso%')]
@@ -72,7 +74,7 @@ readonly class ParseBackendTemplateListener
             );
 
             // Replace insert tags
-            $strSacLoginForm = $this->container->get('contao.insert_tag.parser')->replaceInline($strSacLoginForm);
+            $strSacLoginForm = $this->insertTagParser->replaceInline($strSacLoginForm);
 
             // Prepend SAC SSO login form
             $strContent = str_replace('<form', $strSacLoginForm.'<form', $strContent);
@@ -121,7 +123,7 @@ readonly class ParseBackendTemplateListener
      */
     private function getErrorMessage(): array|null
     {
-        $flashBag = $this->container->get('request_stack')
+        $flashBag = $this->requestStack
             ->getCurrentRequest()
             ->getSession()
             ->getFlashBag()

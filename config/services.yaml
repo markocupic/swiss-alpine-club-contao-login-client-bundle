@@ -2,8 +2,6 @@ services:
     _defaults:
         autowire: true
         autoconfigure: true
-        bind:
-            $authenticationSuccessHandler: '@contao.security.authentication_success_handler'
 
     Markocupic\SwissAlpineClubContaoLoginClientBundle\:
         resource: ../src/
@@ -17,32 +15,6 @@ services:
             ../src/ErrorMessage/ErrorMessage.php,
             ../src/Security/User/ContaoUser.php,
         ]
-
-    Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\GetLogoutEndpointController:
-        public: true
-        arguments:
-            - '%sac_oauth2_client.oidc.auth_provider_endpoint_logout%'
-
-    Markocupic\SwissAlpineClubContaoLoginClientBundle\OAuth2\Client\Provider\ProviderFactory:
-        arguments:
-            - '@router.default'
-            - # provider config
-                'clientId': '%sac_oauth2_client.oidc.client_id%'
-                'clientSecret': '%sac_oauth2_client.oidc.client_secret%'
-                'urlAuthorize': '%sac_oauth2_client.oidc.auth_provider_endpoint_authorize%'
-                'urlAccessToken': '%sac_oauth2_client.oidc.auth_provider_endpoint_token%'
-                'urlResourceOwnerDetails': '%sac_oauth2_client.oidc.auth_provider_endpoint_userinfo%'
-                'redirectRouteBackend': '%sac_oauth2_client.oidc.client_auth_endpoint_backend_route%'
-                'redirectRouteFrontend': '%sac_oauth2_client.oidc.client_auth_endpoint_frontend_route%'
-
-    Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessageManager:
-        arguments:
-            - '@request_stack'
-            - '%sac_oauth2_client.session.flash_bag_key%'
-
-    Markocupic\SwissAlpineClubContaoLoginClientBundle\EventListener\Contao\ParseBackendTemplateListener:
-        arguments:
-            - '@service_container'
 
     # Register session bags
     markocupic.sac_oauth2_client.session.factory:

@@ -14,6 +14,7 @@ declare(strict_types=1);
 
 namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage;
 
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface;
 
@@ -21,7 +22,8 @@ readonly class ErrorMessageManager
 {
     public function __construct(
         private RequestStack $requestStack,
-        private string $flashBagKey,
+        #[Autowire('%sac_oauth2_client.session.flash_bag_key%')]
+        private string $sessionFlashBagKey,
     ) {
     }
 
@@ -30,7 +32,7 @@ readonly class ErrorMessageManager
      */
     public function add2Flash(ErrorMessage $objErrorMsg): void
     {
-        $this->getFlashBag()->add($this->flashBagKey, $objErrorMsg->get());
+        $this->getFlashBag()->add($this->sessionFlashBagKey, $objErrorMsg->get());
     }
 
     /**
@@ -38,7 +40,7 @@ readonly class ErrorMessageManager
      */
     public function clearFlash(): void
     {
-        $this->getFlashBag()->set($this->flashBagKey, []);
+        $this->getFlashBag()->set($this->sessionFlashBagKey, []);
     }
 
     private function getFlashBag(): FlashBagInterface

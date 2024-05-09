@@ -15,6 +15,7 @@ declare(strict_types=1);
 namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 
@@ -22,6 +23,7 @@ use Symfony\Component\Routing\Annotation\Route;
 class GetLogoutEndpointController extends AbstractController
 {
     public function __construct(
+        #[Autowire('%sac_oauth2_client.oidc.auth_provider_endpoint_logout%')]
         private readonly string $authProviderLogoutEndpoint,
     ) {
     }

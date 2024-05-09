@@ -25,33 +25,33 @@ readonly class ProviderFactory
 {
     public function __construct(
         private RouterInterface $router,
-        private array $providerConfig,
+        private ProviderConfiguration $providerConfiguration,
     ) {
     }
 
     public function createProvider(Request $request): AbstractProvider
     {
         $redirectRoute = match ($request->attributes->get('_scope')) {
-            ContaoCoreBundle::SCOPE_BACKEND => $this->providerConfig['redirectRouteBackend'],
-            ContaoCoreBundle::SCOPE_FRONTEND => $this->providerConfig['redirectRouteFrontend'],
+            ContaoCoreBundle::SCOPE_BACKEND => $this->providerConfiguration->getBackendRedirectRoute(),
+            ContaoCoreBundle::SCOPE_FRONTEND => $this->providerConfiguration->getFrontendRedirectRoute(),
             default => null,
         };
 
         if (null === $redirectRoute) {
-            throw new \Exception('Scope must be "backend" or "frontend".');
+            throw new \Exception(sprintf('Scope must be "%s" or "%s".', ContaoCoreBundle::SCOPE_BACKEND, ContaoCoreBundle::SCOPE_FRONTEND));
         }
 
         $providerConfig = [
             // The client ID assigned to you by the provider
-            'clientId' => $this->providerConfig['clientId'] ?? '',
+            'clientId' => $this->providerConfiguration->getClientId() ?? '',
             // The client password assigned to you by the provider
-            'clientSecret' => $this->providerConfig['clientSecret'] ?? '',
+            'clientSecret' => $this->providerConfiguration->getClientSecret() ?? '',
             // Absolute url to the "authorize" endpoint
-            'urlAuthorize' => $this->providerConfig['urlAuthorize'] ?? '',
+            'urlAuthorize' => $this->providerConfiguration->getAuthorizeEndpoint() ?? '',
             // Absolute url to the "get access token" endpoint
-            'urlAccessToken' => $this->providerConfig['urlAccessToken'] ?? '',
+            'urlAccessToken' => $this->providerConfiguration->getTokenEndpoint() ?? '',
             // Absolute url to the "get resource owner details endpoint"
-            'urlResourceOwnerDetails' => $this->providerConfig['urlResourceOwnerDetails'] ?? '',
+            'urlResourceOwnerDetails' => $this->providerConfiguration->getUserinfoEndpoint() ?? '',
             // Absolute callback url to your login route (must be registered by the service provider.)
             'redirectUri' => $this->router->generate(
                 $redirectRoute,
