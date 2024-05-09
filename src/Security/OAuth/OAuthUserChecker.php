@@ -21,6 +21,7 @@ use Contao\Validator;
 use League\OAuth2\Client\Provider\ResourceOwnerInterface;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessage;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessageManager;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 class OAuthUserChecker
@@ -34,6 +35,10 @@ class OAuthUserChecker
         private readonly ContaoFramework $framework,
         private readonly ErrorMessageManager $errorMessageManager,
         private readonly TranslatorInterface $translator,
+        #[Autowire('%sac_oauth2_client.oidc.allowed_frontend_sac_section_ids%')]
+        private readonly array $allowedFrontendSacSectionIds,
+        #[Autowire('%sac_oauth2_client.oidc.allowed_backend_sac_section_ids%')]
+        private readonly array $allowedBackendSacSectionIds,
     ) {
     }
 
@@ -129,20 +134,10 @@ class OAuthUserChecker
      */
     public function getAllowedSacSectionIds(ResourceOwnerInterface $oAuthUser, string $contaoScope): array
     {
-        /** @var System $systemAdapter */
-        $systemAdapter = $this->framework->getAdapter(System::class);
-
-        if (ContaoCoreBundle::SCOPE_FRONTEND === $contaoScope) {
-            $arrAllowedGroups = $systemAdapter
-                ->getContainer()
-                ->getParameter('sac_oauth2_client.oidc.allowed_frontend_sac_section_ids')
-            ;
-        } else {
-            $arrAllowedGroups = $systemAdapter
-                ->getContainer()
-                ->getParameter('sac_oauth2_client.oidc.allowed_backend_sac_section_ids')
-            ;
-        }
+        $arrAllowedGroups = match ($contaoScope) {
+            ContaoCoreBundle::SCOPE_FRONTEND => $this->allowedFrontendSacSectionIds,
+            default => $this->allowedBackendSacSectionIds,
+        };
 
         $arrGroupMembership = $this->getSacSectionIds($oAuthUser);
 

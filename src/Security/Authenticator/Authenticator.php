@@ -20,7 +20,6 @@ use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\CoreBundle\Monolog\ContaoContext;
 use Contao\CoreBundle\Routing\ScopeMatcher;
 use Contao\CoreBundle\Security\Authentication\AuthenticationSuccessHandler;
-use Contao\System;
 use Contao\User;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception;
@@ -46,6 +45,7 @@ use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\OAuth\OAuthUserCh
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\User\ContaoUserFactory;
 use Psr\Log\LoggerInterface;
 use Scheb\TwoFactorBundle\Security\Http\Authenticator\TwoFactorAuthenticator;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -77,6 +77,24 @@ class Authenticator extends AbstractAuthenticator
         private readonly ScopeMatcher $scopeMatcher,
         private readonly TranslatorInterface $translator,
         private readonly UrlParser $urlParser,
+        #[Autowire('%sac_oauth2_client.oidc.debug_mode%')]
+        private readonly bool $isDebugMode,
+        #[Autowire('%sac_oauth2_client.oidc.auto_create_backend_user%')]
+        private readonly bool $autoCreateBackendUser,
+        #[Autowire('%sac_oauth2_client.oidc.auto_create_frontend_user%')]
+        private readonly bool $autoCreateFrontendUser,
+        #[Autowire('%sac_oauth2_client.oidc.allow_backend_login_to_sac_members_only%')]
+        private readonly bool $allowBackendLoginToSacMembersOnly,
+        #[Autowire('%sac_oauth2_client.oidc.allow_frontend_login_to_sac_members_only%')]
+        private readonly bool $allowFrontendLoginToSacMembersOnly,
+        #[Autowire('%sac_oauth2_client.oidc.allow_backend_login_to_predefined_section_members_only%')]
+        private readonly bool $allowBackendLoginToPredefinedSectionMembersOnly,
+        #[Autowire('%sac_oauth2_client.oidc.allow_frontend_login_to_predefined_section_members_only%')]
+        private readonly bool $allowFrontendLoginToPredefinedSectionMembersOnly,
+        #[Autowire('%sac_oauth2_client.oidc.allow_backend_login_if_contao_account_is_disabled%')]
+        private readonly bool $allowBackendLoginIfContaoAccountIsDisabled,
+        #[Autowire('%sac_oauth2_client.oidc.allow_frontend_login_if_contao_account_is_disabled%')]
+        private readonly bool $allowFrontendLoginIfContaoAccountIsDisabled,
         private readonly LoggerInterface|null $contaoAccessLogger = null,
     ) {
     }
@@ -126,24 +144,10 @@ class Authenticator extends AbstractAuthenticator
 
         $contaoScope = $request->attributes->get('_scope');
 
-        $system = $this->framework->getAdapter(System::class);
-
-        $container = $system->getContainer();
-
-        /** @var bool $isDebugMode */
-        $isDebugMode = $container->getParameter('sac_oauth2_client.oidc.debug_mode');
-
-        /** @var bool $blnAutoCreateContaoUser */
-        $blnAutoCreateContaoUser = $container->getParameter('sac_oauth2_client.oidc.auto_create_'.$contaoScope.'_user');
-
-        /** @var bool $blnAllowLoginToSacMembersOnly */
-        $blnAllowLoginToSacMembersOnly = $container->getParameter('sac_oauth2_client.oidc.allow_'.$contaoScope.'_login_to_sac_members_only');
-
-        /** @var bool $blnAllowLoginToPredefinedSectionsOnly */
-        $blnAllowLoginToPredefinedSectionsOnly = $container->getParameter('sac_oauth2_client.oidc.allow_'.$contaoScope.'_login_to_predefined_section_members_only');
-
-        /** @var bool $blnAllowContaoLoginIfAccountIsDisabled */
-        $blnAllowContaoLoginIfAccountIsDisabled = $container->getParameter('sac_oauth2_client.oidc.allow_'.$contaoScope.'_login_if_contao_account_is_disabled');
+        $blnAutoCreateContaoUser = ContaoCoreBundle::SCOPE_FRONTEND === $contaoScope ? $this->autoCreateFrontendUser : $this->autoCreateBackendUser;
+        $blnAllowLoginToSacMembersOnly = ContaoCoreBundle::SCOPE_FRONTEND === $contaoScope ? $this->allowFrontendLoginToSacMembersOnly : $this->allowBackendLoginToSacMembersOnly;
+        $blnAllowLoginToPredefinedSectionsOnly = ContaoCoreBundle::SCOPE_FRONTEND === $contaoScope ? $this->allowFrontendLoginToPredefinedSectionMembersOnly : $this->allowBackendLoginToPredefinedSectionMembersOnly;
+        $blnAllowContaoLoginIfAccountIsDisabled = ContaoCoreBundle::SCOPE_FRONTEND === $contaoScope ? $this->allowFrontendLoginIfContaoAccountIsDisabled : $this->allowBackendLoginIfContaoAccountIsDisabled;
 
         try {
             /** @var OAuth2Client $client */
@@ -170,7 +174,7 @@ class Authenticator extends AbstractAuthenticator
             // with which we will now do a handful of checks.
             $oAuthUser = $oAuth2Provider->getResourceOwner($accessToken);
 
-            if ($isDebugMode) {
+            if ($this->isDebugMode) {
                 // Store OAuth claims to Contao system log.
                 $logText = sprintf(
                     'SAC oauth2 debug %s login. NAME: %s - SAC MEMBER ID: %s - ROLES: %s - DATA ALL: %s',

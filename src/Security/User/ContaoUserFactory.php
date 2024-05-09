@@ -19,6 +19,7 @@ use Doctrine\DBAL\Connection;
 use League\OAuth2\Client\Provider\ResourceOwnerInterface;
 use Markocupic\SacEventToolBundle\DataContainer\Util;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\OAuth\OAuthUserChecker;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
 
 final readonly class ContaoUserFactory
@@ -29,6 +30,10 @@ final readonly class ContaoUserFactory
         private OAuthUserChecker $resourceOwnerChecker,
         private PasswordHasherFactoryInterface $hasherFactory,
         private Util $util,
+        #[Autowire('%sac_oauth2_client.oidc.allow_frontend_login_to_predefined_section_members_only%')]
+        private bool $allowFrontendLoginToPredefinedSectionMembersOnly,
+        #[Autowire('%sac_oauth2_client.oidc.add_to_frontend_user_groups%')]
+        private array $addToFrontendUserGroups,
     ) {
     }
 
@@ -42,6 +47,8 @@ final readonly class ContaoUserFactory
             $resourceOwner,
             $this->util,
             $contaoScope,
+            $this->allowFrontendLoginToPredefinedSectionMembersOnly,
+            $this->addToFrontendUserGroups,
         );
     }
 }

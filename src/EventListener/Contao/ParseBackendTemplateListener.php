@@ -16,6 +16,7 @@ namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\EventListener\Contao
 
 use Contao\CoreBundle\DependencyInjection\Attribute\AsHook;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\SacLoginStartController;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\HttpFoundation\UriSigner;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -33,6 +34,12 @@ readonly class ParseBackendTemplateListener
         private Environment $twig,
         private RouterInterface $router,
         private UriSigner $uriSigner,
+        #[Autowire('%sac_oauth2_client.oidc.enable_backend_sso%')]
+        private bool $enableBackendSso,
+        #[Autowire('%sac_oauth2_client.session.flash_bag_key%')]
+        private string $sessionFlashBagKey,
+        #[Autowire('%sac_oauth2_client.backend.disable_contao_login%')]
+        private bool $disableContaoLogin,
     ) {
     }
 
@@ -44,7 +51,7 @@ readonly class ParseBackendTemplateListener
     public function __invoke(string $strContent, string $strTemplate): string
     {
         if (str_starts_with($strTemplate, 'be_login')) {
-            if (!$this->container->getParameter('sac_oauth2_client.oidc.enable_backend_sso')) {
+            if (!$this->enableBackendSso) {
                 return $strContent;
             }
 
@@ -56,7 +63,7 @@ readonly class ParseBackendTemplateListener
             $template['failure_path'] = $this->getFailurePath();
             $template['always_use_target_path'] = $this->getAlwaysUseTargetPath($strContent);
             $template['error'] = $this->getErrorMessage();
-            $template['disable_contao_login'] = $this->container->getParameter('sac_oauth2_client.backend.disable_contao_login');
+            $template['disable_contao_login'] = $this->disableContaoLogin;
 
             // Render the oauth button container template
             $strSacLoginForm = $this->twig->render(
@@ -71,7 +78,7 @@ readonly class ParseBackendTemplateListener
             $strContent = str_replace('<form', $strSacLoginForm.'<form', $strContent);
 
             // Remove Contao login form
-            if ($this->container->getParameter('sac_oauth2_client.backend.disable_contao_login')) {
+            if ($this->disableContaoLogin) {
                 $strContent = preg_replace('/<form class="tl_login_form"[^>]*>(.*?)<\/form>/is', '', $strContent);
             }
 
@@ -95,10 +102,7 @@ readonly class ParseBackendTemplateListener
 
     private function getFailurePath(): string
     {
-        /** @var RouterInterface $router */
-        $router = $this->container->get('router');
-
-        return base64_encode($router->generate('contao_backend', [], UrlGeneratorInterface::ABSOLUTE_URL));
+        return base64_encode($this->router->generate('contao_backend', [], UrlGeneratorInterface::ABSOLUTE_URL));
     }
 
     private function getAlwaysUseTargetPath(string $strContent): string
@@ -121,7 +125,7 @@ readonly class ParseBackendTemplateListener
             ->getCurrentRequest()
             ->getSession()
             ->getFlashBag()
-            ->get($this->container->getParameter('sac_oauth2_client.session.flash_bag_key'))
+            ->get($this->sessionFlashBagKey)
         ;
 
         if (!empty($flashBag)) {

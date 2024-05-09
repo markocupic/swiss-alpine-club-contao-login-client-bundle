@@ -20,7 +20,6 @@ use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\FrontendUser;
 use Contao\MemberModel;
 use Contao\StringUtil;
-use Contao\System;
 use Contao\UserModel;
 use Doctrine\DBAL\Connection;
 use League\OAuth2\Client\Provider\ResourceOwnerInterface;
@@ -39,6 +38,8 @@ readonly class ContaoUser
         private ResourceOwnerInterface $resourceOwner,
         private Util $util,
         private string $contaoScope,
+        private bool $allowFrontendLoginToPredefinedSectionMembersOnly,
+        private array $addToFrontendUserGroups,
     ) {
     }
 
@@ -189,9 +190,6 @@ readonly class ContaoUser
      */
     public function updateFrontendUser(): void
     {
-        /** @var System $systemAdapter */
-        $systemAdapter = $this->framework->getAdapter(System::class);
-
         /** @var StringUtil $stringUtilAdapter */
         $stringUtilAdapter = $this->framework->getAdapter(StringUtil::class);
 
@@ -226,7 +224,7 @@ readonly class ContaoUser
         ];
 
         // Member has to be member of a valid SAC section
-        if ($systemAdapter->getContainer()->getParameter('sac_oauth2_client.oidc.allow_frontend_login_to_predefined_section_members_only')) {
+        if ($this->allowFrontendLoginToPredefinedSectionMembersOnly) {
             $set['isSacMember'] = !empty($this->resourceOwnerChecker->getAllowedSacSectionIds($this->resourceOwner, ContaoCoreBundle::SCOPE_FRONTEND)) ? 1 : 0;
         } else {
             $set['isSacMember'] = $this->resourceOwnerChecker->isSacMember($this->resourceOwner) ? 1 : 0;
@@ -234,7 +232,7 @@ readonly class ContaoUser
 
         // Add member groups
         $arrGroups = $stringUtilAdapter->deserialize($objMember->groups, true);
-        $arrAutoGroups = $systemAdapter->getContainer()->getParameter('sac_oauth2_client.oidc.add_to_frontend_user_groups');
+        $arrAutoGroups = $this->addToFrontendUserGroups;
 
         if (!empty($arrAutoGroups) && \is_array($arrAutoGroups)) {
             foreach ($arrAutoGroups as $groupId) {

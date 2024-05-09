@@ -23,9 +23,9 @@ use Contao\FrontendUser;
 use Contao\ModuleModel;
 use Contao\PageModel;
 use Contao\StringUtil;
-use Contao\System;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\SacLoginStartController;
 use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\UriSigner;
@@ -45,6 +45,8 @@ class SwissAlpineClubOidcFrontendLogin extends AbstractFrontendModuleController
         private readonly TranslatorInterface $translator,
         private readonly UriSigner $uriSigner,
         private readonly UrlParser $urlParser,
+        #[Autowire('%sac_oauth2_client.session.flash_bag_key%')]
+        private readonly string $sessionFlashBagKey,
     ) {
     }
 
@@ -96,14 +98,10 @@ class SwissAlpineClubOidcFrontendLogin extends AbstractFrontendModuleController
      */
     private function getErrorMessage(Request $request): array|null
     {
-        /** @var System $systemAdapter */
-        $systemAdapter = $this->framework->getAdapter(System::class);
-        $container = $systemAdapter->getContainer();
-
         $flashBag = $request
             ->getSession()
             ->getFlashBag()
-            ->get($container->getParameter('sac_oauth2_client.session.flash_bag_key'))
+            ->get($this->sessionFlashBagKey)
         ;
 
         if (!empty($flashBag)) {
