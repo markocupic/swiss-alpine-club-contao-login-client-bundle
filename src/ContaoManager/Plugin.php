@@ -32,9 +32,9 @@ use Symfony\Component\HttpKernel\KernelInterface;
 class Plugin implements ConfigPluginInterface, BundlePluginInterface, RoutingPluginInterface, ExtensionPluginInterface
 {
     /**
-     * {@inheritdoc}
+     * @internal
      */
-    public function getBundles(ParserInterface $parser)
+    public function getBundles(ParserInterface $parser): array
     {
         return [
             BundleConfig::create(MarkocupicSwissAlpineClubContaoLoginClientBundle::class)
@@ -43,17 +43,11 @@ class Plugin implements ConfigPluginInterface, BundlePluginInterface, RoutingPlu
         ];
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function registerContainerConfiguration(LoaderInterface $loader, array $config): void
+    public function registerContainerConfiguration(LoaderInterface $loader, array $managerConfig): void
     {
         $loader->load('@MarkocupicSwissAlpineClubContaoLoginClientBundle/config/config.yaml');
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getRouteCollection(LoaderResolverInterface $resolver, KernelInterface $kernel)
     {
         return $resolver

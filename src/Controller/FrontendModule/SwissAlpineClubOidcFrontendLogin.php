@@ -16,7 +16,6 @@ namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\FrontendM
 
 use Codefog\HasteBundle\UrlParser;
 use Contao\CoreBundle\Controller\FrontendModule\AbstractFrontendModuleController;
-use Contao\CoreBundle\Csrf\ContaoCsrfTokenManager;
 use Contao\CoreBundle\DependencyInjection\Attribute\AsFrontendModule;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\CoreBundle\Twig\FragmentTemplate;
@@ -40,7 +39,6 @@ class SwissAlpineClubOidcFrontendLogin extends AbstractFrontendModuleController
     public const TYPE = 'swiss_alpine_club_oidc_frontend_login';
 
     public function __construct(
-        private readonly ContaoCsrfTokenManager $csrfTokenManager,
         private readonly ContaoFramework $framework,
         private readonly RouterInterface $router,
         private readonly Security $security,
@@ -58,7 +56,6 @@ class SwissAlpineClubOidcFrontendLogin extends AbstractFrontendModuleController
         } else {
             // Get adapters
             $pageModelAdapter = $this->framework->getAdapter(PageModel::class);
-            $systemAdapter = $this->framework->getAdapter(System::class);
             $stringUtilAdapter = $this->framework->getAdapter(StringUtil::class);
 
             // Generate the form action
@@ -87,14 +84,6 @@ class SwissAlpineClubOidcFrontendLogin extends AbstractFrontendModuleController
 
             // Get login error messages from session
             $template->set('error', $this->getErrorMessage($request));
-
-            // Check if token check is enabled
-            $enableTokenCheck = $systemAdapter->getContainer()->getParameter('sac_oauth2_client.oidc.enable_csrf_token_check');
-            $template->set('enable_csrf_token_check', $enableTokenCheck);
-
-            if ($enableTokenCheck) {
-                $template->set('request_token', $this->csrfTokenManager->getDefaultTokenValue());
-            }
         }
 
         return $template->getResponse();

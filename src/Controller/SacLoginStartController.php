@@ -14,11 +14,7 @@ declare(strict_types=1);
 
 namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller;
 
-use Contao\CoreBundle\Csrf\ContaoCsrfTokenManager;
-use Contao\CoreBundle\Exception\InvalidRequestTokenException;
-use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\CoreBundle\Routing\ScopeMatcher;
-use Contao\System;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\OAuth2\Client\OAuth2ClientFactory;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator\Authenticator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -29,7 +25,6 @@ use Symfony\Component\HttpFoundation\UriSigner;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
-use Symfony\Component\Security\Csrf\CsrfToken;
 
 #[Route('/ssoauth/start/backend', name: self::LOGIN_ROUTE_BACKEND, defaults: ['_scope' => 'backend', '_token_check' => false])]
 #[Route('/ssoauth/start/frontend', name: self::LOGIN_ROUTE_FRONTEND, defaults: ['_scope' => 'frontend', '_token_check' => false])]
@@ -40,8 +35,6 @@ class SacLoginStartController extends AbstractController
 
     public function __construct(
         private readonly Authenticator $authenticator,
-        private readonly ContaoCsrfTokenManager $tokenManager,
-        private readonly ContaoFramework $framework,
         private readonly OAuth2ClientFactory $oAuth2ClientFactory,
         private readonly RouterInterface $router,
         private readonly ScopeMatcher $scopeMatcher,
@@ -49,21 +42,10 @@ class SacLoginStartController extends AbstractController
     ) {
     }
 
-    /**
-     * @throws \Exception
-     */
-    public function __invoke(Request $request, string $_scope): Response|null
+    public function __invoke(Request $request, string $_scope): Response
     {
         if (!$this->uriSigner->checkRequest($request)) {
             return new JsonResponse(['message' => 'Access denied.'], Response::HTTP_BAD_REQUEST);
-        }
-
-        $system = $this->framework->getAdapter(System::class);
-
-        // Check CSRF token
-        if ($system->getContainer()->getParameter('sac_oauth2_client.oidc.enable_csrf_token_check')) {
-            $csrfTokenName = $system->getContainer()->getParameter('contao.csrf_token_name');
-            $this->validateCsrfToken($request->get('REQUEST_TOKEN'), $this->tokenManager, $csrfTokenName);
         }
 
         if ($this->scopeMatcher->isBackendRequest($request)) {
@@ -98,14 +80,5 @@ class SacLoginStartController extends AbstractController
         }
 
         return $this->authenticator->start($request);
-    }
-
-    protected function validateCsrfToken(string $strToken, ContaoCsrfTokenManager $tokenManager, string $csrfTokenName): void
-    {
-        $token = new CsrfToken($csrfTokenName, $strToken);
-
-        if (!$tokenManager->isTokenValid($token)) {
-            throw new InvalidRequestTokenException('Invalid CSRF token. Please reload the page and try again.');
-        }
     }
 }

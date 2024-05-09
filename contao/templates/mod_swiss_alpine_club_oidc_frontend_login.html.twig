@@ -8,9 +8,6 @@
         <form action="{{ action }}" id="sacOidcLoginFe_{{ id }}" class="sac-oidc-login-fe" method="post">
             <div class="formbody">
                 <input type="hidden" name="FORM_SUBMIT" value="sac-oidc-login-fe">
-                {% if enable_csrf_token_check %}
-                    <input type="hidden" name="REQUEST_TOKEN" value="{{ request_token }}">
-                {% endif %}
                 <input type="hidden" name="_target_path" value="{{ target_path }}">
                 <input type="hidden" name="_failure_path" value="{{ failure_path }}">
                 <input type="hidden" name="_module_id" value="{{ id }}">

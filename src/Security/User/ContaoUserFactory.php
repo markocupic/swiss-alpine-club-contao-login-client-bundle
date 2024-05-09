@@ -32,7 +32,7 @@ final readonly class ContaoUserFactory
     ) {
     }
 
-    public function loadContaoUser(ResourceOwnerInterface $resourceOwner, string $contaoScope): ContaoUser
+    public function createContaoUser(ResourceOwnerInterface $resourceOwner, string $contaoScope): ContaoUser
     {
         return new ContaoUser(
             $this->framework,

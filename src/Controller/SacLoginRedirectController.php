@@ -19,8 +19,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
-#[Route('/ssoauth/frontend', name: self::ROUTE_FRONTEND, defaults: ['_scope' => 'frontend', '_token_check' => false])]
-#[Route('/ssoauth/backend', name: self::ROUTE_BACKEND, defaults: ['_scope' => 'backend', '_token_check' => false])]
+#[Route('/ssoauth/frontend', name: self::ROUTE_FRONTEND, defaults: ['_scope' => 'frontend'])]
+#[Route('/ssoauth/backend', name: self::ROUTE_BACKEND, defaults: ['_scope' => 'backend'])]
 class SacLoginRedirectController extends AbstractController
 {
     public const ROUTE_BACKEND = 'sac_login_redirect_backend';

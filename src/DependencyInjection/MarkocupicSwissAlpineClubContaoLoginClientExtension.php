@@ -69,7 +69,6 @@ class MarkocupicSwissAlpineClubContaoLoginClientExtension extends Extension
         $container->setParameter($rootKey.'.oidc.client_auth_endpoint_frontend_route', $config['oidc']['client_auth_endpoint_frontend_route']);
         $container->setParameter($rootKey.'.oidc.client_auth_endpoint_backend_route', $config['oidc']['client_auth_endpoint_backend_route']);
         $container->setParameter($rootKey.'.oidc.enable_backend_sso', $config['oidc']['enable_backend_sso']);
-        $container->setParameter($rootKey.'.oidc.enable_csrf_token_check', $config['oidc']['enable_csrf_token_check']);
         // Session stuff
         $container->setParameter($rootKey.'.session.flash_bag_key', $config['session']['flash_bag_key']);
         // Backend settings

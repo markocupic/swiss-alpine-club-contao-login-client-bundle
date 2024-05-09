@@ -21,6 +21,9 @@ use Symfony\Component\HttpFoundation\UriSigner;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Twig\Environment;
+use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
 
 #[AsHook('parseBackendTemplate')]
 readonly class ParseBackendTemplateListener
@@ -34,7 +37,9 @@ readonly class ParseBackendTemplateListener
     }
 
     /**
-     * @throws \Exception
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
     public function __invoke(string $strContent, string $strTemplate): string
     {
@@ -45,18 +50,8 @@ readonly class ParseBackendTemplateListener
 
             $template = [];
 
-            // Get request token (disabled by default)
-            $template['rt'] = '';
-            $template['enable_csrf_token_check'] = false;
-
-            if ($this->container->getParameter('sac_oauth2_client.oidc.enable_csrf_token_check')) {
-                $template['rt'] = $this->getRequestToken();
-                $template['enable_csrf_token_check'] = true;
-            }
-
             $action = $this->router->generate(SacLoginStartController::LOGIN_ROUTE_BACKEND, [], UrlGeneratorInterface::ABSOLUTE_URL);
             $template['action'] = $this->uriSigner->sign($action);
-
             $template['target_path'] = $this->getTargetPath($strContent);
             $template['failure_path'] = $this->getFailurePath();
             $template['always_use_target_path'] = $this->getAlwaysUseTargetPath($strContent);
@@ -85,17 +80,6 @@ readonly class ParseBackendTemplateListener
         }
 
         return $strContent;
-    }
-
-    private function getRequestToken(): string
-    {
-        $tokenName = $this->container->getParameter('contao.csrf_token_name');
-
-        if (null === $tokenName) {
-            return '';
-        }
-
-        return $this->container->get('contao.csrf.token_manager')->getToken($tokenName)->getValue();
     }
 
     private function getTargetPath(string $strContent): string
@@ -130,8 +114,6 @@ readonly class ParseBackendTemplateListener
 
     /**
      * Retrieve first error message.
-     *
-     * @throws \Exception
      */
     private function getErrorMessage(): array|null
     {

@@ -3,9 +3,6 @@
     <form action="{{ action }}" id="sacOidcLoginBe" class="sac-oidc-login-be" method="post">
         <div class="formbody">
             <input type="hidden" name="FORM_SUBMIT" value="sac-oidc-login-be">
-            {% if enable_csrf_token_check|default %}
-                <input type="hidden" name="REQUEST_TOKEN" value="{{ rt }}">
-            {% endif %}
             <input type="hidden" name="_target_path" value="{{ target_path }}">
             <input type="hidden" name="_failure_path" value="{{ failure_path }}">
             <input type="hidden" name="_always_use_target_path" value="{{ always_use_target_path }}">

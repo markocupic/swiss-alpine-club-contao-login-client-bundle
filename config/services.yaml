@@ -18,16 +18,6 @@ services:
             ../src/Security/User/ContaoUser.php,
         ]
 
-    Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\SacLoginRedirectController:
-        public: true
-        arguments:
-            - '@contao.framework'
-            - '@contao.csrf.token_manager'
-            - '@event_dispatcher'
-            - '@Markocupic\SwissAlpineClubContaoLoginClientBundle\OAuth2\Client\OAuth2ClientFactory'
-            - '%contao.csrf_token_name%'
-            - '%sac_oauth2_client.oidc.enable_csrf_token_check%'
-
     Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\GetLogoutEndpointController:
         public: true
         arguments:

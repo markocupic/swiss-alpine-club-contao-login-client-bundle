@@ -21,7 +21,7 @@ class Configuration implements ConfigurationInterface
 {
     public const ROOT_KEY = 'sac_oauth2_client';
 
-    public function getConfigTreeBuilder()
+    public function getConfigTreeBuilder(): TreeBuilder
     {
         $treeBuilder = new TreeBuilder(self::ROOT_KEY);
 
@@ -104,9 +104,6 @@ class Configuration implements ConfigurationInterface
                         ->end()
                         ->booleanNode('enable_backend_sso')
                             ->defaultTrue()
-                        ->end()
-                        ->booleanNode('enable_csrf_token_check')
-                            ->defaultFalse()
                         ->end()
                     ->end()
                 ->end() // end oidc

@@ -23,6 +23,7 @@ use Contao\CoreBundle\Security\Authentication\AuthenticationSuccessHandler;
 use Contao\System;
 use Contao\User;
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Exception;
 use Doctrine\DBAL\Types\Types;
 use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Config\ContaoLogConfig;
@@ -226,7 +227,7 @@ class Authenticator extends AbstractAuthenticator
             }
 
             // Create the Contao user wrapper.
-            $contaoUser = $this->contaoUserFactory->loadContaoUser($oAuthUser, $contaoScope);
+            $contaoUser = $this->contaoUserFactory->createContaoUser($oAuthUser, $contaoScope);
 
             // Create Contao frontend or backend user, if it doesn't exist.
             if ($this->scopeMatcher->isFrontendRequest($request)) {
@@ -320,7 +321,10 @@ class Authenticator extends AbstractAuthenticator
         return $token;
     }
 
-    public function onAuthenticationSuccess(Request $request, TokenInterface $token, $firewallName): Response|null
+    /**
+     * @throws Exception
+     */
+    public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): Response|null
     {
         $oAuth2Client = $this->oAuth2ClientFactory->createOAuth2Client($request);
         $request->request->set('_target_path', $oAuth2Client->getTargetPath());
@@ -330,30 +334,34 @@ class Authenticator extends AbstractAuthenticator
         $this->getSessionBag($request)->clear();
 
         // The flash bag should actually be empty.
-        // Let's clear it anyway be on the safe side.
+        // Let's clear it anyway just to be on the safe side.
         $this->errorMessageManager->clearFlash();
+
+        // Get the user identifier aka sac member id
+        $userIdentifier = $token->getUser()->getUserIdentifier();
 
         if ($this->scopeMatcher->isFrontendRequest($request)) {
             $contaoScope = ContaoCoreBundle::SCOPE_FRONTEND;
-            $queryName = 'SELECT CONCAT(firstname, " ", lastname) FROM tl_member WHERE username = :username';
-            $querySacMemberId = 'SELECT sacMemberId FROM tl_member WHERE username = :username';
+            $fullName = $this->connection->fetchOne(
+                'SELECT CONCAT(firstname, " ", lastname) FROM tl_member WHERE username = :username',
+                ['username' => $userIdentifier],
+                ['username' => Types::STRING],
+            );
         } else {
             $contaoScope = ContaoCoreBundle::SCOPE_BACKEND;
-            $queryName = 'SELECT name FROM tl_user WHERE username = :username';
-            $querySacMemberId = 'SELECT sacMemberId FROM tl_user WHERE username = :username';
+            $fullName = $this->connection->fetchOne(
+                'SELECT name FROM tl_user WHERE username = :username',
+                ['username' => $userIdentifier],
+                ['username' => Types::STRING],
+            );
         }
-
-        $userIdentifier = $token->getUser()->getUserIdentifier();
-
-        $fullName = $this->connection->fetchOne($queryName, ['username' => $userIdentifier], ['username' => Types::STRING]);
-        $sacMemberId = $this->connection->fetchOne($querySacMemberId, ['username' => $userIdentifier], ['username' => Types::STRING]);
 
         // Contao system log
         $logSuccess = sprintf(
             '%s User "%s" [%s] has logged in with SAC OPENID CONNECT APP.',
             strtoupper($contaoScope),
             $fullName,
-            $sacMemberId
+            $userIdentifier
         );
 
         $this->contaoAccessLogger->info($logSuccess);
