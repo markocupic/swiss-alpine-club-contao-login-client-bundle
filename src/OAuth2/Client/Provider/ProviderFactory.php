@@ -14,67 +14,49 @@ declare(strict_types=1);
 
 namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\OAuth2\Client\Provider;
 
-use Contao\CoreBundle\ContaoCoreBundle;
 use League\OAuth2\Client\Provider\AbstractProvider;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\OAuth2\Client\Exception\InvalidOAuth2ProviderConfigurationException;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-use Symfony\Component\Routing\RouterInterface;
+use Symfony\Component\OptionsResolver\OptionsResolver;
 
 readonly class ProviderFactory
 {
     public function __construct(
-        private RouterInterface $router,
         private ProviderConfiguration $providerConfiguration,
     ) {
     }
 
-    public function createProvider(Request $request): AbstractProvider
+    public function createProvider(): AbstractProvider
     {
-        $redirectRoute = match ($request->attributes->get('_scope')) {
-            ContaoCoreBundle::SCOPE_BACKEND => $this->providerConfiguration->getBackendRedirectRoute(),
-            ContaoCoreBundle::SCOPE_FRONTEND => $this->providerConfiguration->getFrontendRedirectRoute(),
-            default => null,
-        };
+        $resolver = new OptionsResolver();
+        $this->configureOptions($resolver);
 
-        if (null === $redirectRoute) {
-            throw new \Exception(sprintf('Scope must be "%s" or "%s".', ContaoCoreBundle::SCOPE_BACKEND, ContaoCoreBundle::SCOPE_FRONTEND));
-        }
-
-        $providerConfig = [
-            // The client ID assigned to you by the provider
-            'clientId' => $this->providerConfiguration->getClientId() ?? '',
-            // The client password assigned to you by the provider
-            'clientSecret' => $this->providerConfiguration->getClientSecret() ?? '',
-            // Absolute url to the "authorize" endpoint
-            'urlAuthorize' => $this->providerConfiguration->getAuthorizeEndpoint() ?? '',
-            // Absolute url to the "get access token" endpoint
-            'urlAccessToken' => $this->providerConfiguration->getTokenEndpoint() ?? '',
-            // Absolute url to the "get resource owner details endpoint"
-            'urlResourceOwnerDetails' => $this->providerConfiguration->getUserinfoEndpoint() ?? '',
-            // Absolute callback url to your login route (must be registered by the service provider.)
-            'redirectUri' => $this->router->generate(
-                $redirectRoute,
-                [],
-                UrlGeneratorInterface::ABSOLUTE_URL,
-            ),
-            'scopes' => ['openid'],
-        ];
-
-        $this->checkProviderConfiguration($providerConfig);
-
-        return new SwissAlpineClub($providerConfig, []);
+        return new SwissAlpineClub($resolver->resolve($this->providerConfiguration->all()), []);
     }
 
-    /**
-     * Check if all required options have been set.
-     */
-    private function checkProviderConfiguration(array $providerConfig): void
+    protected function configureOptions(OptionsResolver $resolver): void
     {
-        foreach ($providerConfig as $key => $value) {
-            if (empty($value)) {
-                throw new InvalidOAuth2ProviderConfigurationException(sprintf('Please check your oauth2 provider configuration. The key "%s" can not be empty.', $key));
-            }
+        $resolver->setRequired([
+            'clientId',
+            'clientSecret',
+            'urlAuthorize',
+            'urlAccessToken',
+            'urlResourceOwnerDetails',
+            'redirectUri',
+            'scopes',
+        ]);
+
+        $urlKeys = ['urlAuthorize', 'urlAccessToken', 'urlResourceOwnerDetails', 'redirectUri'];
+
+        foreach ($urlKeys as $key) {
+            $resolver->setAllowedValues(
+                $key,
+                static function (string $value): bool {
+                    if (!str_starts_with($value, 'https://')) {
+                        return false;
+                    }
+
+                    return true;
+                }
+            );
         }
     }
 }

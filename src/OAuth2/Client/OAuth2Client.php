@@ -140,7 +140,7 @@ class OAuth2Client
             return $this->oAuthProvider;
         }
 
-        $this->oAuthProvider = $this->providerFactory->createProvider($this->request);
+        $this->oAuthProvider = $this->providerFactory->createProvider();
 
         return $this->oAuthProvider;
     }
