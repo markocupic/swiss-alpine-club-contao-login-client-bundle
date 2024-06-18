@@ -26,12 +26,13 @@ class SwissAlpineClub extends AbstractProvider
 {
     use BearerAuthorizationTrait;
 
+    public const RESOURCE_OWNER_IDENTIFIER = 'sub';
+
     protected string $urlAuthorize;
     protected string $urlAccessToken;
     protected string $urlResourceOwnerDetails;
     protected array $scopes = [];
     protected string $responseError = 'error';
-    protected string $responseResourceOwnerId = 'sub';
 
     public function __construct(array $providerConfiguration = [], array $collaborators = [])
     {
@@ -69,7 +70,7 @@ class SwissAlpineClub extends AbstractProvider
 
     protected function createResourceOwner(array $response, AccessToken $token): ResourceOwnerInterface
     {
-        return new OAuthUser($response, $this->responseResourceOwnerId);
+        return new OAuthUser($response, self::RESOURCE_OWNER_IDENTIFIER);
     }
 
     protected function getDefaultScopes(): array

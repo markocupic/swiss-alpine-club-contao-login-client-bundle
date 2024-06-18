@@ -25,12 +25,14 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception;
 use Doctrine\DBAL\Types\Types;
 use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
+use League\OAuth2\Client\Provider\ResourceOwnerInterface;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Config\ContaoLogConfig;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\SacLoginRedirectController;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessage;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessageManager;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\OAuth2\Client\OAuth2Client;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\OAuth2\Client\OAuth2ClientFactory;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\OAuth2\Client\Provider\SwissAlpineClub;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator\Exception\ContaoBackendUserNotFoundAuthenticationException;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator\Exception\ContaoFrontendUserLoginNotEnabledAuthenticationException;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator\Exception\ContaoFrontendUserNotFoundAuthenticationException;
@@ -41,6 +43,7 @@ use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator\Exc
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator\Exception\ResourceOwnerHasInvalidEmailAuthenticationException;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator\Exception\ResourceOwnerHasInvalidUuidAuthenticationException;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator\Exception\UnexpectedAuthenticationException;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\OAuth\OAuthUser;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\OAuth\OAuthUserChecker;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\User\ContaoUserFactory;
 use Psr\Log\LoggerInterface;
@@ -121,9 +124,6 @@ class Authenticator extends AbstractAuthenticator
         };
     }
 
-    /**
-     * @param AuthenticationException|null $authException
-     */
     public function start(Request $request, AuthenticationException|null $authException = null): RedirectResponse
     {
         $oAuth2Client = $this->oAuth2ClientFactory->createOAuth2Client($request);
@@ -156,8 +156,10 @@ class Authenticator extends AbstractAuthenticator
 
             if (!$oAuth2Client->hasValidOAuth2State()) {
                 $this->throwWithMessage(
+                    $request,
                     ErrorMessage::LEVEL_ERROR,
                     InvalidStateAuthenticationException::class,
+                    null,
                 );
             }
 
@@ -195,17 +197,21 @@ class Authenticator extends AbstractAuthenticator
             // Check if we can find a UUID in resource owner claims.
             if (!$this->oAuthUserChecker->checkHasUuid($oAuthUser)) {
                 $this->throwWithMessage(
+                    $request,
                     ErrorMessage::LEVEL_WARNING,
                     ResourceOwnerHasInvalidUuidAuthenticationException::class,
+                    $resourceOwner,
                 );
             }
 
             // Check if we can find an email address in the resource owner claims.
             if (!$this->oAuthUserChecker->checkHasValidEmailAddress($oAuthUser)) {
                 $this->throwWithMessage(
+                    $request,
                     ErrorMessage::LEVEL_WARNING,
                     ResourceOwnerHasInvalidEmailAuthenticationException::class,
-                    [$oAuthUser->getFirstName()]
+                    $resourceOwner,
+                    [$oAuthUser->getFirstName()],
                 );
             }
 
@@ -213,8 +219,10 @@ class Authenticator extends AbstractAuthenticator
             if ($blnAllowLoginToSacMembersOnly) {
                 if (!$this->oAuthUserChecker->checkIsSacMember($oAuthUser)) {
                     $this->throwWithMessage(
+                        $request,
                         ErrorMessage::LEVEL_WARNING,
                         MissingSacMembershipAuthenticationException::class,
+                        $resourceOwner,
                         [$oAuthUser->getFirstName()]
                     );
                 }
@@ -224,8 +232,10 @@ class Authenticator extends AbstractAuthenticator
             if ($blnAllowLoginToPredefinedSectionsOnly) {
                 if (!$this->oAuthUserChecker->checkIsMemberOfAllowedSection($oAuthUser, $contaoScope)) {
                     $this->throwWithMessage(
+                        $request,
                         ErrorMessage::LEVEL_WARNING,
                         NotMemberOfAllowedSectionAuthenticationException::class,
+                        $resourceOwner,
                         [$oAuthUser->getFirstName()],
                     );
                 }
@@ -245,16 +255,20 @@ class Authenticator extends AbstractAuthenticator
             if ($this->scopeMatcher->isFrontendRequest($request)) {
                 if (!$contaoUser->checkFrontendUserExists()) {
                     $this->throwWithMessage(
+                        $request,
                         ErrorMessage::LEVEL_WARNING,
                         ContaoFrontendUserNotFoundAuthenticationException::class,
+                        $resourceOwner,
                         [$oAuthUser->getFirstName()],
                     );
                 }
             } else {
                 if (!$contaoUser->checkBackendUserExists()) {
                     $this->throwWithMessage(
+                        $request,
                         ErrorMessage::LEVEL_WARNING,
                         ContaoBackendUserNotFoundAuthenticationException::class,
+                        $resourceOwner,
                         [$oAuthUser->getFirstName()],
                     );
                 }
@@ -270,8 +284,10 @@ class Authenticator extends AbstractAuthenticator
             if ($this->scopeMatcher->isFrontendRequest($request)) {
                 if (!$contaoUser->checkFrontendLoginIsEnabled()) {
                     $this->throwWithMessage(
+                        $request,
                         ErrorMessage::LEVEL_WARNING,
                         ContaoFrontendUserLoginNotEnabledAuthenticationException::class,
+                        $resourceOwner,
                         [$oAuthUser->getFirstName()],
                     );
                 }
@@ -281,8 +297,10 @@ class Authenticator extends AbstractAuthenticator
             // if contao scope is 'frontend': Check if tl_member.disable === false or tl_member.start and tl_member.stop are not in an allowed time range
             if (!$contaoUser->checkAccountIsNotDisabled() && !$blnAllowContaoLoginIfAccountIsDisabled) {
                 $this->throwWithMessage(
+                    $request,
                     ErrorMessage::LEVEL_WARNING,
                     ContaoUserDisabledAuthenticationException::class,
+                    $resourceOwner,
                     [$oAuthUser->getFirstName()],
                 );
             }
@@ -298,8 +316,10 @@ class Authenticator extends AbstractAuthenticator
             $this->contaoAccessLogger->info($e->getMessage());
 
             $this->throwWithMessage(
+                $request,
                 ErrorMessage::LEVEL_ERROR,
                 UnexpectedAuthenticationException::class,
+                $resourceOwner,
             );
         }
     }
@@ -383,12 +403,6 @@ class Authenticator extends AbstractAuthenticator
     {
         $isFrontend = $this->scopeMatcher->isFrontendRequest($request);
 
-        // Add a new entry to the Contao system log.
-        $this->contaoAccessLogger->info(
-            $exception->getMessage(),
-            ['contao' => new ContaoContext(__METHOD__, $isFrontend ? ContaoLogConfig::SAC_OAUTH2_FRONTEND_LOGIN_FAIL : ContaoLogConfig::SAC_OAUTH2_BACKEND_LOGIN_FAIL)],
-        );
-
         $request->getSession()->set(SecurityRequestAttributes::AUTHENTICATION_ERROR, $exception);
 
         // Get the failure path
@@ -417,7 +431,7 @@ class Authenticator extends AbstractAuthenticator
         return $request->getSession()->getBag('sac_oauth2_client_attr_frontend');
     }
 
-    protected function throwWithMessage(string $errLevel, string $exceptionClass, array $argsA = [], array $argsB = [], array $argsC = []): void
+    protected function throwWithMessage(Request $request, string $errLevel, string $exceptionClass, ResourceOwnerInterface|null $resourceOwner = null, array $argsA = [], array $argsB = [], array $argsC = []): void
     {
         $msgKeyA = sprintf('ERR.sacOidcLoginError_%s_matter', $exceptionClass::KEY);
         $msgKeyB = sprintf('ERR.sacOidcLoginError_%s_howToFix', $exceptionClass::KEY);
@@ -431,6 +445,31 @@ class Authenticator extends AbstractAuthenticator
                 $this->translator->trans($msgKeyC, $argsC, 'contao_default'),
             )
         );
+
+        if (null !== $this->contaoAccessLogger && null !== $resourceOwner) {
+            $oAuthUser = new OAuthUser($resourceOwner->toArray(), SwissAlpineClub::RESOURCE_OWNER_IDENTIFIER);
+
+            // Log user claims, if login fails.
+            $logText = sprintf(
+                'SAC %s Login has failed for: %s - SAC MEMBER ID: %s - EMAIL: %s - ROLES: %s - DATA ALL: %s',
+                $this->scopeMatcher->isFrontendRequest($request) ? 'Frontend' : 'Backend',
+                $oAuthUser->getFullName(),
+                $oAuthUser->getSacMemberId(),
+                $oAuthUser->getEmail(),
+                $oAuthUser->getRolesAsString(),
+                json_encode($oAuthUser->toArray()),
+            );
+
+            $this->contaoAccessLogger->info(
+                $logText,
+                [
+                    'contao' => new ContaoContext(
+                        __METHOD__,
+                        $this->scopeMatcher->isFrontendRequest($request) ? ContaoLogConfig::SAC_OAUTH2_FRONTEND_LOGIN_FAIL : ContaoLogConfig::SAC_OAUTH2_BACKEND_LOGIN_FAIL,
+                    ),
+                ],
+            );
+        }
 
         throw new $exceptionClass($exceptionClass::MESSAGE);
     }
