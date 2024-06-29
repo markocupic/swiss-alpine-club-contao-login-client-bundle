@@ -451,12 +451,13 @@ class Authenticator extends AbstractAuthenticator
 
             // Log user claims, if login fails.
             $logText = sprintf(
-                'SAC %s Login has failed for: %s - SAC MEMBER ID: %s - EMAIL: %s - ROLES: %s - DATA ALL: %s',
+                'SAC %s Login has failed for: %s - SAC MEMBER ID: %s - MATTER: %s - EMAIL: %s - ROLES: %s - DATA ALL: %s',
                 $this->scopeMatcher->isFrontendRequest($request) ? 'Frontend' : 'Backend',
                 $oAuthUser->getFullName(),
                 $oAuthUser->getSacMemberId(),
+				$exceptionClass::KEY,
                 $oAuthUser->getEmail(),
-                $oAuthUser->getRolesAsString(),
+                $this->isDebugMode ? $oAuthUser->getRolesAsString() : 'Please activate the debug mode to gain more information about the user.',
                 json_encode($oAuthUser->toArray()),
             );
 
