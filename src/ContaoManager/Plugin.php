@@ -72,8 +72,6 @@ class Plugin implements ConfigPluginInterface, BundlePluginInterface, RoutingPlu
             }
         }
 
-        $extensionConfigs[] = ['enable_authenticator_manager' => true];
-
         return $extensionConfigs;
     }
 }
