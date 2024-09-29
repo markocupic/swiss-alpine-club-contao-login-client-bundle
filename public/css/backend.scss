@@ -1,88 +1,86 @@
-.tl_login_form .formbody {
-  padding-top: 0;
-}
+body.be_login {
+  #main {
+    padding-bottom: 0;
+  }
 
-body {
+  form.tl_login_form .formbody {
+    padding-top: 0;
+  }
+
   background-image: url("../../../bundles/markocupicswissalpineclubcontaologinclient/img/logo_sac_small.svg");
   background-size: 6em auto;
-}
 
-#mod_swiss_alpine_club_oidc_backend_login {
-  padding: 45px;
-  @media (min-width: 1160px) {
-    & {
-      padding-bottom: 0;
-    }
-  }
+  #mod_swiss_alpine_club_oidc_backend_login {
+    padding: 45px;
 
-  .formbody {
-    padding: 0;
+    .formbody {
+      padding: 0;
 
-    .btn.sac-login-backend-button {
-      background-color: #aa0000;
-      color: white;
-      line-height: 1;
-      padding: 12px 12px;
-      display: block;
-      width: 100%;
-      border: 0;
-    }
-
-    .sac-login-fe-link {
-      margin-top: 1rem;
-      display: flex;
-      justify-content: end;
-    }
-
-  }
-
-  .sac-oidc-error.backend {
-    .error-box {
-      margin-top: 1rem;
-      padding-top: 1rem;
-
-      .error-title {
-        font-size: .875rem;
-        color: #ff2117;
-        font-weight: 600;
-        margin-top: 10px;
+      .btn.sac-login-backend-button {
+        background-color: #aa0000;
+        color: white;
+        line-height: 1;
+        padding: 12px 12px;
+        display: block;
+        width: 100%;
+        border: 0;
       }
 
-      p {
-        font-size: .875rem;
-        line-height: normal;
-        color: #797979;
-        margin-top: 10px;
-        margin: 10px 0 15px 0;
+      .sac-login-fe-link {
+        margin-top: 1rem;
+        display: flex;
+        justify-content: end;
+      }
+
+    }
+
+    .sac-oidc-error.backend {
+      .error-box {
+        margin-top: 1rem;
+        padding-top: 1rem;
+
+        .error-title {
+          font-size: .875rem;
+          color: #ff2117;
+          font-weight: 600;
+          margin-top: 10px;
+        }
+
+        p {
+          font-size: .875rem;
+          line-height: normal;
+          color: #797979;
+          margin-top: 10px;
+          margin: 10px 0 15px 0;
+        }
       }
     }
+
+    .login-button-separator-container {
+      margin-top: 20px;
+      margin-bottom: 20px;
+
+      .login-button-separator {
+        display: flex;
+        align-items: center;
+        text-align: center;
+        color: #c6c6c6;
+      }
+
+      .login-button-separator::before, .login-button-separator::after {
+        content: '';
+        flex: 1;
+        border-bottom: 1px solid #d4d4d4;
+      }
+
+      .login-button-separator::before {
+        margin-right: .75em;
+      }
+
+      .login-button-separator::after {
+        margin-left: .75em;
+      }
+    }
+
   }
-
-  .login-button-separator-container {
-    margin-top: 20px;
-    margin-bottom: 20px;
-
-    .login-button-separator {
-      display: flex;
-      align-items: center;
-      text-align: center;
-      color: #c6c6c6;
-    }
-
-    .login-button-separator::before, .login-button-separator::after {
-      content: '';
-      flex: 1;
-      border-bottom: 1px solid #d4d4d4;
-    }
-
-    .login-button-separator::before {
-      margin-right: .75em;
-    }
-
-    .login-button-separator::after {
-      margin-left: .75em;
-    }
-  }
-
 }
-
