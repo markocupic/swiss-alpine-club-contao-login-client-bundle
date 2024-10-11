@@ -19,8 +19,8 @@ $GLOBALS['TL_LANG']['MSC']['loginWithSacSso'] = 'Mit SAC Login anmelden';
 
 // Error management
 $GLOBALS['TL_LANG']['MSC']['infoMatter'] = 'Information';
-$GLOBALS['TL_LANG']['MSC']['warningMatter'] = 'Warnung';
-$GLOBALS['TL_LANG']['MSC']['errorMatter'] = 'Fehlermeldung';
+$GLOBALS['TL_LANG']['MSC']['warningMatter'] = 'Login leider nicht möglich';
+$GLOBALS['TL_LANG']['MSC']['errorMatter'] = 'Login-Fehler';
 $GLOBALS['TL_LANG']['MSC']['errorHowToFix'] = 'Was kann ich tun?';
 $GLOBALS['TL_LANG']['MSC']['errorExplain'] = 'Erklärung';
 $GLOBALS['TL_LANG']['MSC']['or'] = 'or';
