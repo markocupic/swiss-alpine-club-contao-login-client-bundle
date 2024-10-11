@@ -413,7 +413,7 @@ class Authenticator extends AbstractAuthenticator
         if (!$failurePath) {
             if ($isFrontend) {
                 $failurePath = $request->getSchemeAndHttpHost();
-                $failurePath = $this->urlParser->addQueryString('sso_error=true', $failurePath);
+                $failurePath = $this->urlParser->addQueryString('sac-oidc-error=true', $failurePath);
             } else {
                 $failurePath = $this->router->generate('contao_backend', [], UrlGeneratorInterface::ABSOLUTE_URL);
             }

@@ -75,7 +75,7 @@ class SwissAlpineClubOidcFrontendLogin extends AbstractFrontendModuleController
             $template->set('target_path', $stringUtilAdapter->specialchars(base64_encode($strRedirect)));
 
             // Set the failure path
-            $uri = $this->urlParser->addQueryString('sso_error=true', $request->getUri());
+            $uri = $this->urlParser->addQueryString('sac-oidc-error=true', $request->getUri());
             $template->set('failure_path', $stringUtilAdapter->specialchars(base64_encode($uri)));
 
             // Do not show the login form if there is a logged in frontend user.
