@@ -97,8 +97,8 @@ class OAuthUserChecker
         $this->errorMessageManager->add2Flash(
             new ErrorMessage(
                 ErrorMessage::LEVEL_WARNING,
-                $this->translator->trans('ERR.sacOidcLoginError_userIsNotMemberOfAllowedSection_matter', [$oAuthUser->getFirstName()], 'contao_default'),
-                $this->translator->trans('ERR.sacOidcLoginError_userIsNotMemberOfAllowedSection_howToFix', [], 'contao_default'),
+                $this->translator->trans('ERR.sacOidcLoginError_notMemberOfAllowedSection_matter', [$oAuthUser->getFirstName()], 'contao_default'),
+                $this->translator->trans('ERR.sacOidcLoginError_notMemberOfAllowedSection_howToFix', [], 'contao_default'),
             )
         );
 
