@@ -15,5 +15,6 @@ declare(strict_types=1);
 use Contao\DataContainer;
 
 // Fields
-$GLOBALS['TL_DCA']['tl_user']['fields']['loginAttempts']['sorting'] = true;
-$GLOBALS['TL_DCA']['tl_user']['fields']['loginAttempts']['flag'] = DataContainer::SORT_DESC;
+// TODO: Uncomment it after field loginAttempts is added again:
+// $GLOBALS['TL_DCA']['tl_user']['fields']['loginAttempts']['sorting'] = true;
+// $GLOBALS['TL_DCA']['tl_user']['fields']['loginAttempts']['flag'] = DataContainer::SORT_DESC;
