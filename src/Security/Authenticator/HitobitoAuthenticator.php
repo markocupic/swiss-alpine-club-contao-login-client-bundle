@@ -219,7 +219,7 @@ class HitobitoAuthenticator extends AbstractAuthenticator
 
             // Check if the resource owner is a member of the Swiss Alpine Club (SAC).
             if ($blnAllowLoginToSacMembersOnly) {
-                if (!$this->oAuthUserChecker->checkIsSacMember($oAuthUser)) {
+                if (!$this->oAuthUserChecker->checkIsSacMember($oAuthUser, $contaoScope)) {
                     $this->throwWithMessage(
                         $request,
                         ErrorMessage::LEVEL_WARNING,

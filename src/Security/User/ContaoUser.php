@@ -232,7 +232,7 @@ readonly class ContaoUser
         if ($this->allowFrontendLoginToPredefinedSectionMembersOnly) {
             $set['isSacMember'] = !empty($this->resourceOwnerChecker->getAllowedSacSectionIds($this->getResourceOwner(), ContaoCoreBundle::SCOPE_FRONTEND)) ? 1 : 0;
         } else {
-            $set['isSacMember'] = $this->resourceOwnerChecker->isSacMember($this->getResourceOwner()) ? 1 : 0;
+            $set['isSacMember'] = $this->resourceOwnerChecker->isSacMember($this->getResourceOwner(), $this->contaoScope) ? 1 : 0;
         }
 
         // Add member groups

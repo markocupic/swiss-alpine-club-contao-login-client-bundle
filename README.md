@@ -9,10 +9,10 @@ Siehe auch [OAUTH-Dokumentation](https://github.com/hitobito/hitobito/blob/maste
 
 SAC Mitglieder der Sektion können sich mit ihrer Mitgliedsnummer und ihrem Passwort, welches sie auf der Webseite des [SAC Zentralverbandes](https://www.sac-cas.ch) verwalten, im Front- sowie im Backend anmelden.
 
-| SAC Login Button                                                                                          | Login Formular Schweizerischer Alpenclub                            |
-|-----------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------|
+| SAC Login Button                                                                                          | Login Formular Schweizerischer Alpenclub           |
+|-----------------------------------------------------------------------------------------------------------|----------------------------------------------------|
 | ![SAC Login](docs/img/frontend_login.png)                                                                 | ![SAC/CAS Portal](docs/img/login_form_sac_cas.png) |
-| Bei Klick auf den Login Button erfolgt die Weiterleitug zum Login Formular des Schweizerischen Alpenclubs | Login Formular Schweizerischer Alpenclub                            |
+| Bei Klick auf den Login Button erfolgt die Weiterleitug zum Login Formular des Schweizerischen Alpenclubs | Login Formular Schweizerischer Alpenclub           |
 
 ## Dependencies
 
@@ -59,6 +59,10 @@ sac_oauth2_client:
     allow_frontend_login_to_sac_members_only: true
     allow_frontend_login_to_predefined_section_members_only: true
     allow_frontend_login_if_contao_account_is_disabled: false # Do not allow login if contao member account is disabled or login is set to false
+    allowed_frontend_roles:
+        - 'Group::SektionsMitglieder::Ehrenmitglied'
+        - 'Group::SektionsMitglieder::MitgliedZusatzsektion'
+        - 'Group::SektionsMitglieder::Mitglied
     allowed_frontend_sac_section_ids:
       - 4250 # Stammsektion
       - 4251 # OG Surental
@@ -71,6 +75,10 @@ sac_oauth2_client:
     allow_backend_login_to_sac_members_only: true
     allow_backend_login_to_predefined_section_members_only: true
     allow_backend_login_if_contao_account_is_disabled: false # Do not allow login if contao user account is disabled
+    allowed_backend_roles:
+        - 'Group::SektionsMitglieder::Ehrenmitglied'
+        - 'Group::SektionsMitglieder::MitgliedZusatzsektion'
+        - 'Group::SektionsMitglieder::Mitglied
     allowed_backend_sac_section_ids:
       - 4250 # Stammsektion
       - 4251 # OG Surental

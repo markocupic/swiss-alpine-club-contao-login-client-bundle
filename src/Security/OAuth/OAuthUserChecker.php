@@ -27,6 +27,10 @@ readonly class OAuthUserChecker
         private ContaoFramework $framework,
         #[Autowire('%sac_oauth2_client.oidc.allowed_frontend_sac_section_ids%')]
         private array $allowedFrontendSacSectionIds,
+        #[Autowire('%sac_oauth2_client.oidc.allowed_frontend_roles%')]
+        private array $allowedFrontendRoles,
+        #[Autowire('%sac_oauth2_client.oidc.allowed_backend_roles%')]
+        private array $allowedBackendRoles,
         #[Autowire('%sac_oauth2_client.oidc.allowed_backend_sac_section_ids%')]
         private array $allowedBackendSacSectionIds,
     ) {
@@ -52,9 +56,9 @@ readonly class OAuthUserChecker
      *
      * @param OAuthUser $oAuthUser
      */
-    public function checkIsSacMember(ResourceOwnerInterface $oAuthUser): bool
+    public function checkIsSacMember(ResourceOwnerInterface $oAuthUser, string $contaoScope): bool
     {
-        if (!$this->isSacMember($oAuthUser)) {
+        if (!$this->isSacMember($oAuthUser, $contaoScope)) {
             return false;
         }
 
@@ -107,7 +111,7 @@ readonly class OAuthUserChecker
             default => [],
         };
 
-        $arrGroupMembership = $this->getSacSectionIds($oAuthUser);
+        $arrGroupMembership = $this->getSacSectionIds($oAuthUser, $contaoScope);
 
         return array_unique(array_intersect($arrAllowedGroups, $arrGroupMembership));
     }
@@ -117,9 +121,9 @@ readonly class OAuthUserChecker
      *
      * @param OAuthUser $oAuthUser
      */
-    public function isSacMember(ResourceOwnerInterface $oAuthUser): bool
+    public function isSacMember(ResourceOwnerInterface $oAuthUser, string $contaoScope): bool
     {
-        return !empty($oAuthUser->getSectionMembershipIDS());
+        return !empty($oAuthUser->getSectionMembershipIDS($this->getAllowedRoles($contaoScope)));
     }
 
     /**
@@ -127,8 +131,17 @@ readonly class OAuthUserChecker
      *
      * @param OAuthUser $oAuthUser
      */
-    private function getSacSectionIds(ResourceOwnerInterface $oAuthUser): array
+    private function getSacSectionIds(ResourceOwnerInterface $oAuthUser, string $contaoScope): array
     {
-        return $oAuthUser->getSectionMembershipIDS();
+        return $oAuthUser->getSectionMembershipIDS($this->getAllowedRoles($contaoScope));
+    }
+
+    private function getAllowedRoles(string $contaoScope): array
+    {
+        return match ($contaoScope) {
+            ContaoCoreBundle::SCOPE_FRONTEND => $this->allowedFrontendRoles,
+            ContaoCoreBundle::SCOPE_BACKEND => $this->allowedBackendRoles,
+            default => throw new \Exception('Invalid contao scope detected. Scope must be either "frontend" or "backend".'),
+        };
     }
 }

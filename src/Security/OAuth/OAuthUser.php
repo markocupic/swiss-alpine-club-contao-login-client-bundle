@@ -135,7 +135,7 @@ class OAuthUser implements ResourceOwnerInterface
         return $this->arrData['roles'] ?? [];
     }
 
-    public function getSectionMembershipIDS(): array
+    public function getSectionMembershipIDS(array $allowedRoles): array
     {
         $roles = $this->getRolesAsArray();
 
@@ -150,12 +150,7 @@ class OAuthUser implements ResourceOwnerInterface
                 continue;
             }
 
-            $allowed = [
-                'Group::SektionsMitglieder::MitgliedZusatzsektion',
-                'Group::SektionsMitglieder::Mitglied',
-            ];
-
-            if (!\in_array($role['role'], $allowed, true)) {
+            if (!\in_array($role['role'], $allowedRoles, true)) {
                 continue;
             }
 
