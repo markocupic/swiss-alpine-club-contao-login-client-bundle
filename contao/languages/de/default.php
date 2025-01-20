@@ -33,35 +33,35 @@ $GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_missingAuthCode_matter'] = 'Leider
 $GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_missingAuthCode_howToFix'] = 'Bitte probiere dich nochmals einzuloggen.';
 $GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_missingAuthCode_explain'] = '';
 
-$GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_resourceOwnerHasInvalidSacMemberId_matter'] = 'Hallo{{br}}Schön bist du hier. Leider hat die Überprüfung deiner vom Identity Provider an uns übermittelten Daten fehlgeschlagen. Es wurde keine SAC Mitgliedernummer übermittelt.';
-$GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_resourceOwnerHasInvalidSacMemberId_howToFix'] = 'Bitte logge dich auf https://www.sac-cas.ch mit deinem Account ein und überprüfe die Richtigkeit deiner Eingaben.';
+$GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_resourceOwnerHasInvalidSacMemberId_matter'] = 'Hallo{{br}}Schön bist du hier. Leider hat die Überprüfung deiner vom Identity Provider an uns übermittelten Daten fehlgeschlagen. Es wurde keine UUID übermittelt.';
+$GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_resourceOwnerHasInvalidSacMemberId_howToFix'] = 'Bitte logge dich auf https://portal.sac-cas.ch mit deinem SAC-Konto ein und überprüfe die Richtigkeit deiner Eingaben.';
 $GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_resourceOwnerHasInvalidSacMemberId_explain'] = '';
 
 $GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_resourceOwnerHasInvalidEmail_matter'] = 'Hallo %s{{br}}Schön bist du hier. Leider hat die Überprüfung deiner vom Identity Provider an uns übermittelten Daten fehlgeschlagen.';
-$GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_resourceOwnerHasInvalidEmail_howToFix'] = 'Du hast noch keine gültige E-Mail-Adresse hinterlegt. Bitte logge dich auf https://www.sac-cas.ch mit deinem Account ein und hinterlege deine E-Mail-Adresse.';
+$GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_resourceOwnerHasInvalidEmail_howToFix'] = 'Du hast noch keine gültige E-Mail-Adresse hinterlegt. Bitte logge dich auf https://portal.sac-cas.ch mit deinem SAC-Konto ein und hinterlege deine E-Mail-Adresse.';
 $GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_resourceOwnerHasInvalidEmail_explain'] = 'Einige Anwendungen (z.B. Event-Tool) auf diesem Portal setzen eine gültige E-Mail-Adresse voraus.';
 
 $GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_missingSacMembership_matter'] = 'Hallo %s{{br}}Schön bist du hier. Leider hat dein Login-Versuch nicht geklappt, weil du kein SAC-Mitglied zu sein scheinst.';
 $GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_missingSacMembership_howToFix'] = 'Um von allen Services auf unserem Online-Portal zu profitieren, {{br}}- kannst du eine Mitgliedschaft bei der SAC Sektion Pilatus abschliessen.{{br}}Dazu darfst du dich sehr gerne bei unserer Geschäftsstelle melden.';
-$GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_missingSacMembership_explain'] = '';
+$GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_missingSacMembership_explain'] = 'Deine Sektions-Mitgliedschaft muss im SAC-Portal auf https://portal.sac-cas.ch gültig sein.';
 
 $GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_notMemberOfAllowedSection_matter'] = 'Hallo %s{{br}}Schön bist du hier. Leider hat dein Login-Versuch nicht geklappt, weil du kein Mitglied der SAC Sektion Pilatus zu sein scheinst.';
 $GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_notMemberOfAllowedSection_howToFix'] = 'Um von allen Services auf unserem Online-Portal zu profitieren, {{br}}- kannst du eine Zusatzmitgliedschaft bei SAC Pilatus abschliessen, {{br}}- oder einen Sektionswechsel zu SAC Pilatus beantragen.{{br}}{{br}}Dazu darfst du dich sehr gerne bei unserer Geschäftsstelle melden.';
-$GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_notMemberOfAllowedSection_explain'] = '';
+$GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_notMemberOfAllowedSection_explain'] = 'Deine Sektions-Mitgliedschaft muss im SAC-Portal auf https://portal.sac-cas.ch gültig sein.';
 
 $GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_contaoFrontendUserNotFound_matter'] = 'Hallo %s{{br}}Schön bist du hier. Leider konnten wir dich nicht in unserer Mitgliederdatenbank finden.';
 $GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_contaoFrontendUserNotFound_howToFix'] = 'Falls du soeben/erst kürzlich eine Neumitgliedschaft beantragt hast, dann warte bitte einen Tag und versuche dich danach noch einmal hier einzuloggen.';
-$GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_contaoFrontendUserNotFound_explain'] = 'Es dauert mindestens einen Tag bis die SAC Zentralstelle deine Mitgliedschaft bestätigt hat.';
+$GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_contaoFrontendUserNotFound_explain'] = 'Es dauert mindestens einen Tag bis der SAC Zentralverband deine Mitgliedschaft bestätigt und aktiviert hat.';
 
 $GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_contaoBackendUserNotFound_matter'] = 'Hallo %s{{br}}Schön bist du hier. Leider konnten wir dich nicht in unserer Backend-Benutzer-Datenbank finden.';
-$GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_contaoBackendUserNotFound_howToFix'] = 'Wenn du denkst, dass es sich um einen Irrtum handelt, dann melde dich mit deinem Anliegen bei unserem Webmaster.';
-$GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_contaoBackendUserNotFound_explain'] = 'Das Backend unserer Webseite ist nur Funktionären zugänglich.';
+$GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_contaoBackendUserNotFound_howToFix'] = 'Wenn du denkst, dass es sich um einen Irrtum handelt, dann melde dich mit deinem Anliegen beim Ressortverantwortlichen oder unserem Webmaster.';
+$GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_contaoBackendUserNotFound_explain'] = 'Das Backend unserer Webseite ist nur aktiven Funktionären zugänglich.';
 
-$GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_contaoFrontendUserLoginNotEnabled_matter'] = 'Hallo %s{{br}}Schön bist du hier. Da dein Login im Moment nicht aktiv ist (login = false), ist eine Anmeldung derzeit nicht möglich.';
+$GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_contaoFrontendUserLoginNotEnabled_matter'] = 'Hallo %s{{br}}Schön bist du hier. Da dein Login im Moment noch nicht freigeschaltet ist oder nicht mehr aktiv ist, ist eine Anmeldung derzeit nicht möglich.';
 $GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_contaoFrontendUserLoginNotEnabled_howToFix'] = 'Melde dich bei unserem Webmaster, sollte es sich hierbei um einen Irrtum handeln.';
-$GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_contaoFrontendUserLoginNotEnabled_explain'] = '';
+$GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_contaoFrontendUserLoginNotEnabled_explain'] = 'Deine Sektions-Mitgliedschaft muss im SAC-Portal auf https://portal.sac-cas.ch gültig sein.';
 
-$GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_contaoUserDisabled_matter'] = 'Hallo %s{{br}}Schön bist du hier. Da dein Konto deaktiviert ist (disable = true), ist eine Anmeldung derzeit nicht möglich.';
+$GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_contaoUserDisabled_matter'] = 'Hallo %s{{br}}Schön bist du hier. Da dein Konto deaktiviert ist, ist eine Anmeldung derzeit nicht möglich.';
 $GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_contaoUserDisabled_howToFix'] = 'Melde dich bei unserem Webmaster, sollte es sich hierbei um einen Irrtum handeln.';
 $GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_contaoUserDisabled_explain'] = '';
 
