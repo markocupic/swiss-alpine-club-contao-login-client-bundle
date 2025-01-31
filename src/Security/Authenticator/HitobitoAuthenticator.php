@@ -187,7 +187,7 @@ class HitobitoAuthenticator extends AbstractAuthenticator
                     $resourceOwner->getFullName(),
                     $resourceOwner->getSacMemberId(),
                     $resourceOwner->getRolesAsString(),
-                    json_encode($resourceOwner->toArray()),
+                    json_encode($resourceOwner->toArray(), JSON_UNESCAPED_SLASHES), // Do not escape slashes in links: https://portal.sac-cas.ch/verify_membership/kfDSFsdf...
                 );
 
                 $this->contaoAccessLogger->info(
@@ -460,7 +460,7 @@ class HitobitoAuthenticator extends AbstractAuthenticator
                 $exceptionClass::KEY,
                 $oAuthUser->getEmail(),
                 $this->isDebugMode ? $oAuthUser->getRolesAsString() : 'Please activate the debug mode to get more information about the user.',
-                json_encode($oAuthUser->toArray()),
+                json_encode($oAuthUser->toArray(), JSON_UNESCAPED_SLASHES), // Do not escape slashes in links: https://portal.sac-cas.ch/verify_membership/kfDSFsdf...
             );
 
             $this->contaoAccessLogger->info(
