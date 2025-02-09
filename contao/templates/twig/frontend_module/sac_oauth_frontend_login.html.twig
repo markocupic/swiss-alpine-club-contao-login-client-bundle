@@ -24,19 +24,19 @@
                 {% if error.matter|default %}
                     <div class="error-matter-box error-box">
                         <h2 class="error-title mt-4 mb-2">{{ ('MSC.'~error.level~'Matter')|trans }}</h2>
-                        <p class="error-matter small m-0 py-3">{{ error.matter }}</p>
+                        <p class="error-matter text-danger small m-0 py-1">{{ error.matter }}</p>
                     </div>
                 {% endif %}
                 {% if error.howToFix|default %}
                     <div class="error-how-to-fix-box error-box">
                         <h2 class="error-title mt-4 mb-2">{{ 'MSC.errorHowToFix'|trans }}</h2>
-                        <p class="error-how-to-fix small m-0 py-3">{{ error.howToFix }}</p>
+                        <p class="error-how-to-fix text-danger small m-0 py-1">{{ error.howToFix }}</p>
                     </div>
                 {% endif %}
                 {% if error.explain|default %}
                     <div class="error-explain-box error-box">
                         <h2 class="error-title mt-4 mb-2">{{ 'MSC.errorExplain'|trans }}</h2>
-                        <p class="error-explain small m-0 py-3">{{ error.explain }}</p>
+                        <p class="error-explain text-danger small m-0 py-1">{{ error.explain }}</p>
                     </div>
                 {% endif %}
             </div>
