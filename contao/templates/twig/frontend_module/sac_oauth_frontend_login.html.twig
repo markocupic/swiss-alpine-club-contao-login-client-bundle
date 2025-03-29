@@ -4,6 +4,7 @@
 {% extends "@Contao/frontend_module/_base.html.twig" %}
 
 {% block content %}
+    <!-- indexer::stop -->
     {% if not has_logged_in_user %}
         <form action="{{ action }}" id="sacOidcLoginFe_{{ data.id }}" class="sac-oidc-login-fe" method="post">
             <div class="formbody">
@@ -51,4 +52,5 @@
             <a href="{{ path('contao_frontend_logout') }}" data-href="{{ path('contao_frontend_logout') }}" class="trigger-ids-kill-session" title="{{ 'MSC.logout'|trans }}">{{ 'MSC.logout'|trans }}</a>
         </div>
     {% endif %}
+    <!-- indexer::continue -->
 {% endblock %}
