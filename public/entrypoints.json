@@ -1,3 +1,19 @@
 {
-  "entrypoints": {}
+  "entrypoints": {
+    "styles/backend": {
+      "css": [
+        "/bundles/markocupicswissalpineclubcontaologinclient/styles/backend.74f6a78b.css"
+      ]
+    },
+    "styles/frontend": {
+      "css": [
+        "/bundles/markocupicswissalpineclubcontaologinclient/styles/frontend.aeaa8ac6.css"
+      ]
+    },
+    "styles/sac_login_button": {
+      "css": [
+        "/bundles/markocupicswissalpineclubcontaologinclient/styles/sac_login_button.5d2a9f44.css"
+      ]
+    }
+  }
 }

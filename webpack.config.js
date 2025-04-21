@@ -6,13 +6,8 @@ Encore
 	.setManifestKeyPrefix('')
 
     //.addEntry('backend', './assets/backend.js')
-	//.addEntry('frontend', './assets/frontend.js')
+    //.addEntry('frontend', './assets/frontend.js')
 
-	.copyFiles({
-		from: './assets/styles',
-		to: 'styles/[path][name].[hash:8].[ext]',
-        pattern: /(\.css)$/,
-    })
 	.copyFiles({
 		from: './assets/js',
 		to: 'js/[path][name].[hash:8].[ext]',
@@ -21,6 +16,12 @@ Encore
 		from: './assets/img',
 		to: 'img/[path][name].[ext]',
 	})
+    // Preprocessing scss in css
+    .enableSassLoader()
+    .enablePostCssLoader()
+    .addStyleEntry('styles/backend', './assets/styles/backend.scss')
+    .addStyleEntry('styles/frontend', './assets/styles/frontend.scss')
+    .addStyleEntry('styles/sac_login_button', './assets/styles/sac_login_button.scss')
 
 	.disableSingleRuntimeChunk()
 	.cleanupOutputBeforeBuild()
@@ -33,7 +34,6 @@ Encore
 		config.corejs = 3;
 	})
 
-	.enablePostCssLoader()
 ;
 
 module.exports = Encore.getWebpackConfig();

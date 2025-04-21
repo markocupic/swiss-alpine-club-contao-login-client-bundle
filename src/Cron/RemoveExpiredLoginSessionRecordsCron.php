@@ -28,7 +28,7 @@ readonly class RemoveExpiredLoginSessionRecordsCron
 
     public function __invoke(): void
     {
-        $this->connection->executeStatement(
+		$this->connection->executeStatement(
             'DELETE FROM tl_sac_login_session WHERE expires < ?',
             [time()],
             [Types::INTEGER],
