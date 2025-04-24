@@ -41,16 +41,13 @@ readonly class KernelRequestSubscriber implements EventSubscriberInterface
     {
         $request = $e->getRequest();
 
-        // Scripts
         $GLOBALS['TL_JAVASCRIPT'][] = $this->packages->getUrl('js/ids-kill-session.js', 'markocupic_swiss_alpine_club_contao_login_client');
         $GLOBALS['TL_JAVASCRIPT'][] = $this->packages->getUrl('js/login-button-animation.js', 'markocupic_swiss_alpine_club_contao_login_client');
-
-        // Styles
-        $GLOBALS['TL_CSS'][] = $this->packages->getUrl('styles/sac_login_button.css', 'markocupic_swiss_alpine_club_contao_login_client');
 
         if ($this->scopeMatcher->isBackendRequest($request)) {
             if (str_contains($request->getUri(), $this->router->generate('contao_backend_login'))) {
                 $GLOBALS['TL_CSS'][] = $this->packages->getUrl('styles/backend.css', 'markocupic_swiss_alpine_club_contao_login_client');
+                $GLOBALS['TL_CSS'][] = $this->packages->getUrl('styles/sac_login_button.css', 'markocupic_swiss_alpine_club_contao_login_client');
             }
         }
     }

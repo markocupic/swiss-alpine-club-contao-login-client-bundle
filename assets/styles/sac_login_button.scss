@@ -4,126 +4,153 @@ $mobile-breakpoint: 420px;
   --sac-login-button-bg-color-hover: #56060a;
 }
 
-.sac-login-button-group {
-  width: 100% !important;
-  position: relative;
-  display: flex;
-  flex-wrap: nowrap;
-  align-items: stretch;
-
-  button:not(:disabled):not(.disabled):active {
-    color: #fff;
-    background-color: var(--sac-login-button-bg-color-hover);
-    background-image: none;
-    border-color: var(--sac-login-button-bg-color-hover);
-  }
-
-  button:hover {
-    background-color: var(--sac-login-button-bg-color-hover) !important;
-    color: #fff !important;
-  }
-
-  button:focus {
-    outline: none !important;
-  }
-
-  button {
+.sac-login-button {
+  .sac-login-button--button-group {
+    width: 100%;
+    position: relative;
     display: flex;
-    align-content: center;
-    justify-content: center;
-    flex-wrap: wrap;
-    cursor: pointer;
-    flex-grow: 1;
-    font-weight: 400;
-    color: #fff;
-    user-select: none;
-    background-color: var(--sac-login-button-bg-color);
-    border: 1px solid var(--sac-login-button-bg-color);
-    padding: 0.375rem 0.1rem;
-    margin: 0;
-    font-family: inherit;
-    font-size: .875rem;
-    line-height: 1.5;
-    border-radius: 0;
-    overflow: visible;
-    transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    flex-wrap: nowrap;
+    align-items: stretch;
+
+    // Column 1
+    .sac-login-button--icon-box {
+      flex: 0 1 auto; /* Takes only the space it needs */
+      flex-shrink: 0;
+
+      aspect-ratio: 1;
+      background-color: #ffffff;
+      border: 1px solid #dddddd;
+      border-right: 0;
+      border-radius: 0;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 55px;
+      // See sizes for the frontend at the bottom of this file
+      @media (max-width: $mobile-breakpoint) {
+        width: 45px;
+      }
+
+      .sac-login-button--icon {
+        height: 40px;
+        width: auto;
+        @media (max-width: $mobile-breakpoint) {
+          height: 35px;
+        }
+      }
+    }
+
+    // Column 1
+    .sac-login-button--button-box {
+      flex: 1 1 auto; /* Takes the remaining space */
+      background-color: var(--sac-login-button-bg-color);
+      border: 1px solid var(--sac-login-button-bg-color);
+      border-radius: 0;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      align-items: stretch; /* Ensures the child stretches vertically */
+      justify-content: stretch; /* Ensures the child stretches horizontally */
+
+      button {
+        flex: 1;
+        display: flex;
+        align-content: center;
+        justify-content: center;
+        flex-wrap: wrap;
+        flex-grow: 1;
+        font-weight: 400;
+        color: #fff;
+        user-select: none;
+        margin: 0;
+        padding: 0;
+        border: 0;
+        border-radius: 0;
+        background: none;
+        line-height: 1.3;
+        transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        font-family: inherit;
+        font-size: inherit;
+
+        @media (max-width: $mobile-breakpoint) {
+          font-size: .75rem;
+        }
+      }
+
+      button:not(:disabled):not(.disabled):active {
+        color: #fff;
+        background-color: var(--sac-login-button-bg-color-hover);
+        background-image: none;
+      }
+
+      button:hover {
+        background-color: var(--sac-login-button-bg-color-hover) !important;
+        color: #fff !important;
+      }
+
+      button:focus {
+        outline: none !important;
+      }
+
+      button[disabled] {
+        background-color: var(--sac-login-button-bg-color-hover);
+        opacity: 1;
+      }
+
+      button.button--loading .sac-login-button-text {
+        display: none;
+      }
+
+      .button--loading::after {
+        content: "";
+        width: 20px;
+        height: 20px;
+        border: 4px solid transparent;
+        border-radius: 50%;
+        border-top-color: #ffffff;
+        animation: button-loading-spinner 1s ease infinite;
+        @media (max-width: $mobile-breakpoint) {
+          content: "";
+          width: 18px;
+          height: 18px;
+          border: 3px solid transparent;
+          border-radius: 50%;
+          border-top-color: #ffffff;
+          animation: button-loading-spinner 1s ease infinite;
+        }
+      }
+
+      @keyframes button-loading-spinner {
+        from {
+          transform: rotate(0turn);
+        }
+
+        to {
+          transform: rotate(1turn);
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Frontend only!
+ */
+.sac-login-button.sac-login-button--scope-frontend {
+  .sac-login-button--icon-box {
+    width: 70px;
     @media (max-width: $mobile-breakpoint) {
-      font-size: .75rem;
-    }
-  }
-
-  button[disabled] {
-    background-color: var(--sac-login-button-bg-color-hover);
-    border-color: var(--sac-login-button-bg-color-hover);
-    opacity: 1;
-  }
-
-  &.sac-login-button-group-lg button {
-    font-size: 1rem;
-  }
-
-  > .sac-login-button-prepend {
-    background-color: #ffffff;
-    border: 1px solid #dddddd;
-    margin-right: -1px;
-    display: flex;
-    align-items: center;
-    padding: 0.375rem .5rem;
-    margin-bottom: 0;
-    font-size: 1rem;
-    font-weight: 400;
-    line-height: 1.5;
-    text-align: center;
-    white-space: nowrap;
-  }
-
-  &.sac-login-button-group-lg > .sac-login-button-prepend {
-    padding-left: 13px;
-    padding-right: 13px;
-  }
-
-  > .sac-login-button-prepend > .sac-login-button-prepend-icon {
-    height: 40px;
-    width: auto;
-    @media (max-width: $mobile-breakpoint) {
-      height: 30px;
-    }
-  }
-
-  &.sac-login-button-group-lg > .sac-login-button-prepend > .sac-login-button-prepend-icon {
-    height: 50px;
-  }
-
-  button.button--loading .sac-login-button-text {
-    display: none;
-  }
-
-  .button--loading::after {
-    content: "";
-    width: 20px;
-    height: 20px;
-    border: 4px solid transparent;
-    border-radius: 50%;
-    border-top-color: #ffffff;
-    animation: button-loading-spinner 1s ease infinite;
-    @media (max-width: $mobile-breakpoint) {
-      content: "";
-      width: 18px;
-      height: 18px;
-      border: 3px solid transparent;
-      border-radius: 50%;
-      border-top-color: #ffffff;
-      animation: button-loading-spinner 1s ease infinite;
-    }
-  }
-
-  @keyframes button-loading-spinner {
-    from {
-      transform: rotate(0turn);
+      width: 55px;
     }
 
-    to {
-      transform: rotate(1turn);
+    .sac-login-button--icon {
+      height: 50px;
+
+      @media (max-width: $mobile-breakpoint) {
+        height: 35px;
+      }
     }
   }
 }

@@ -11,7 +11,7 @@
 "use strict";
 
 window.addEventListener('DOMContentLoaded', () => {
-    let login_buttons = document.querySelectorAll('.sac-login-button-group button[type="submit"]');
+    let login_buttons = document.querySelectorAll('.sac-login-button--button-group button[type="submit"]');
     let i;
     for (i = 0; i < login_buttons.length; ++i) {
         let login_button = login_buttons[i];
