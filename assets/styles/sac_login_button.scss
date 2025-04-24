@@ -77,6 +77,10 @@ $mobile-breakpoint: 420px;
         @media (max-width: $mobile-breakpoint) {
           font-size: .75rem;
         }
+
+        .sac-login-button--button-icon {
+          margin-left: .25rem;
+        }
       }
 
       button:not(:disabled):not(.disabled):active {
@@ -99,8 +103,10 @@ $mobile-breakpoint: 420px;
         opacity: 1;
       }
 
-      button.button--loading .sac-login-button-text {
-        display: none;
+      button.button--loading {
+        .sac-login-button--button-text, .sac-login-button--button-icon {
+          display: none;
+        }
       }
 
       .button--loading::after {
