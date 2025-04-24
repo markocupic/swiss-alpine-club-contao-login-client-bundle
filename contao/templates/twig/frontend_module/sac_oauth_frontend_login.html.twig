@@ -12,12 +12,7 @@
                 <input type="hidden" name="_target_path" value="{{ target_path }}">
                 <input type="hidden" name="_failure_path" value="{{ failure_path }}">
                 <input type="hidden" name="_module_id" value="{{ data.id }}">
-                <div class="sac-login-button-group sac-login-button-group-lg">
-                    <div class="sac-login-button-prepend">
-                        <img src="{{ asset('img/logo_sac_small.svg', 'markocupic_swiss_alpine_club_contao_login_client') }}" alt="SAC Logo" class="sac-login-button-prepend-icon">
-                    </div>
-                    <button type="submit"><span class="sac-login-button-text">{{ btn_lbl }} <span style="font-size:1rem;">&#8594</span></span></button>
-                </div>
+                {% include '@MarkocupicSwissAlpineClubContaoLoginClient/component/_sac_login_button.html.twig' %}
             </div>
         </form>
         {% if error|default %}

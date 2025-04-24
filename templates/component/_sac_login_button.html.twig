@@ -1,0 +1,17 @@
+{% add to head %}
+    <link rel="stylesheet" href="{{ asset('styles/sac_login_button.css','markocupic_swiss_alpine_club_contao_login_client') }}">
+{% endadd %}
+{% trans_default_domain "contao_default" %}
+{% set sac_login_button_attributes = attrs()
+    .addClass('sac-login-button')
+    .addClass('sac-login-button--scope-'~app.request.attributes.get('_scope')) %}
+<div{{ sac_login_button_attributes }}>
+    <div class="sac-login-button--button-group">
+        <div class="sac-login-button--icon-box">
+            <img src="{{ asset('img/logo_sac_small.svg', 'markocupic_swiss_alpine_club_contao_login_client') }}" alt="SAC Logo" class="sac-login-button--icon">
+        </div>
+        <div class="sac-login-button--button-box">
+            <button type="submit"><span class="sac-login-button-text">{{ 'MSC.loginWithSacSso'|trans }} <span style="font-size:1rem">&#8594</span></span></button>
+        </div>
+    </div>
+</div>
