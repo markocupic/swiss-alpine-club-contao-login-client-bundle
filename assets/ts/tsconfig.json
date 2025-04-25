@@ -1,0 +1,14 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "noImplicitAny": true,
+        "removeComments": true,
+        "preserveConstEnums": true,
+        "sourceMap": true,
+        "target": "es6" //above es6 like ES2015,ES2018 ...
+    },
+    "files": [
+        "sac-login-button-animation.ts",
+        "ids-kill-session.ts"
+    ]
+}
