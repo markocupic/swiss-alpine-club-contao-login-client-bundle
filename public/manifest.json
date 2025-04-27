@@ -1,6 +1,6 @@
 {
-  "js/sac-login-button-animation.js": "/bundles/markocupicswissalpineclubcontaologinclient/js/sac-login-button-animation.369788ea.js",
-  "js/ids-kill-session.js": "/bundles/markocupicswissalpineclubcontaologinclient/js/ids-kill-session.1042d1af.js",
+  "js/sac-login-button-animation.js": "/bundles/markocupicswissalpineclubcontaologinclient/js/sac-login-button-animation.beb77eb6.js",
+  "js/ids-kill-session.js": "/bundles/markocupicswissalpineclubcontaologinclient/js/ids-kill-session.e49f9e68.js",
   "styles/backend.css": "/bundles/markocupicswissalpineclubcontaologinclient/styles/backend.74f6a78b.css",
   "styles/frontend.css": "/bundles/markocupicswissalpineclubcontaologinclient/styles/frontend.aeaa8ac6.css",
   "styles/sac_login_button.css": "/bundles/markocupicswissalpineclubcontaologinclient/styles/sac_login_button.a5cfe7ea.css",
@@ -8,8 +8,10 @@
   "img/logo_sac_small.svg": "/bundles/markocupicswissalpineclubcontaologinclient/img/logo_sac_small.svg",
   "img/logo_sac_large.svg": "/bundles/markocupicswissalpineclubcontaologinclient/img/logo_sac_large.svg",
   "img/logo_sac_small.png": "/bundles/markocupicswissalpineclubcontaologinclient/img/logo_sac_small.png",
-  "sac-login-button-animation.369788ea.js.map": "/bundles/markocupicswissalpineclubcontaologinclient/js/sac-login-button-animation.369788ea.js.map",
-  "ids-kill-session.1042d1af.js.map": "/bundles/markocupicswissalpineclubcontaologinclient/js/ids-kill-session.1042d1af.js.map",
+  "../assets/ts/sac-login-button-animation.d.ts": "/bundles/markocupicswissalpineclubcontaologinclient/../assets/ts/sac-login-button-animation.d.ts",
+  "../assets/ts/ids-kill-session.d.ts": "/bundles/markocupicswissalpineclubcontaologinclient/../assets/ts/ids-kill-session.d.ts",
+  "sac-login-button-animation.beb77eb6.js.map": "/bundles/markocupicswissalpineclubcontaologinclient/js/sac-login-button-animation.beb77eb6.js.map",
+  "ids-kill-session.e49f9e68.js.map": "/bundles/markocupicswissalpineclubcontaologinclient/js/ids-kill-session.e49f9e68.js.map",
   "backend.74f6a78b.css.map": "/bundles/markocupicswissalpineclubcontaologinclient/styles/backend.74f6a78b.css.map",
   "frontend.aeaa8ac6.css.map": "/bundles/markocupicswissalpineclubcontaologinclient/styles/frontend.aeaa8ac6.css.map",
   "sac_login_button.a5cfe7ea.css.map": "/bundles/markocupicswissalpineclubcontaologinclient/styles/sac_login_button.a5cfe7ea.css.map"

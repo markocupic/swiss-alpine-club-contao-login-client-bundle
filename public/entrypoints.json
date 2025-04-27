@@ -2,12 +2,12 @@
   "entrypoints": {
     "js/sac-login-button-animation": {
       "js": [
-        "/bundles/markocupicswissalpineclubcontaologinclient/js/sac-login-button-animation.369788ea.js"
+        "/bundles/markocupicswissalpineclubcontaologinclient/js/sac-login-button-animation.beb77eb6.js"
       ]
     },
     "js/ids-kill-session": {
       "js": [
-        "/bundles/markocupicswissalpineclubcontaologinclient/js/ids-kill-session.1042d1af.js"
+        "/bundles/markocupicswissalpineclubcontaologinclient/js/ids-kill-session.e49f9e68.js"
       ]
     },
     "styles/backend": {
