@@ -12,9 +12,21 @@ declare(strict_types=1);
  * @link https://github.com/markocupic/swiss-alpine-club-contao-login-client-bundle
  */
 
-use Contao\DataContainer;
+use Contao\CoreBundle\DataContainer\PaletteManipulator;
+
+PaletteManipulator::create()
+	->addLegend('sso_login_legend', 'password_legend', PaletteManipulator::POSITION_BEFORE)
+	->addField('ssoLoginAttempts', 'sso_login_legend', PaletteManipulator::POSITION_APPEND)
+	->applyToPalette('default', 'tl_member');
 
 // Fields
-// TODO: Uncomment it after field loginAttempts is added again:
-// $GLOBALS['TL_DCA']['tl_member']['fields']['loginAttempts']['sorting'] = true;
-// $GLOBALS['TL_DCA']['tl_member']['fields']['loginAttempts']['flag'] = DataContainer::SORT_DESC;
+$GLOBALS['TL_DCA']['tl_member']['fields']['ssoLoginAttempts'] = [
+	'exclude'   => true,
+	'sorting'   => true,
+	'filter'    => true,
+	'flag'      => 1,
+	'search'    => true,
+	'inputType' => 'text',
+	'eval'      => ['mandatory' => false, 'rgxp' => 'natural', 'maxlength' => 5, 'tl_class' => 'w50'],
+	'sql'       => "smallint(5) unsigned NOT NULL default 0",
+];

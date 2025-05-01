@@ -30,6 +30,7 @@ use Markocupic\SwissAlpineClubContaoLoginClientBundle\Config\ContaoLogConfig;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\RedirectController;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessage;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessageManager;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Event\AuthenticationFailureEvent;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\OAuth2\Client\OAuth2Client;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\OAuth2\Client\OAuth2ClientFactory;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\OAuth2\Client\Provider\Hitobito;
@@ -49,6 +50,7 @@ use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\User\ContaoUserFa
 use Psr\Log\LoggerInterface;
 use Scheb\TwoFactorBundle\Security\Http\Authenticator\TwoFactorAuthenticator;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -71,6 +73,7 @@ class HitobitoAuthenticator extends AbstractAuthenticator
     public function __construct(
         #[Autowire('@contao.security.authentication_success_handler')]
         private readonly AuthenticationSuccessHandler $authenticationSuccessHandler,
+        private readonly EventDispatcherInterface $eventDispatcher,
         private readonly Connection $connection,
         private readonly ContaoFramework $framework,
         private readonly ContaoUserFactory $contaoUserFactory,
@@ -205,6 +208,8 @@ class HitobitoAuthenticator extends AbstractAuthenticator
                     $resourceOwner,
                 );
             }
+
+            // Capture Login Attempt
 
             // Check if we can find an email address in the resource owner claims.
             if (!$this->oAuthUserChecker->checkHasValidEmailAddress($oAuthUser)) {
@@ -364,6 +369,11 @@ class HitobitoAuthenticator extends AbstractAuthenticator
         // Let's clear it anyway just to be on the safe side.
         $this->errorMessageManager->clearFlash();
 
+        // Reset login attempts
+        $user = $token->getUser();
+        $user->ssoLoginAttempts = 0;
+        $user->save();
+
         // Get the user identifier aka sac member id
         $userIdentifier = $token->getUser()->getUserIdentifier();
 
@@ -435,6 +445,11 @@ class HitobitoAuthenticator extends AbstractAuthenticator
 
     protected function throwWithMessage(Request $request, string $errLevel, string $exceptionClass, ResourceOwnerInterface|null $resourceOwner = null, array $argsA = [], array $argsB = [], array $argsC = []): void
     {
+        // Throw AuthenticationFailureEvent
+        // We use a listener to increment tl_user.ssoLoginAttempts & tl_member.ssoLoginAttempts
+        $event = new AuthenticationFailureEvent($request, $errLevel, $exceptionClass, $resourceOwner, [$argsA, $argsB, $argsC]);
+        $this->eventDispatcher->dispatch($event);
+
         $msgKeyA = sprintf('ERR.sacOidcLoginError_%s_matter', $exceptionClass::KEY);
         $msgKeyB = sprintf('ERR.sacOidcLoginError_%s_howToFix', $exceptionClass::KEY);
         $msgKeyC = sprintf('ERR.sacOidcLoginError_%s_explain', $exceptionClass::KEY);
