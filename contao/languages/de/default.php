@@ -58,7 +58,7 @@ $GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_contaoBackendUserNotFound_howToFix
 $GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_contaoBackendUserNotFound_explain'] = 'Das Backend unserer Webseite ist nur aktiven Funktionären zugänglich.';
 
 $GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_contaoFrontendUserLoginNotEnabled_matter'] = 'Hallo %s{{br}}Schön bist du hier. Da dein Login im Moment noch nicht freigeschaltet ist oder nicht mehr aktiv ist, ist eine Anmeldung derzeit nicht möglich.';
-$GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_contaoFrontendUserLoginNotEnabled_howToFix'] = 'Melde dich bei unserem Webmaster, sollte es sich hierbei um einen Irrtum handeln.';
+$GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_contaoFrontendUserLoginNotEnabled_howToFix'] = 'Bei einer kürzlichen Mitgliedschaft-Mutation kann es einen Tag dauern, bis dein Konto wieder aktiviert ist. Ansonsten melde dich bei unserem Webmaster, sollte es sich hierbei um einen Irrtum handeln.';
 $GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_contaoFrontendUserLoginNotEnabled_explain'] = 'Deine Sektions-Mitgliedschaft muss im SAC-Portal auf https://portal.sac-cas.ch gültig sein.';
 
 $GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_contaoUserDisabled_matter'] = 'Hallo %s{{br}}Schön bist du hier. Da dein Konto deaktiviert ist, ist eine Anmeldung derzeit nicht möglich.';
