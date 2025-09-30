@@ -40,7 +40,8 @@ class LogoutController extends AbstractController
     }
 
     /**
-     * See: https://saccas.atlassian.net/wiki/spaces/DOC/pages/4491673605/Anleitung+SAC+Login+OIDC#%C3%9Cbersicht-verf%C3%BCgbare-OIDC-Scopes.
+     * See:
+     * https://saccas.atlassian.net/wiki/spaces/DOC/pages/4491673605/Anleitung+SAC+Login+OIDC#%C3%9Cbersicht-verf%C3%BCgbare-OIDC-Scopes.
      */
     #[Route('/_oauth2_login/hitobito/backend/logout', name: self::class.'Backend', defaults: ['_scope' => 'backend'])]
     #[Route('/_oauth2_login/hitobito/frontend/logout', name: self::class.'Frontend', defaults: ['_scope' => 'frontend'])]
@@ -51,7 +52,7 @@ class LogoutController extends AbstractController
         if (!$user instanceof BackendUser && !$user instanceof FrontendUser) {
             $json = [
                 'status' => 'warning',
-                'error' => sprintf('No Contao %s User found.', $_scope),
+                'error' => \sprintf('No Contao %s User found.', $_scope),
                 'withIdToken' => false,
                 'logoutUri' => $this->getPostLoginUri($_scope, $request),
             ];
@@ -62,7 +63,7 @@ class LogoutController extends AbstractController
         $idToken = $this->getIdToken($request, $_scope);
 
         // https://portal-test.sac-cas.ch/oidc/logout?id_token_hint=xyz&post_logout_redirect_uri=https%3A%2F%2Fmydomain.com%2Fcontao%2Flogout
-        $url = sprintf(
+        $url = \sprintf(
             '%s?id_token_hint=%s&post_logout_redirect_uri=%s',
             $this->logoutEndpoint,
             $idToken,

@@ -24,6 +24,7 @@ use Symfony\Component\Routing\Annotation\Route;
 class RedirectController extends AbstractController
 {
     public const string ROUTE_BACKEND = 'sac_login_redirect_backend';
+
     public const string ROUTE_FRONTEND = 'sac_login_redirect_frontend';
 
     public function __invoke(Request $request, string $_scope): Response

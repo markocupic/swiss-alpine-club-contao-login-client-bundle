@@ -68,7 +68,7 @@ class SacOauthFrontendLoginController extends AbstractFrontendModuleController
             $strRedirect = $request->getUri();
 
             if (!$model->redirectBack && $model->jumpTo) {
-                $redirectPage = $pageModelAdapter->findByPk($model->jumpTo);
+                $redirectPage = $pageModelAdapter->findById($model->jumpTo);
                 $strRedirect = $redirectPage instanceof PageModel ? $redirectPage->getAbsoluteUrl() : $strRedirect;
             }
 

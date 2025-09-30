@@ -15,11 +15,13 @@ declare(strict_types=1);
 namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\OAuth2\Client;
 
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\OAuth2\Client\Provider\ProviderFactory;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\Request;
 
 readonly class OAuth2ClientFactory
 {
     public function __construct(
+        #[Autowire('@markocupic.sac_oauth2_client.oauth2.client.provider.provider_factory')]
         private ProviderFactory $providerFactory,
     ) {
     }

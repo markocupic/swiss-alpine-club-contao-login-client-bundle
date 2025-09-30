@@ -22,12 +22,13 @@ use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\OAuth\OAuthUserCh
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
 
-final readonly class ContaoUserFactory
+readonly class ContaoUserFactory
 {
     public function __construct(
         private Connection $connection,
         private ContaoFramework $framework,
-        private OAuthUserChecker $resourceOwnerChecker,
+        #[Autowire('@markocupic.sac_oauth2_client.oauth2.security.oauth.oauth_user_checker')]
+        private OAuthUserChecker $oauthUserChecker,
         private PasswordHasherFactoryInterface $hasherFactory,
         private Util $util,
         #[Autowire('%sac_oauth2_client.oidc.allow_frontend_login_to_predefined_section_members_only%')]
@@ -43,7 +44,7 @@ final readonly class ContaoUserFactory
             $this->framework,
             $this->connection,
             $this->hasherFactory,
-            $this->resourceOwnerChecker,
+            $this->oauthUserChecker,
             $resourceOwner,
             $this->util,
             $contaoScope,

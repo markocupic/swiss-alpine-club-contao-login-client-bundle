@@ -19,5 +19,6 @@ use Symfony\Component\Security\Core\Exception\AuthenticationException;
 class ResourceOwnerHasInvalidSacMemberIdException extends AuthenticationException
 {
     public const string MESSAGE = 'Authentication process aborted! Resource owner has no sac member id.';
+
     public const string KEY = 'resourceOwnerHasInvalidSacMemberId';
 }

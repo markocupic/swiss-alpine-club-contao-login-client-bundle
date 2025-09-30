@@ -110,7 +110,8 @@ readonly class ProviderConfiguration
             'urlAccessToken' => $this->getTokenEndpoint() ?? '',
             // Absolute url to the "get resource owner details endpoint"
             'urlResourceOwnerDetails' => $this->getUserinfoEndpoint() ?? '',
-            // Absolute callback url to your login route (must be registered by the service provider.)
+            // Absolute callback url to your login route (must be registered by the
+            // service provider.)
             'redirectUri' => $this->getRedirectUrl(),
             'scopes' => $this->getScopes(),
         ];

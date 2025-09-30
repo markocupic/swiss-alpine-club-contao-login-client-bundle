@@ -36,7 +36,7 @@ readonly class ContaoUser
         private ContaoFramework $framework,
         private Connection $connection,
         private PasswordHasherFactoryInterface $hasherFactory,
-        private OAuthUserChecker $resourceOwnerChecker,
+        private OAuthUserChecker $oauthUserChecker,
         private ResourceOwnerInterface $resourceOwner,
         private Util $util,
         private string $contaoScope,
@@ -154,7 +154,7 @@ readonly class ContaoUser
     public function checkFrontendLoginIsEnabled(): bool
     {
         if (ContaoCoreBundle::SCOPE_FRONTEND !== $this->getContaoScope()) {
-            throw new \RuntimeException(sprintf('Scope must be frontend, "%s" given.', $this->getContaoScope()));
+            throw new \RuntimeException(\sprintf('Scope must be frontend, "%s" given.', $this->getContaoScope()));
         }
 
         $model = $this->getModel();
@@ -204,19 +204,20 @@ readonly class ContaoUser
             return;
         }
 
-        // Correctly format the section ids (the key is important!): e.g. [0 => '4250', 2 => '4252'] -> user is member of two SAC Sektionen/Ortsgruppen
-        $arrSectionIdsUserIsAllowed = array_map('strval', $this->resourceOwnerChecker->getAllowedSacSectionIds($this->getResourceOwner(), ContaoCoreBundle::SCOPE_FRONTEND));
+        // Correctly format the section ids (the key is important!): e.g. [0 => '4250', 2
+        // => '4252'] -> user is member of two SAC Sektionen/Ortsgruppen
+        $arrSectionIdsUserIsAllowed = array_map('strval', $this->oauthUserChecker->getAllowedSacSectionIds($this->getResourceOwner(), ContaoCoreBundle::SCOPE_FRONTEND));
         $arrSectionIdsAll = array_map('strval', array_keys($this->util->listSacSections()));
         $arrSectionIds = array_filter($arrSectionIdsAll, static fn ($v, $k) => \in_array($v, $arrSectionIdsUserIsAllowed, true), ARRAY_FILTER_USE_BOTH);
 
         // Update member details from JSON payload
         $set = [
-            // Be sure to set the correct data type!
-            // Otherwise, the record will be updated
-            // due to wrong type cast only.
-            //'mobile' => $this->beautifyPhoneNumber($this->getResourceOwner()->getPhone()),
-            //'phone' => $this->beautifyPhoneNumber($this->getResourceOwner()->getPhone()),
-            //'uuid' => $this->getResourceOwner()->getId(),
+            // Be sure to set the correct data type! Otherwise, the record will be
+            // updated due to wrong type cast only. mobile' =>
+            // $this->beautifyPhoneNumber($this->getResourceOwner()->getPhone()),
+            // phone' =>
+            // $this->beautifyPhoneNumber($this->getResourceOwner()->getPhone()), uuid'
+            // => $this->getResourceOwner()->getId(),
             'lastname' => $this->getResourceOwner()->getLastName(),
             'firstname' => $this->getResourceOwner()->getFirstName(),
             'street' => $this->getResourceOwner()->getStreet(),
@@ -230,9 +231,9 @@ readonly class ContaoUser
 
         // Member has to be member of a valid SAC section
         if ($this->allowFrontendLoginToPredefinedSectionMembersOnly) {
-            $set['isSacMember'] = !empty($this->resourceOwnerChecker->getAllowedSacSectionIds($this->getResourceOwner(), ContaoCoreBundle::SCOPE_FRONTEND)) ? 1 : 0;
+            $set['isSacMember'] = !empty($this->oauthUserChecker->getAllowedSacSectionIds($this->getResourceOwner(), ContaoCoreBundle::SCOPE_FRONTEND)) ? 1 : 0;
         } else {
-            $set['isSacMember'] = $this->resourceOwnerChecker->isSacMember($this->getResourceOwner(), $this->contaoScope) ? 1 : 0;
+            $set['isSacMember'] = $this->oauthUserChecker->isSacMember($this->getResourceOwner(), $this->contaoScope) ? 1 : 0;
         }
 
         // Add member groups
@@ -277,18 +278,19 @@ readonly class ContaoUser
             return;
         }
 
-        // Correctly format the section ids (the key is important!): e.g. [0 => '4250', 2 => '4252'] -> user is member of two SAC Sektionen/Ortsgruppen
-        $arrSectionIdsUserIsAllowed = array_map('strval', $this->resourceOwnerChecker->getAllowedSacSectionIds($this->getResourceOwner(), ContaoCoreBundle::SCOPE_BACKEND));
+        // Correctly format the section ids (the key is important!): e.g. [0 => '4250', 2
+        // => '4252'] -> user is member of two SAC Sektionen/Ortsgruppen
+        $arrSectionIdsUserIsAllowed = array_map('strval', $this->oauthUserChecker->getAllowedSacSectionIds($this->getResourceOwner(), ContaoCoreBundle::SCOPE_BACKEND));
         $arrSectionIdsAll = array_map('strval', array_keys($this->util->listSacSections()));
         $arrSectionIds = array_filter($arrSectionIdsAll, static fn ($v, $k) => \in_array($v, $arrSectionIdsUserIsAllowed, true), ARRAY_FILTER_USE_BOTH);
 
         $set = [
-            // Be sure to set the correct data type!
-            // Otherwise, the record will be updated
-            // due to wrong type cast only.
-            //'mobile' => $this->beautifyPhoneNumber($this->getResourceOwner()->getPhoneMobile()),
-            //'phone' => $this->beautifyPhoneNumber($this->getResourceOwner()->getPhonePrivate()),
-            //'uuid' => $this->getResourceOwner()->getId(),
+            // Be sure to set the correct data type! Otherwise, the record will be updated
+            // due to wrong type cast only. mobile' =>
+            // $this->beautifyPhoneNumber($this->getResourceOwner()->getPhoneMobile()),
+            // phone' =>
+            // $this->beautifyPhoneNumber($this->getResourceOwner()->getPhonePrivate()),
+            // uuid' => $this->getResourceOwner()->getId(),
             'lastname' => $this->getResourceOwner()->getLastName(),
             'firstname' => $this->getResourceOwner()->getFirstName(),
             'name' => $this->getResourceOwner()->getFullName(),
@@ -322,8 +324,7 @@ readonly class ContaoUser
     {
         $username = trim($username);
 
-        // Check if username is valid
-        // Security::MAX_USERNAME_LENGTH = 4096;
+        // Check if username is valid Security::MAX_USERNAME_LENGTH = 4096;
         if (\strlen($username) > UserBadge::MAX_USERNAME_LENGTH) {
             return false;
         }
@@ -337,7 +338,7 @@ readonly class ContaoUser
     public function activateMemberAccount(): void
     {
         if (ContaoCoreBundle::SCOPE_FRONTEND !== $this->getContaoScope()) {
-            throw new \RuntimeException(sprintf('Scope must be frontend, "%s" given.', $this->getContaoScope()));
+            throw new \RuntimeException(\sprintf('Scope must be frontend, "%s" given.', $this->getContaoScope()));
         }
 
         if (($model = $this->getModel()) !== null) {
@@ -381,7 +382,7 @@ readonly class ContaoUser
         $sacMemberId = $this->getResourceOwner()->getSacMemberId();
 
         if (!$this->isValidUsername($sacMemberId)) {
-            throw new \RuntimeException(sprintf('Could not create a new Contao Frontend User due to an invalid username "%s".', $sacMemberId));
+            throw new \RuntimeException(\sprintf('Could not create a new Contao Frontend User due to an invalid username "%s".', $sacMemberId));
         }
 
         if (null === $this->getModel('tl_member')) {

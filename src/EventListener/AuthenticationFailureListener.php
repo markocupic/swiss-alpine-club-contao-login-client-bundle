@@ -63,14 +63,14 @@ readonly class AuthenticationFailureListener
         $ssoLoginAttempts = $this->connection->fetchOne(
             'SELECT ssoLoginAttempts FROM '.$userTable.' WHERE sacMemberId = ?',
             [$sacMemberId],
-            [Types::INTEGER]
+            [Types::INTEGER],
         );
 
         if (false !== $ssoLoginAttempts) {
             $this->connection->update(
                 $userTable,
                 ['ssoLoginAttempts' => $ssoLoginAttempts + 1],
-                ['sacMemberId' => $sacMemberId]
+                ['sacMemberId' => $sacMemberId],
             );
         }
     }

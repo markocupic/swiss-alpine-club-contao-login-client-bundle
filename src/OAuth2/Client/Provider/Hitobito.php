@@ -32,11 +32,17 @@ class Hitobito extends AbstractProvider
     public const string ACCESS_TOKEN_RESOURCE_OWNER_ID = 'sub';
 
     protected string $scopeSeparator = ' ';
+
     protected string $urlAuthorize;
+
     protected string $urlAccessToken;
+
     protected string $urlResourceOwnerDetails;
+
     protected array $scopes = [];
+
     protected string $responseError = 'error';
+
     protected EventDispatcherInterface $eventDispatcher;
 
     public function __construct(array $providerConfiguration, array $collaborators, EventDispatcherInterface $eventDispatcher)
@@ -68,12 +74,11 @@ class Hitobito extends AbstractProvider
     /**
      * Requests an access token using a specified grant and option set.
      *
-     * @param mixed                $grant
      * @param array<string, mixed> $options
      *
-     * @throws IdentityProviderException
-     *
      * @return AccessTokenInterface
+     *
+     * @throws IdentityProviderException
      */
     public function getAccessToken($grant, array $options = [])
     {

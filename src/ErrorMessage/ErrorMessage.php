@@ -17,6 +17,7 @@ namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage;
 final class ErrorMessage
 {
     public const string LEVEL_WARNING = 'warning';
+
     public const string LEVEL_ERROR = 'error';
 
     public function __construct(
@@ -26,7 +27,7 @@ final class ErrorMessage
         private readonly string $explain = '',
     ) {
         if (self::LEVEL_ERROR !== $level && self::LEVEL_WARNING !== $level) {
-            throw new \InvalidArgumentException(sprintf('First parameter must be either %s or %s, %s given.', self::LEVEL_WARNING, self::LEVEL_ERROR, $level));
+            throw new \InvalidArgumentException(\sprintf('First parameter must be either %s or %s, %s given.', self::LEVEL_WARNING, self::LEVEL_ERROR, $level));
         }
     }
 

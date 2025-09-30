@@ -29,8 +29,7 @@ class OAuthUser implements ResourceOwnerInterface
     }
 
     /**
-     * For testing purposes it is useful
-     * to override the user data with dummy data.
+     * For testing purposes it is useful to override the user data with dummy data.
      */
     public function overrideData($arrData): void
     {

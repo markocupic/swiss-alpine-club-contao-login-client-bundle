@@ -31,9 +31,6 @@ class MarkocupicSwissAlpineClubContaoLoginClientBundle extends Bundle
         return new MarkocupicSwissAlpineClubContaoLoginClientExtension();
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function build(ContainerBuilder $container): void
     {
         parent::build($container);

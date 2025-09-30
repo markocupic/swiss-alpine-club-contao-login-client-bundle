@@ -21,9 +21,6 @@ use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 
 class MarkocupicSwissAlpineClubContaoLoginClientExtension extends Extension
 {
-    /**
-     * {@inheritdoc}
-     */
     public function getAlias(): string
     {
         // Default root key would be markocupic_sac_oauth2_client
@@ -41,7 +38,7 @@ class MarkocupicSwissAlpineClubContaoLoginClientExtension extends Extension
 
         $loader = new YamlFileLoader(
             $container,
-            new FileLocator(__DIR__.'/../../config')
+            new FileLocator(__DIR__.'/../../config'),
         );
 
         $loader->load('services.yaml');

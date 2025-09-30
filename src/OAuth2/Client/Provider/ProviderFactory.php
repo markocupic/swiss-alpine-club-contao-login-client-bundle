@@ -15,12 +15,14 @@ declare(strict_types=1);
 namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\OAuth2\Client\Provider;
 
 use League\OAuth2\Client\Provider\AbstractProvider;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 readonly class ProviderFactory
 {
     public function __construct(
+        #[Autowire('@markocupic.sac_oauth2_client.oauth2.client.provider.provider_configuration')]
         private ProviderConfiguration $providerConfiguration,
         private EventDispatcherInterface $eventDispatcher,
     ) {
@@ -57,7 +59,7 @@ readonly class ProviderFactory
                     }
 
                     return true;
-                }
+                },
             );
         }
     }

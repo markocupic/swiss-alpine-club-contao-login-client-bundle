@@ -17,6 +17,8 @@ namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Config;
 final class ContaoLogConfig
 {
     public const string SAC_OAUTH2_DEBUG_LOG = 'SAC_SSO_DEBUG_LOG';
+
     public const string SAC_OAUTH2_FRONTEND_LOGIN_FAIL = 'SAC_SSO_FRONTEND_LOGIN_FAIL';
+
     public const string SAC_OAUTH2_BACKEND_LOGIN_FAIL = 'SAC_SSO_BACKEND_LOGIN_FAIL';
 }

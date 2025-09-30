@@ -19,5 +19,6 @@ use Symfony\Component\Security\Core\Exception\AuthenticationException;
 class ContaoFrontendUserNotFoundAuthenticationException extends AuthenticationException
 {
     public const string MESSAGE = 'Authentication process aborted! Contao frontend user not found.';
+
     public const string KEY = 'contaoFrontendUserNotFound';
 }

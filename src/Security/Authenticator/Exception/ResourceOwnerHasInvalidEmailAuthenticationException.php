@@ -19,5 +19,6 @@ use Symfony\Component\Security\Core\Exception\AuthenticationException;
 class ResourceOwnerHasInvalidEmailAuthenticationException extends AuthenticationException
 {
     public const string MESSAGE = 'Authentication process aborted! Resource owner has no/invalid email address.';
+
     public const string KEY = 'resourceOwnerHasInvalidEmail';
 }

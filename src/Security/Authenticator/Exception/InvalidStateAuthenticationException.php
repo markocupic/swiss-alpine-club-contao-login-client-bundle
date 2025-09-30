@@ -19,5 +19,6 @@ use Symfony\Component\Security\Core\Exception\AuthenticationException;
 class InvalidStateAuthenticationException extends AuthenticationException
 {
     public const string MESSAGE = 'Authentication process aborted! Invalid state parameter passed in callback URL.';
+
     public const string KEY = 'invalidState';
 }

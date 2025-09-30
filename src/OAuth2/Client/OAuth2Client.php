@@ -30,6 +30,7 @@ use Symfony\Component\HttpFoundation\Session\SessionBagInterface;
 class OAuth2Client
 {
     public const string OAUTH2_SESSION_STATE_KEY = 'oauth2state';
+
     private AbstractProvider|null $oAuthProvider = null;
 
     public function __construct(
@@ -39,8 +40,8 @@ class OAuth2Client
     }
 
     /**
-     * Creates a RedirectResponse that will send the user to the
-     * OAuth2 server at https://login-dev.sac-cas.ch/.
+     * Creates a RedirectResponse that will send the user to the OAuth2 server
+     * at https://login-dev.sac-cas.ch/.
      *
      * @param array $scopes  The scopes you want (leave empty to use default)
      * @param array $options Extra options to pass to the Provider's getAuthorizationUrl()
@@ -59,15 +60,16 @@ class OAuth2Client
 
         $this->getSession()->set(
             self::OAUTH2_SESSION_STATE_KEY,
-            $this->getOAuth2Provider()->getState()
+            $this->getOAuth2Provider()->getState(),
         );
 
         return new RedirectResponse($url);
     }
 
     /**
-     * Call this after the user is redirected back to get the access token.
-     * Add additional options ($options) that should be passed to the getAccessToken() of the underlying provider.
+     * Call this after the user is redirected back to get the access token. Add
+     * additional options ($options) that should be passed to the getAccessToken() of
+     * the underlying provider.
      *
      * @throws IdentityProviderException
      */
@@ -88,7 +90,7 @@ class OAuth2Client
 
         return $this->getOAuth2Provider()->getAccessToken(
             'authorization_code',
-            array_merge(['code' => $code], $options)
+            array_merge(['code' => $code], $options),
         );
     }
 
@@ -103,7 +105,7 @@ class OAuth2Client
     {
         return $this->getOAuth2Provider()->getAccessToken(
             'refresh_token',
-            array_merge(['refresh_token' => $refreshToken], $options)
+            array_merge(['refresh_token' => $refreshToken], $options),
         );
     }
 
@@ -118,8 +120,7 @@ class OAuth2Client
     /**
      * Shortcut to fetch the access token and user all at once.
      *
-     * Only use this if you don't need the access token, but only
-     * need the user.
+     * Only use this if you don't need the access token, but only need the user.
      *
      * @throws IdentityProviderException
      */

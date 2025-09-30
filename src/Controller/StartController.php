@@ -33,6 +33,7 @@ use Symfony\Component\Security\Http\Authenticator\AuthenticatorInterface;
 class StartController extends AbstractController
 {
     public const string LOGIN_ROUTE_BACKEND = 'swiss_alpine_club_login_backend_start';
+
     public const string LOGIN_ROUTE_FRONTEND = 'swiss_alpine_club_login_frontend_start';
 
     public function __construct(
@@ -55,7 +56,8 @@ class StartController extends AbstractController
             $targetPath = $request->get('_target_path', base64_encode($this->router->generate('contao_backend', [], UrlGeneratorInterface::ABSOLUTE_URL)));
             $failurePath = $request->get('_failure_path', base64_encode($this->router->generate('contao_backend', [], UrlGeneratorInterface::ABSOLUTE_URL)));
         } else {
-            // Frontend: If there is an authentication error, Contao will redirect the user back to the login form
+            // Frontend: If there is an authentication error, Contao will redirect the user
+            // back to the login form
             $failurePath = $request->get('_failure_path');
             $targetPath = $request->get('_target_path', base64_encode($request->getSchemeAndHttpHost()));
         }

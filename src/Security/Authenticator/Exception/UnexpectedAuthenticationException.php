@@ -19,5 +19,6 @@ use Symfony\Component\Security\Core\Exception\AuthenticationException;
 class UnexpectedAuthenticationException extends AuthenticationException
 {
     public const string MESSAGE = 'There has been an unexpected error.';
+
     public const string KEY = 'unexpected';
 }

@@ -38,3 +38,24 @@ services:
             - '_sac_oauth2_client_attr_frontend'
         calls:
             - [ 'setName', [ 'sac_oauth2_client_attr_frontend' ] ]
+
+    markocupic.sac_oauth2_client.oauth2.security.authenticator.hitobito_authenticator:
+        class: Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator\HitobitoAuthenticator
+
+    markocupic.sac_oauth2_client.oauth2.security.oauth.oauth_user_checker:
+        class: Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\OAuth\OAuthUserChecker
+
+    markocupic.sac_oauth2_client.security.user.contao_user_factory:
+        class: Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\User\ContaoUserFactory
+
+    markocupic.sac_oauth2_client.error_message.error_message_manager:
+        class: Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessageManager
+
+    markocupic.sac_oauth2_client.oauth2.client.oauth2_client_factory:
+        class: Markocupic\SwissAlpineClubContaoLoginClientBundle\OAuth2\Client\OAuth2ClientFactory
+
+    markocupic.sac_oauth2_client.oauth2.client.provider.provider_factory:
+        class: Markocupic\SwissAlpineClubContaoLoginClientBundle\OAuth2\Client\Provider\ProviderFactory
+
+    markocupic.sac_oauth2_client.oauth2.client.provider.provider_configuration:
+        class: Markocupic\SwissAlpineClubContaoLoginClientBundle\OAuth2\Client\Provider\ProviderConfiguration
