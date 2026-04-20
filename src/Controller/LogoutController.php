@@ -124,7 +124,12 @@ class LogoutController extends AbstractController
     private function getPostLoginUri(string $scope, Request $request): string
     {
         if ($request->query->get('post_logout_redirect_uri')) {
-            return base64_decode($request->query->get('post_logout_redirect_uri'), true);
+            $decoded = base64_decode($request->query->get('post_logout_redirect_uri'), true);
+            $decodedHost = $decoded ? parse_url($decoded, PHP_URL_HOST) : null;
+
+            if ($decodedHost && $decodedHost === $request->getHost()) {
+                return $decoded;
+            }
         }
 
         if (ContaoCoreBundle::SCOPE_BACKEND === $scope) {

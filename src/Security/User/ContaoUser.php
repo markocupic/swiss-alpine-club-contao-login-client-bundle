@@ -26,7 +26,6 @@ use League\OAuth2\Client\Provider\ResourceOwnerInterface;
 use Markocupic\SacEventToolBundle\DataContainer\Util;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\OAuth\OAuthUser;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\OAuth\OAuthUserChecker;
-use Random\Randomizer;
 use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
 use Symfony\Component\Security\Http\Authenticator\Passport\Badge\UserBadge;
 
@@ -403,8 +402,6 @@ readonly class ContaoUser
 
     private function generateRandomPassword(): string
     {
-        $randomInt = (new Randomizer())->getInt(1111111111111, 9999999999999);
-
-        return substr(md5((string) $randomInt), 0, 12);
+        return bin2hex(random_bytes(16));
     }
 }
