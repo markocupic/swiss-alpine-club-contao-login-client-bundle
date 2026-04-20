@@ -60,6 +60,8 @@ readonly class AuthenticationFailureListener
             return;
         }
 
+        $userTable = $this->connection->quoteIdentifier($userTable);
+
         $ssoLoginAttempts = $this->connection->fetchOne(
             'SELECT ssoLoginAttempts FROM '.$userTable.' WHERE sacMemberId = ?',
             [$sacMemberId],
