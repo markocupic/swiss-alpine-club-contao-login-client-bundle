@@ -6,7 +6,7 @@ services:
     Markocupic\SwissAlpineClubContaoLoginClientBundle\:
         resource: ../src/
         exclude: [
-            ../src/{ DependencyInjection,Model,Session,Exception },
+            ../src/{ DependencyInjection,Session,Exception },
             ../src/Config/ContaoLogConfig.php,
             ../src/ErrorMessage/ErrorMessage.php,
             ../src/OAuth2/Client/OAuth2Client.php,
@@ -15,6 +15,25 @@ services:
             ../src/Security/OAuth/OAuthUser.php,
             ../src/Security/User/ContaoUser.php,
         ]
+
+    _instanceof:
+        Symfony\Bundle\FrameworkBundle\Controller\AbstractController:
+            calls:
+                - [ setContainer, [ '@service_container' ] ]
+
+    # Autoconfigure seems not working properly. We have to register the service manually.
+    Markocupic\SwissAlpineClubContaoLoginClientBundle\EventSubscriber\KernelRequestSubscriber: ~
+
+    # Autoconfigure seems not working properly. We have to register the service manually.
+    Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\FrontendModule\SacOauthFrontendLoginController: ~
+
+    # Autoconfigure seems not working properly. We have to register the service manually.
+    Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\StartController:
+        public: true
+        tags: [ 'controller.service_arguments' ]
+
+    # Autoconfigure seems not working properly. We have to register the service manually.
+    Markocupic\SwissAlpineClubContaoLoginClientBundle\EventListener\Contao\ParseBackendTemplateListener: ~
 
     # Register session bags
     markocupic.sac_oauth2_client.session.factory:

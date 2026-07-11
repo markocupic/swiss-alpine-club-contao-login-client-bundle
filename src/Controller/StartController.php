@@ -16,7 +16,6 @@ namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller;
 
 use Contao\CoreBundle\Routing\ScopeMatcher;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\OAuth2\Client\OAuth2ClientFactory;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator\HitobitoAuthenticator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -37,8 +36,9 @@ class StartController extends AbstractController
     public const string LOGIN_ROUTE_FRONTEND = 'swiss_alpine_club_login_frontend_start';
 
     public function __construct(
-        #[Autowire(service: HitobitoAuthenticator::class)]
+        #[Autowire(service: 'markocupic.sac_oauth2_client.oauth2.security.authenticator.hitobito_authenticator')]
         private readonly AuthenticatorInterface $authenticator,
+        #[Autowire(service: 'markocupic.sac_oauth2_client.oauth2.client.oauth2_client_factory')]
         private readonly OAuth2ClientFactory $oAuth2ClientFactory,
         private readonly RouterInterface $router,
         private readonly ScopeMatcher $scopeMatcher,

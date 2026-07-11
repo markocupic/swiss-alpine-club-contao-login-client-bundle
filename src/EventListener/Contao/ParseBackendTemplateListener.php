@@ -27,7 +27,7 @@ use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
 
-#[AsHook('parseBackendTemplate')]
+#[AsHook('parseBackendTemplate', priority: 100)]
 readonly class ParseBackendTemplateListener
 {
     public function __construct(

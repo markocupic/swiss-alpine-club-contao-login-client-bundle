@@ -1,4 +1,7 @@
 body.be_login {
+  background-image: url("../img/logo_sac_small.svg");
+  background-size: 6em auto;
+
   #main {
     padding-bottom: 0;
   }
@@ -6,9 +9,6 @@ body.be_login {
   form.tl_login_form .formbody {
     padding-top: 0;
   }
-
-  background-image: url("../img/logo_sac_small.svg");
-  background-size: 6em auto;
 
   #mod_swiss_alpine_club_oidc_backend_login {
     padding: 45px;

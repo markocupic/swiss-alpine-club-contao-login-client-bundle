@@ -15,7 +15,6 @@ declare(strict_types=1);
 namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\EventSubscriber;
 
 use Contao\CoreBundle\Routing\ScopeMatcher;
-use JetBrains\PhpStorm\ArrayShape;
 use Symfony\Component\Asset\Packages;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
@@ -31,7 +30,6 @@ readonly class KernelRequestSubscriber implements EventSubscriberInterface
     ) {
     }
 
-    #[ArrayShape([KernelEvents::REQUEST => 'string'])]
     public static function getSubscribedEvents(): array
     {
         return [KernelEvents::REQUEST => 'loadAssets'];
