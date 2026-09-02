@@ -13,7 +13,7 @@ declare(strict_types=1);
  */
 
 // Legends
-$GLOBALS['TL_LANG']['tl_user']['sso_login_legend'] = 'SAC-Login-Einstellungen';
+$GLOBALS['TL_LANG']['tl_user']['sso_login_legend'] = 'SAC login settings';
 
 // Fields
-$GLOBALS['TL_LANG']['tl_user']['ssoLoginAttempts'] = ['Anzahl gescheiterter Login-Versuche', 'Hier sehen Sie die Anzahl der gescheiterten Login-Versuche.'];
+$GLOBALS['TL_LANG']['tl_user']['ssoLoginAttempts'] = ['Failed login attempts', 'Here you can see the number of failed login attempts.'];

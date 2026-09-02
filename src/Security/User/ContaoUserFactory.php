@@ -15,7 +15,6 @@ declare(strict_types=1);
 namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\User;
 
 use Contao\CoreBundle\Framework\ContaoFramework;
-use Doctrine\DBAL\Connection;
 use League\OAuth2\Client\Provider\ResourceOwnerInterface;
 use Markocupic\SacEventToolBundle\DataContainer\Util;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\OAuth\OAuthUserChecker;
@@ -25,7 +24,6 @@ use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
 readonly class ContaoUserFactory
 {
     public function __construct(
-        private Connection $connection,
         private ContaoFramework $framework,
         #[Autowire('@markocupic.sac_oauth2_client.oauth2.security.oauth.oauth_user_checker')]
         private OAuthUserChecker $oauthUserChecker,
@@ -42,7 +40,6 @@ readonly class ContaoUserFactory
     {
         return new ContaoUser(
             $this->framework,
-            $this->connection,
             $this->hasherFactory,
             $this->oauthUserChecker,
             $resourceOwner,

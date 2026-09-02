@@ -1,7 +1,8 @@
 {
+    "description": "Isolated PHPUnit installation. Keep the version ranges in sync with the require-dev section of the bundle.",
     "require": {
-        "phpunit/phpunit": "^9.5",
-        "contao/test-case": "^5.0"
+        "phpunit/phpunit": "^9.3 || ^10.0 || ^11.0 || ^12.0",
+        "contao/test-case": "^5.3"
     },
     "config": {
         "allow-plugins": {

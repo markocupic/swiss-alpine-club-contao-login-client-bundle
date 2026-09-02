@@ -34,16 +34,7 @@ use Markocupic\SwissAlpineClubContaoLoginClientBundle\Event\AuthenticationFailur
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\OAuth2\Client\OAuth2Client;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\OAuth2\Client\OAuth2ClientFactory;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\OAuth2\Client\Provider\Hitobito;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator\Exception\ContaoBackendUserNotFoundAuthenticationException;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator\Exception\ContaoFrontendUserLoginNotEnabledAuthenticationException;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator\Exception\ContaoFrontendUserNotFoundAuthenticationException;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator\Exception\ContaoUserDisabledAuthenticationException;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator\Exception\InvalidStateAuthenticationException;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator\Exception\MissingSacMembershipAuthenticationException;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator\Exception\NotMemberOfAllowedSectionAuthenticationException;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator\Exception\ResourceOwnerHasInvalidEmailAuthenticationException;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator\Exception\ResourceOwnerHasInvalidSacMemberIdException;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator\Exception\UnexpectedAuthenticationException;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator\Exception\SacLoginAuthenticationException;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\OAuth\OAuthUser;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\OAuth\OAuthUserChecker;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\RedirectPathValidator;
@@ -108,8 +99,8 @@ class HitobitoAuthenticator extends AbstractAuthenticator
         private readonly bool $allowFrontendLoginToPredefinedSectionMembersOnly,
         #[Autowire('%sac_oauth2_client.oidc.allow_backend_login_if_contao_account_is_disabled%')]
         private readonly bool $allowBackendLoginIfContaoAccountIsDisabled,
-        #[Autowire('%sac_oauth2_client.oidc.allow_frontend_login_if_contao_account_is_disabled%')]
-        private readonly bool $allowFrontendLoginIfContaoAccountIsDisabled,
+        #[Autowire('%sac_oauth2_client.oidc.reactivate_disabled_frontend_user_on_login%')]
+        private readonly bool $reactivateDisabledFrontendUserOnLogin,
         private readonly LoggerInterface|null $contaoAccessLogger = null,
     ) {
     }
@@ -139,11 +130,8 @@ class HitobitoAuthenticator extends AbstractAuthenticator
     {
         $oAuth2Client = $this->oAuth2ClientFactory->createOAuth2Client($request);
 
-        // Fetch the authorization URL from the provider; this returns the urlAuthorize
-        // option and generates and applies any necessary parameters (e.g. state).
-        // authorizationUrl =
-        // $oAuth2Client->getOAuth2Provider()->getAuthorizationUrl(['response_type' =>
-        // 'id_token','response_mode' => 'query']);
+        // Fetch the authorization URL from the provider;
+        // this returns the urlAuthorize option and generates and applies any necessary parameters (e.g. state).
         $authorizationUrl = $oAuth2Client->getOAuth2Provider()->getAuthorizationUrl(['response_mode' => 'query']);
 
         $sessionBag = $this->getSessionBag($request);
@@ -164,7 +152,11 @@ class HitobitoAuthenticator extends AbstractAuthenticator
         $blnAutoCreateContaoUser = ContaoCoreBundle::SCOPE_FRONTEND === $contaoScope ? $this->autoCreateFrontendUser : $this->autoCreateBackendUser;
         $blnAllowLoginToSacMembersOnly = ContaoCoreBundle::SCOPE_FRONTEND === $contaoScope ? $this->allowFrontendLoginToSacMembersOnly : $this->allowBackendLoginToSacMembersOnly;
         $blnAllowLoginToPredefinedSectionsOnly = ContaoCoreBundle::SCOPE_FRONTEND === $contaoScope ? $this->allowFrontendLoginToPredefinedSectionMembersOnly : $this->allowBackendLoginToPredefinedSectionMembersOnly;
-        $blnAllowContaoLoginIfAccountIsDisabled = ContaoCoreBundle::SCOPE_FRONTEND === $contaoScope ? $this->allowFrontendLoginIfContaoAccountIsDisabled : $this->allowBackendLoginIfContaoAccountIsDisabled;
+        // In the frontend a disabled account is reactivated on login,
+        // in the backend it is only let through.
+        // Reactivating implies letting through, hence the one flag.
+        $blnReactivateDisabledFrontendUser = ContaoCoreBundle::SCOPE_FRONTEND === $contaoScope && $this->reactivateDisabledFrontendUserOnLogin;
+        $blnAllowLoginIfAccountIsDisabled = ContaoCoreBundle::SCOPE_FRONTEND === $contaoScope ? $this->reactivateDisabledFrontendUserOnLogin : $this->allowBackendLoginIfContaoAccountIsDisabled;
 
         try {
             /** @var OAuth2Client $client */
@@ -174,7 +166,7 @@ class HitobitoAuthenticator extends AbstractAuthenticator
                 $this->throwWithMessage(
                     $request,
                     ErrorMessage::LEVEL_ERROR,
-                    InvalidStateAuthenticationException::class,
+                    LoginFailureReason::InvalidState,
                     null,
                 );
             }
@@ -189,11 +181,9 @@ class HitobitoAuthenticator extends AbstractAuthenticator
                 'code' => $request->query->get('code'),
             ]);
 
-            // Get the resource owner object.
-            /** @var OAuthUser $resourceOwner */
-            $resourceOwner = $oAuth2Client->fetchUserFromToken($accessToken);
-
-            // Create the resource owner wrapper, with which we will now do a handful of checks.
+            // Get the resource owner. This is an HTTP request to the userinfo endpoint,
+            // so we fetch it once and reuse the result.
+            /** @var OAuthUser $oAuthUser */
             $oAuthUser = $oAuth2Provider->getResourceOwner($accessToken);
 
             if ($this->isDebugMode) {
@@ -201,10 +191,10 @@ class HitobitoAuthenticator extends AbstractAuthenticator
                 $logText = \sprintf(
                     'SAC oauth2 debug %s login. NAME: %s - SAC MEMBER ID: %s - ROLES: %s - DATA ALL: %s',
                     $contaoScope,
-                    $resourceOwner->getFullName(),
-                    $resourceOwner->getSacMemberId(),
-                    $resourceOwner->getRolesAsString(),
-                    json_encode($resourceOwner->toArray(), JSON_UNESCAPED_SLASHES), // Do not escape slashes in links: https://portal.sac-cas.ch/verify_membership/kfDSFsdf...
+                    $oAuthUser->getFullName(),
+                    $oAuthUser->getSacMemberId(),
+                    $oAuthUser->getRolesAsString(),
+                    json_encode($oAuthUser->toArray(), JSON_UNESCAPED_SLASHES), // Do not escape slashes in links: https://portal.sac-cas.ch/verify_membership/kfDSFsdf...
                 );
 
                 $this->contaoAccessLogger?->info(
@@ -218,19 +208,19 @@ class HitobitoAuthenticator extends AbstractAuthenticator
                 $this->throwWithMessage(
                     $request,
                     ErrorMessage::LEVEL_WARNING,
-                    ResourceOwnerHasInvalidSacMemberIdException::class,
-                    $resourceOwner,
+                    LoginFailureReason::ResourceOwnerHasInvalidSacMemberId,
+                    $oAuthUser,
                 );
             }
 
-            // Capture Login Attempt Check if we can find an email address in the resource
-            // owner claims.
+            // Capture Login Attempt Check if we can find an email address
+            // in the resource owner claims.
             if (!$this->oauthUserChecker->checkHasValidEmailAddress($oAuthUser)) {
                 $this->throwWithMessage(
                     $request,
                     ErrorMessage::LEVEL_WARNING,
-                    ResourceOwnerHasInvalidEmailAuthenticationException::class,
-                    $resourceOwner,
+                    LoginFailureReason::ResourceOwnerHasInvalidEmail,
+                    $oAuthUser,
                     [$oAuthUser->getFirstName()],
                 );
             }
@@ -241,8 +231,8 @@ class HitobitoAuthenticator extends AbstractAuthenticator
                     $this->throwWithMessage(
                         $request,
                         ErrorMessage::LEVEL_WARNING,
-                        MissingSacMembershipAuthenticationException::class,
-                        $resourceOwner,
+                        LoginFailureReason::MissingSacMembership,
+                        $oAuthUser,
                         [$oAuthUser->getFirstName()],
                     );
                 }
@@ -254,8 +244,8 @@ class HitobitoAuthenticator extends AbstractAuthenticator
                     $this->throwWithMessage(
                         $request,
                         ErrorMessage::LEVEL_WARNING,
-                        NotMemberOfAllowedSectionAuthenticationException::class,
-                        $resourceOwner,
+                        LoginFailureReason::NotMemberOfAllowedSection,
+                        $oAuthUser,
                         [$oAuthUser->getFirstName()],
                     );
                 }
@@ -277,8 +267,8 @@ class HitobitoAuthenticator extends AbstractAuthenticator
                     $this->throwWithMessage(
                         $request,
                         ErrorMessage::LEVEL_WARNING,
-                        ContaoFrontendUserNotFoundAuthenticationException::class,
-                        $resourceOwner,
+                        LoginFailureReason::ContaoFrontendUserNotFound,
+                        $oAuthUser,
                         [$oAuthUser->getFirstName()],
                     );
                 }
@@ -287,15 +277,15 @@ class HitobitoAuthenticator extends AbstractAuthenticator
                     $this->throwWithMessage(
                         $request,
                         ErrorMessage::LEVEL_WARNING,
-                        ContaoBackendUserNotFoundAuthenticationException::class,
-                        $resourceOwner,
+                        LoginFailureReason::ContaoBackendUserNotFound,
+                        $oAuthUser,
                         [$oAuthUser->getFirstName()],
                     );
                 }
             }
 
-            // Allow login to frontend users only if account is not disabled.
-            if ($blnAllowContaoLoginIfAccountIsDisabled && $this->scopeMatcher->isFrontendRequest($request)) {
+            // Permanently reactivate the member account, see the configuration reference.
+            if ($blnReactivateDisabledFrontendUser) {
                 // Set tl_member.disable = false
                 $contaoUser->activateMemberAccount();
             }
@@ -306,8 +296,8 @@ class HitobitoAuthenticator extends AbstractAuthenticator
                     $this->throwWithMessage(
                         $request,
                         ErrorMessage::LEVEL_WARNING,
-                        ContaoFrontendUserLoginNotEnabledAuthenticationException::class,
-                        $resourceOwner,
+                        LoginFailureReason::ContaoFrontendUserLoginNotEnabled,
+                        $oAuthUser,
                         [$oAuthUser->getFirstName()],
                     );
                 }
@@ -317,12 +307,12 @@ class HitobitoAuthenticator extends AbstractAuthenticator
             // tl_user.start and tl_user.stop are not in an allowed time range If Contao
             // scope is 'frontend': Check if tl_member.disable === false or tl_member.start
             // and tl_member.stop are not in an allowed time range
-            if (!$contaoUser->checkAccountIsNotDisabled() && !$blnAllowContaoLoginIfAccountIsDisabled) {
+            if (!$contaoUser->checkAccountIsNotDisabled() && !$blnAllowLoginIfAccountIsDisabled) {
                 $this->throwWithMessage(
                     $request,
                     ErrorMessage::LEVEL_WARNING,
-                    ContaoUserDisabledAuthenticationException::class,
-                    $resourceOwner,
+                    LoginFailureReason::ContaoUserDisabled,
+                    $oAuthUser,
                     [$oAuthUser->getFirstName()],
                 );
             }
@@ -332,16 +322,33 @@ class HitobitoAuthenticator extends AbstractAuthenticator
             $contaoUser->updateBackendUser();
 
             return new SelfValidatingPassport(new UserBadge($contaoUser->getIdentifier()));
-        } catch (IdentityProviderException|AuthenticationException $e) {
-            throw new AuthenticationException($e->getMessage());
-        } catch (\Exception $e) {
-            $this->contaoAccessLogger?->info($e->getMessage());
+        } catch (AuthenticationException $e) {
+            // A login policy has rejected the resource owner. The event has been dispatched,
+            // the flash message is set and the attempt has been logged by
+            // throwWithMessage(), so we must not swallow the reason here.
+            throw $e;
+        } catch (IdentityProviderException $e) {
+            // The identity provider refused the token or the userinfo request.
+            $this->logUnexpectedError($request, 'the identity provider returned an error', $e);
 
             $this->throwWithMessage(
                 $request,
                 ErrorMessage::LEVEL_ERROR,
-                UnexpectedAuthenticationException::class,
-                $resourceOwner ?? null,
+                LoginFailureReason::Unexpected,
+                $oAuthUser ?? null,
+                previous: $e,
+            );
+        } catch (\Throwable $e) {
+            // Anything else is a bug or an infrastructure failure. The user gets a friendly
+            // message, but the log has to keep the stack trace.
+            $this->logUnexpectedError($request, 'an unexpected error occurred', $e);
+
+            $this->throwWithMessage(
+                $request,
+                ErrorMessage::LEVEL_ERROR,
+                LoginFailureReason::Unexpected,
+                $oAuthUser ?? null,
+                previous: $e,
             );
         }
     }
@@ -472,49 +479,78 @@ class HitobitoAuthenticator extends AbstractAuthenticator
         return $request->getSession()->getBag('sac_oauth2_client_attr_frontend');
     }
 
-    protected function throwWithMessage(Request $request, string $errLevel, string $exceptionClass, ResourceOwnerInterface|null $resourceOwner = null, array $argsA = [], array $argsB = [], array $argsC = []): void
+    protected function throwWithMessage(Request $request, string $errLevel, LoginFailureReason $reason, ResourceOwnerInterface|null $resourceOwner = null, array $argsA = [], array $argsB = [], array $argsC = [], \Throwable|null $previous = null): never
     {
-        // Throw AuthenticationFailureEvent We use a listener to increment
-        // tl_user.ssoLoginAttempts & tl_member.ssoLoginAttempts
-        $event = new AuthenticationFailureEvent($request, $errLevel, $exceptionClass, $resourceOwner, [$argsA, $argsB, $argsC]);
+        // Dispatch the AuthenticationFailureEvent.
+        // We use a listener to increment tl_user.ssoLoginAttempts & tl_member.ssoLoginAttempts
+        $event = new AuthenticationFailureEvent($request, $errLevel, $reason, $resourceOwner, [$argsA, $argsB, $argsC]);
         $this->eventDispatcher->dispatch($event);
-
-        $msgKeyA = \sprintf('ERR.sacOidcLoginError_%s_matter', $exceptionClass::KEY);
-        $msgKeyB = \sprintf('ERR.sacOidcLoginError_%s_howToFix', $exceptionClass::KEY);
-        $msgKeyC = \sprintf('ERR.sacOidcLoginError_%s_explain', $exceptionClass::KEY);
 
         $this->errorMessageManager->add2Flash(
             new ErrorMessage(
                 $errLevel,
-                $this->translator->trans($msgKeyA, $argsA, 'contao_default'),
-                $this->translator->trans($msgKeyB, $argsB, 'contao_default'),
-                $this->translator->trans($msgKeyC, $argsC, 'contao_default'),
+                $this->translator->trans($reason->getMatterTranslationKey(), $argsA, 'contao_default'),
+                $this->translator->trans($reason->getHowToFixTranslationKey(), $argsB, 'contao_default'),
+                $this->translator->trans($reason->getExplainTranslationKey(), $argsC, 'contao_default'),
             ),
         );
 
         if (null !== $this->contaoAccessLogger && null !== $resourceOwner) {
             $oAuthUser = new OAuthUser($resourceOwner->toArray(), Hitobito::ACCESS_TOKEN_RESOURCE_OWNER_ID);
 
-            // Log user claims if login fails.
+            // Who failed to log in and why. That is what the system log is for.
             $logText = \sprintf(
-                'SAC %s Login has failed for: %s - SAC MEMBER ID: %s - REASON: %s - EMAIL: %s - ROLES: %s - DATA ALL: %s',
+                'SAC %s Login has failed for: %s - SAC MEMBER ID: %s - REASON: %s',
                 $this->scopeMatcher->isFrontendRequest($request) ? 'Frontend' : 'Backend',
                 $oAuthUser->getFullName(),
                 $oAuthUser->getSacMemberId(),
-                $exceptionClass::KEY,
-                $oAuthUser->getEmail(),
-                $this->isDebugMode ? $oAuthUser->getRolesAsString() : 'Please activate the debug mode to get more information about the user.',
-                json_encode($oAuthUser->toArray(), JSON_UNESCAPED_SLASHES), // Do not escape slashes in links: https://portal.sac-cas.ch/verify_membership/kfDSFsdf...
+                $reason->value,
             );
 
+            // The claims contain personal data (address, date of birth, phone number),
+            // which every backend user with access to the system log would get to see.
+            // They are only of interest while debugging, so that is where they stay.
+            if ($this->isDebugMode) {
+                $logText .= \sprintf(
+                    ' - EMAIL: %s - ROLES: %s - DATA ALL: %s',
+                    $oAuthUser->getEmail(),
+                    $oAuthUser->getRolesAsString(),
+                    json_encode($oAuthUser->toArray(), JSON_UNESCAPED_SLASHES), // Do not escape slashes in links: https://portal.sac-cas.ch/verify_membership/kfDSFsdf...
+                );
+            }
+
             $this->contaoAccessLogger->info($logText, [
-                'contao' => new ContaoContext(
-                    __METHOD__,
-                    $this->scopeMatcher->isFrontendRequest($request) ? ContaoLogConfig::SAC_OAUTH2_FRONTEND_LOGIN_FAIL : ContaoLogConfig::SAC_OAUTH2_BACKEND_LOGIN_FAIL,
-                ),
+                'contao' => new ContaoContext(__METHOD__, $this->getLoginFailLogCategory($request)),
             ]);
         }
 
-        throw new $exceptionClass($exceptionClass::MESSAGE);
+        throw new SacLoginAuthenticationException($reason, $previous);
+    }
+
+    /**
+     * Log a technical failure with its stack trace, so it does not hide behind the
+     * friendly "unexpected error" message the user gets to see.
+     */
+    private function logUnexpectedError(Request $request, string $what, \Throwable $e): void
+    {
+        $this->contaoAccessLogger?->error(
+            \sprintf(
+                'SAC oauth2 %s login failed, %s: %s',
+                $this->scopeMatcher->isFrontendRequest($request) ? 'frontend' : 'backend',
+                $what,
+                $e->getMessage(),
+            ),
+            [
+                'contao' => new ContaoContext(__METHOD__, $this->getLoginFailLogCategory($request)),
+                'exception' => $e,
+            ],
+        );
+    }
+
+    private function getLoginFailLogCategory(Request $request): string
+    {
+        return $this->scopeMatcher->isFrontendRequest($request)
+            ? ContaoLogConfig::SAC_OAUTH2_FRONTEND_LOGIN_FAIL
+            : ContaoLogConfig::SAC_OAUTH2_BACKEND_LOGIN_FAIL;
     }
 }

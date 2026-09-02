@@ -21,7 +21,6 @@ use Contao\FrontendUser;
 use Contao\MemberModel;
 use Contao\StringUtil;
 use Contao\UserModel;
-use Doctrine\DBAL\Connection;
 use League\OAuth2\Client\Provider\ResourceOwnerInterface;
 use Markocupic\SacEventToolBundle\DataContainer\Util;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\OAuth\OAuthUser;
@@ -33,7 +32,6 @@ readonly class ContaoUser
 {
     public function __construct(
         private ContaoFramework $framework,
-        private Connection $connection,
         private PasswordHasherFactoryInterface $hasherFactory,
         private OAuthUserChecker $oauthUserChecker,
         private ResourceOwnerInterface $resourceOwner,
@@ -211,18 +209,12 @@ readonly class ContaoUser
 
         // Update member details from JSON payload
         $set = [
-            // Be sure to set the correct data type! Otherwise, the record will be
-            // updated due to wrong type cast only. mobile' =>
-            // $this->beautifyPhoneNumber($this->getResourceOwner()->getPhone()),
-            // phone' =>
-            // $this->beautifyPhoneNumber($this->getResourceOwner()->getPhone()), uuid'
-            // => $this->getResourceOwner()->getId(),
             'lastname' => $this->getResourceOwner()->getLastName(),
             'firstname' => $this->getResourceOwner()->getFirstName(),
             'street' => $this->getResourceOwner()->getStreet(),
             'city' => $this->getResourceOwner()->getCity(),
             'postal' => $this->getResourceOwner()->getPostal(),
-            'dateOfBirth' => false !== strtotime($this->getResourceOwner()->getDateOfBirth()) ? (string) strtotime($this->getResourceOwner()->getDateOfBirth()) : 0,
+            'dateOfBirth' => false !== strtotime($this->getResourceOwner()->getDateOfBirth()) ? (string) strtotime($this->getResourceOwner()->getDateOfBirth()) : '0',
             'gender' => $this->getResourceOwner()->getGender(),
             'email' => $this->getResourceOwner()->getEmail(),
             'sectionId' => serialize($arrSectionIds),
@@ -230,9 +222,9 @@ readonly class ContaoUser
 
         // Member has to be member of a valid SAC section
         if ($this->allowFrontendLoginToPredefinedSectionMembersOnly) {
-            $set['isSacMember'] = !empty($this->oauthUserChecker->getAllowedSacSectionIds($this->getResourceOwner(), ContaoCoreBundle::SCOPE_FRONTEND)) ? 1 : 0;
+            $set['isSacMember'] = !empty($this->oauthUserChecker->getAllowedSacSectionIds($this->getResourceOwner(), ContaoCoreBundle::SCOPE_FRONTEND));
         } else {
-            $set['isSacMember'] = $this->oauthUserChecker->isSacMember($this->getResourceOwner(), $this->contaoScope) ? 1 : 0;
+            $set['isSacMember'] = $this->oauthUserChecker->isSacMember($this->getResourceOwner(), $this->contaoScope);
         }
 
         // Add member groups
@@ -246,7 +238,7 @@ readonly class ContaoUser
                 }
             }
 
-            $set[$this->connection->quoteIdentifier('groups')] = serialize($arrGroups);
+            $set['groups'] = serialize($arrGroups);
         }
 
         // Set random password
@@ -255,15 +247,7 @@ readonly class ContaoUser
             $set['password'] = $encoder->hash($this->generateRandomPassword());
         }
 
-        if ($this->connection->update('tl_member', $set, ['id' => $objMember->id])) {
-            $set = [
-                'tstamp' => time(),
-            ];
-
-            $this->connection->update('tl_member', $set, ['id' => $objMember->id]);
-
-            $objMember->refresh();
-        }
+        $this->saveIfModified($objMember, $set);
     }
 
     /**
@@ -284,12 +268,6 @@ readonly class ContaoUser
         $arrSectionIds = array_filter($arrSectionIdsAll, static fn ($v, $k) => \in_array($v, $arrSectionIdsUserIsAllowed, true), ARRAY_FILTER_USE_BOTH);
 
         $set = [
-            // Be sure to set the correct data type! Otherwise, the record will be updated
-            // due to wrong type cast only. mobile' =>
-            // $this->beautifyPhoneNumber($this->getResourceOwner()->getPhoneMobile()),
-            // phone' =>
-            // $this->beautifyPhoneNumber($this->getResourceOwner()->getPhonePrivate()),
-            // uuid' => $this->getResourceOwner()->getId(),
             'lastname' => $this->getResourceOwner()->getLastName(),
             'firstname' => $this->getResourceOwner()->getFirstName(),
             'name' => $this->getResourceOwner()->getFullName(),
@@ -308,15 +286,7 @@ readonly class ContaoUser
             $set['password'] = $encoder->hash($this->generateRandomPassword());
         }
 
-        if ($this->connection->update('tl_user', $set, ['id' => $objUser->id])) {
-            $set = [
-                'tstamp' => time(),
-            ];
-
-            $this->connection->update('tl_user', $set, ['id' => $objUser->id]);
-
-            $objUser->refresh();
-        }
+        $this->saveIfModified($objUser, $set);
     }
 
     public function isValidUsername(string $username): bool
@@ -343,7 +313,6 @@ readonly class ContaoUser
         if (($model = $this->getModel()) !== null) {
             $model->disable = false;
             $model->save();
-            $model->refresh();
         }
     }
 
@@ -385,19 +354,38 @@ readonly class ContaoUser
         }
 
         if (null === $this->getModel('tl_member')) {
-            $set = [
-                'username' => $sacMemberId,
-                'sacMemberId' => $sacMemberId,
-                // 'uuid' => $this->getResourceOwner()->getId(),
-                'dateAdded' => time(),
-                'tstamp' => time(),
-                'login' => true,
-            ];
-
-            $this->connection->insert('tl_member', $set);
+            /** @var MemberModel $objMember */
+            $objMember = $this->framework->createInstance(MemberModel::class);
+            $objMember->username = $sacMemberId;
+            $objMember->sacMemberId = (int) $sacMemberId;
+            // $objMember->uuid = $this->getResourceOwner()->getId();
+            $objMember->dateAdded = time();
+            $objMember->tstamp = time();
+            $objMember->login = true;
+            $objMember->save();
 
             $this->updateFrontendUser();
         }
+    }
+
+    /**
+     * Apply the given values to the model and save it, if the record has actually
+     * changed. Only then is the tstamp bumped.
+     *
+     * @param array<string, mixed> $set
+     */
+    private function saveIfModified(MemberModel|UserModel $model, array $set): void
+    {
+        foreach ($set as $key => $value) {
+            $model->$key = $value;
+        }
+
+        if (!$model->isModified()) {
+            return;
+        }
+
+        $model->tstamp = time();
+        $model->save();
     }
 
     private function generateRandomPassword(): string

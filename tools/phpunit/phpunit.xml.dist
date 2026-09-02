@@ -11,7 +11,7 @@
     </php>
 
     <testsuites>
-        <testsuite name="MultipageForms Test Suite">
+        <testsuite name="Swiss Alpine Club Contao Login Client Bundle Test Suite">
             <directory>../../tests</directory>
         </testsuite>
     </testsuites>

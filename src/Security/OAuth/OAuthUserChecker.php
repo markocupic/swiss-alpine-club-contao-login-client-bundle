@@ -23,6 +23,13 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 readonly class OAuthUserChecker
 {
+    /**
+     * Hitobito layer group id => SAC section id.
+     *
+     * @var array<int, int>
+     */
+    private array $sectionIdMap;
+
     public function __construct(
         private ContaoFramework $framework,
         #[Autowire('%sac_oauth2_client.oidc.allowed_frontend_sac_section_ids%')]
@@ -33,7 +40,12 @@ readonly class OAuthUserChecker
         private array $allowedBackendRoles,
         #[Autowire('%sac_oauth2_client.oidc.allowed_backend_sac_section_ids%')]
         private array $allowedBackendSacSectionIds,
+        #[Autowire('%sac_oauth2_client.oidc.section_id_map%')]
+        string $sectionIdMap,
     ) {
+        // Decode once instead of once per role. The json has already been validated
+        // when the configuration was processed.
+        $this->sectionIdMap = json_decode($sectionIdMap, true, 512, JSON_THROW_ON_ERROR);
     }
 
     /**
@@ -123,7 +135,7 @@ readonly class OAuthUserChecker
      */
     public function isSacMember(ResourceOwnerInterface $oAuthUser, string $contaoScope): bool
     {
-        return !empty($oAuthUser->getSectionMembershipIDS($this->getAllowedRoles($contaoScope)));
+        return !empty($oAuthUser->getHitobitoLayerGroupIds($this->getAllowedRoles($contaoScope)));
     }
 
     /**
@@ -133,7 +145,10 @@ readonly class OAuthUserChecker
      */
     private function getSacSectionIds(ResourceOwnerInterface $oAuthUser, string $contaoScope): array
     {
-        return $oAuthUser->getSectionMembershipIDS($this->getAllowedRoles($contaoScope));
+        $layerGroupIds = $oAuthUser->getHitobitoLayerGroupIds($this->getAllowedRoles($contaoScope));
+
+        // todo: Remove the mapping once we have migrated to the new section id system.
+        return array_map(fn (int $id): int => $this->sectionIdMap[$id] ?? $id, $layerGroupIds);
     }
 
     private function getAllowedRoles(string $contaoScope): array

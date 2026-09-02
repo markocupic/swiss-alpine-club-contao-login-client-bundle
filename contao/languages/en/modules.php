@@ -17,4 +17,4 @@ use Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\FrontendModule\
 /*
  * Front end modules
  */
-$GLOBALS['TL_LANG']['FMD'][SacOauthFrontendLoginController::TYPE] = ['SAC/CAS-Portal Frontend Login', 'Login mit SAC/CAS-Portal Login.'];
+$GLOBALS['TL_LANG']['FMD'][SacOauthFrontendLoginController::TYPE] = ['SAC/CAS portal front end login', 'Login with the SAC/CAS portal login.'];

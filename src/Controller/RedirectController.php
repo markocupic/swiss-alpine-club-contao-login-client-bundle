@@ -19,7 +19,7 @@ use Contao\CoreBundle\Routing\ScopeMatcher;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessage;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessageManager;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\OAuth2\Client\OAuth2ClientFactory;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator\Exception\MissingAuthCodeAuthenticationException;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator\LoginFailureReason;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\RedirectPathValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -86,14 +86,14 @@ class RedirectController extends AbstractController
 
     private function addErrorMessage(): void
     {
-        $key = MissingAuthCodeAuthenticationException::KEY;
+        $reason = LoginFailureReason::MissingAuthCode;
 
         $this->errorMessageManager->add2Flash(
             new ErrorMessage(
                 ErrorMessage::LEVEL_ERROR,
-                $this->translator->trans(\sprintf('ERR.sacOidcLoginError_%s_matter', $key), [], 'contao_default'),
-                $this->translator->trans(\sprintf('ERR.sacOidcLoginError_%s_howToFix', $key), [], 'contao_default'),
-                $this->translator->trans(\sprintf('ERR.sacOidcLoginError_%s_explain', $key), [], 'contao_default'),
+                $this->translator->trans($reason->getMatterTranslationKey(), [], 'contao_default'),
+                $this->translator->trans($reason->getHowToFixTranslationKey(), [], 'contao_default'),
+                $this->translator->trans($reason->getExplainTranslationKey(), [], 'contao_default'),
             ),
         );
     }

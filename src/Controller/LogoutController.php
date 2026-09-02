@@ -17,9 +17,8 @@ namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller;
 use Contao\BackendUser;
 use Contao\CoreBundle\ContaoCoreBundle;
 use Contao\FrontendUser;
-use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\Types\Types;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\RedirectPathValidator;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Session\IdTokenSessionKeys;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -32,7 +31,6 @@ use Symfony\Component\Routing\RouterInterface;
 class LogoutController extends AbstractController
 {
     public function __construct(
-        private readonly Connection $connection,
         private readonly RedirectPathValidator $redirectPathValidator,
         private readonly Security $security,
         private readonly RouterInterface $router,
@@ -82,45 +80,23 @@ class LogoutController extends AbstractController
         return new JsonResponse($json);
     }
 
+    /**
+     * Read the id_token that was stored when the access token was fetched and
+     * drop it right away: it is single use, it is only good for this logout.
+     */
     private function getIdToken(Request $request, string $scope): string|null
     {
-        $uuid = $this->getLoginSessionUuid($request, $scope);
-
-        if (empty($uuid)) {
+        if (!$request->hasSession()) {
             return null;
         }
 
-        $idToken = $this->getIdTokenFromSessionUuid($uuid);
-
-        return empty($idToken) ? null : $idToken;
-    }
-
-    private function getLoginSessionUuid(Request $request, string $scope): string|null
-    {
         $session = $request->getSession();
+        $key = IdTokenSessionKeys::forScope(ContaoCoreBundle::SCOPE_BACKEND === $scope);
 
-        if ('backend' === $scope) {
-            $uuid = $session->get('sac_login_session_backend');
-        } else {
-            $uuid = $session->get('sac_login_session_frontend');
-        }
+        $idToken = $session->get($key);
+        $session->remove($key);
 
-        return $uuid;
-    }
-
-    private function getIdTokenFromSessionUuid(string $uuid): string|null
-    {
-        try {
-            $idToken = $this->connection->fetchOne(
-                'SELECT id_token FROM tl_sac_login_session WHERE uuid = ?',
-                [$uuid],
-                [Types::STRING],
-            );
-        } catch (\Exception) {
-            return null;
-        }
-
-        return empty($idToken) ? null : $idToken;
+        return \is_string($idToken) && '' !== $idToken ? $idToken : null;
     }
 
     private function getPostLoginUri(string $scope, Request $request): string

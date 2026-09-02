@@ -15,42 +15,42 @@ declare(strict_types=1);
 namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\EventListener;
 
 use Contao\CoreBundle\Routing\ScopeMatcher;
-use Doctrine\DBAL\Connection;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Event\ParseAccessTokenEvent;
-use Ramsey\Uuid\Uuid;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Session\IdTokenSessionKeys;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 use Symfony\Component\HttpFoundation\RequestStack;
 
+/**
+ * Keep the id_token of the token response, so it can be sent as the
+ * id_token_hint when the user logs out at the identity provider.
+ */
 #[AsEventListener]
-class ParseAccessTokenListener
+readonly class ParseAccessTokenListener
 {
     public function __construct(
-        private readonly Connection $connection,
-        private readonly RequestStack $requestStack,
-        private readonly ScopeMatcher $scopeMatcher,
+        private RequestStack $requestStack,
+        private ScopeMatcher $scopeMatcher,
     ) {
     }
 
     public function __invoke(ParseAccessTokenEvent $event): void
     {
         $request = $this->requestStack->getCurrentRequest();
-        $session = $request->getSession();
-        $uuid = Uuid::uuid4()->toString();
-        $response = $event->getResponse();
 
-        if ($this->scopeMatcher->isBackendRequest($request)) {
-            $session->set('sac_login_session_backend', $uuid);
-        } else {
-            $session->set('sac_login_session_frontend', $uuid);
+        if (null === $request || !$request->hasSession()) {
+            return;
         }
 
-        $set = [
-            'tstamp' => time(),
-            'uuid' => $uuid,
-            'expires' => time() + 3600 * 24,
-            'id_token' => $response['id_token'],
-        ];
+        $idToken = $event->getResponse()['id_token'] ?? null;
 
-        $this->connection->insert('tl_sac_login_session', $set);
+        // The id_token is optional, e.g. if the "openid" scope has not been requested.
+        if (!\is_string($idToken) || '' === $idToken) {
+            return;
+        }
+
+        $request->getSession()->set(
+            IdTokenSessionKeys::forScope($this->scopeMatcher->isBackendRequest($request)),
+            $idToken,
+        );
     }
 }

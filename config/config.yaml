@@ -22,7 +22,7 @@ sac_oauth2_client:
         auto_create_frontend_user: false
         allow_frontend_login_to_sac_members_only: true
         allow_frontend_login_to_predefined_section_members_only: true
-        allow_frontend_login_if_contao_account_is_disabled: false
+        reactivate_disabled_frontend_user_on_login: false
         allowed_frontend_sac_section_ids:
         # - 4250 # Stammsektion
         # - 4251 # OG Surental

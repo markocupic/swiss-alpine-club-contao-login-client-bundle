@@ -23,7 +23,7 @@ $GLOBALS['TL_LANG']['MSC']['warningMatter'] = 'Login leider nicht möglich';
 $GLOBALS['TL_LANG']['MSC']['errorMatter'] = 'Login-Fehler';
 $GLOBALS['TL_LANG']['MSC']['errorHowToFix'] = 'Was kann ich tun?';
 $GLOBALS['TL_LANG']['MSC']['errorExplain'] = 'Erklärung';
-$GLOBALS['TL_LANG']['MSC']['or'] = 'or';
+$GLOBALS['TL_LANG']['MSC']['or'] = 'oder';
 
 $GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_invalidState_matter'] = 'Leider ist es beim Versuch dich einzuloggen zu einem Fehler gekommen (ungültiger State).';
 $GLOBALS['TL_LANG']['ERR']['sacOidcLoginError_invalidState_howToFix'] = 'Bitte probiere dich nochmals einzuloggen.';

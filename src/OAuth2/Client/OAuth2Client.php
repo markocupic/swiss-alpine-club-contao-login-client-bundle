@@ -16,14 +16,7 @@ namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\OAuth2\Client;
 
 use Contao\CoreBundle\ContaoCoreBundle;
 use League\OAuth2\Client\Provider\AbstractProvider;
-use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
-use League\OAuth2\Client\Provider\ResourceOwnerInterface;
-use League\OAuth2\Client\Token\AccessToken;
-use League\OAuth2\Client\Token\AccessTokenInterface;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\OAuth2\Client\Provider\ProviderFactory;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator\Exception\InvalidStateAuthenticationException;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator\Exception\MissingAuthCodeAuthenticationException;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\SessionBagInterface;
 
@@ -39,101 +32,6 @@ class OAuth2Client
         private readonly ProviderFactory $providerFactory,
         private readonly Request $request,
     ) {
-    }
-
-    /**
-     * Creates a RedirectResponse that will send the user to the OAuth2 server
-     * at https://login-dev.sac-cas.ch/.
-     *
-     * @param array $scopes  The scopes you want (leave empty to use default)
-     * @param array $options Extra options to pass to the Provider's getAuthorizationUrl()
-     *                       method. For example, <code>scope</code> is a common option.
-     *                       Generally, these become query parameters when redirecting.
-     *
-     * @throws \Exception
-     */
-    public function redirect(array $scopes = [], array $options = []): RedirectResponse
-    {
-        if (!empty($scopes)) {
-            $options['scope'] = $scopes;
-        }
-
-        $url = $this->getOAuth2Provider()->getAuthorizationUrl($options);
-
-        $this->getSession()->set(
-            self::OAUTH2_SESSION_STATE_KEY,
-            $this->getOAuth2Provider()->getState(),
-        );
-
-        $this->storePkceCode();
-
-        return new RedirectResponse($url);
-    }
-
-    /**
-     * Call this after the user is redirected back to get the access token. Add
-     * additional options ($options) that should be passed to the getAccessToken() of
-     * the underlying provider.
-     *
-     * @throws IdentityProviderException
-     */
-    public function getAccessToken(array $options = []): AccessToken|AccessTokenInterface
-    {
-        $expectedState = $this->getSession()->get(self::OAUTH2_SESSION_STATE_KEY);
-        $actualState = $this->request->get('state');
-
-        if (!$actualState || ($actualState !== $expectedState)) {
-            throw new InvalidStateAuthenticationException(InvalidStateAuthenticationException::MESSAGE);
-        }
-
-        $code = $this->request->get('code');
-
-        if (!$code) {
-            throw new MissingAuthCodeAuthenticationException(MissingAuthCodeAuthenticationException::MESSAGE);
-        }
-
-        return $this->getOAuth2Provider()->getAccessToken(
-            'authorization_code',
-            array_merge(['code' => $code], $options),
-        );
-    }
-
-    /**
-     * Get a new AccessToken from a refresh token.
-     *
-     * @param array $options Additional options that should be passed to the getAccessToken() of the underlying provider
-     *
-     * @throws IdentityProviderException If token cannot be fetched
-     */
-    public function refreshAccessToken(string $refreshToken, array $options = []): AccessToken|AccessTokenInterface
-    {
-        return $this->getOAuth2Provider()->getAccessToken(
-            'refresh_token',
-            array_merge(['refresh_token' => $refreshToken], $options),
-        );
-    }
-
-    /**
-     * Returns the "User" information (called a resource owner).
-     */
-    public function fetchUserFromToken(AccessToken $accessToken): ResourceOwnerInterface
-    {
-        return $this->getOAuth2Provider()->getResourceOwner($accessToken);
-    }
-
-    /**
-     * Shortcut to fetch the access token and user all at once.
-     *
-     * Only use this if you don't need the access token, but only need the user.
-     *
-     * @throws IdentityProviderException
-     */
-    public function fetchUser(): ResourceOwnerInterface
-    {
-        /** @var AccessToken $token */
-        $token = $this->getAccessToken();
-
-        return $this->fetchUserFromToken($token);
     }
 
     /**
@@ -209,11 +107,6 @@ class OAuth2Client
         return $this->getSession()->get('_failure_path', '');
     }
 
-    public function getModuleId(): string|null
-    {
-        return $this->getSession()->get('_module_id', null);
-    }
-
     public function setAlwaysUseTargetPath(bool $blnAlwaysUseTargetPath): void
     {
         $this->getSession()->set('_always_use_target_path', (string) $blnAlwaysUseTargetPath);
@@ -227,11 +120,6 @@ class OAuth2Client
     public function setFailurePath(string $failurePath): void
     {
         $this->getSession()->set('_failure_path', $failurePath);
-    }
-
-    public function setModuleId(string $moduleId): void
-    {
-        $this->getSession()->set('_module_id', $moduleId);
     }
 
     public function getSession(): SessionBagInterface

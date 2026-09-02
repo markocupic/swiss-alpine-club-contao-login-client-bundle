@@ -15,6 +15,7 @@ declare(strict_types=1);
 namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Event;
 
 use League\OAuth2\Client\Provider\ResourceOwnerInterface;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator\LoginFailureReason;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Contracts\EventDispatcher\Event;
 
@@ -23,7 +24,7 @@ class AuthenticationFailureEvent extends Event
     public function __construct(
         private readonly Request $request,
         private readonly string $errLevel,
-        private readonly string $exceptionClass,
+        private readonly LoginFailureReason $reason,
         private readonly ResourceOwnerInterface|null $resourceOwner,
         private readonly array $args = [],
     ) {
@@ -39,9 +40,9 @@ class AuthenticationFailureEvent extends Event
         return $this->errLevel;
     }
 
-    public function getExceptionClass(): string
+    public function getReason(): LoginFailureReason
     {
-        return $this->exceptionClass;
+        return $this->reason;
     }
 
     public function getResourceOwner(): ResourceOwnerInterface|null

@@ -4,9 +4,7 @@ cd..
 cd..
 cd..
 cd..
-cd..
-cd..
-cd..
-vendor\bin\ecs check vendor/markocupic/swiss-alpine-club-contao-login-client-bundle/src --fix --config vendor/markocupic/swiss-alpine-club-contao-login-client-bundle/tools/ecs/config/default.php
 
-cd vendor/markocupic/swiss-alpine-club-contao-login-client-bundle/tools/ecs/batch/fix
+../../../vendor\bin\ecs check src --fix --config tools/ecs/config/default.php
+
+cd tools/ecs/batch/fix

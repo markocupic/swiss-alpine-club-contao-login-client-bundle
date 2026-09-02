@@ -82,13 +82,6 @@ class StartController extends AbstractController
         $oAuthClient->setAlwaysUseTargetPath((bool) $request->get('_always_use_target_path', '0'));
         $oAuthClient->setFailurePath($failurePath);
 
-        if ($this->scopeMatcher->isFrontendRequest($request)) {
-            if (!$request->request->has('_module_id')) {
-                return new Response('Invalid request. Module id not found.', Response::HTTP_BAD_REQUEST);
-            }
-            $oAuthClient->setModuleId($request->request->get('_module_id'));
-        }
-
         return $this->authenticator->authorize($request);
     }
 }

@@ -60,7 +60,7 @@ sac_oauth2_client:
     auto_create_frontend_user: false
     allow_frontend_login_to_sac_members_only: true
     allow_frontend_login_to_predefined_section_members_only: true
-    allow_frontend_login_if_contao_account_is_disabled: false # Do not allow login if contao member account is disabled or login is set to false
+    reactivate_disabled_frontend_user_on_login: false # Achtung: reaktiviert das Konto dauerhaft. Siehe Hinweis unten.
     allowed_frontend_roles:
         - 'Group::SektionsMitglieder::Ehrenmitglied'
         - 'Group::SektionsMitglieder::MitgliedZusatzsektion'
@@ -89,6 +89,33 @@ sac_oauth2_client:
       - 4254 # OG Rigi
 
 ```
+
+### Hinweis zu `oidc.reactivate_disabled_frontend_user_on_login`
+
+Die Option hiess früher `allow_frontend_login_if_contao_account_is_disabled` und
+war damit zu freundlich benannt: sie lässt ein deaktiviertes Mitglied nicht nur
+herein, sie setzt `tl_member.disable` **dauerhaft** auf `false`. Ein Mitglied,
+das im Backend bewusst deaktiviert wurde, ist nach seinem nächsten SSO-Login
+wieder aktiv.
+
+Das Backend-Gegenstück `allow_backend_login_if_contao_account_is_disabled`
+verhält sich anders: es lässt den Benutzer herein, ohne `tl_user.disable` zu
+verändern. Die beiden Optionen sind bewusst nicht mehr symmetrisch benannt.
+
+Wer den alten Schlüssel gesetzt hat, muss ihn in `config/config.yaml`
+umbenennen — sonst bricht der Container-Aufbau mit „Unrecognized option" ab.
+
+### Upgrade-Hinweis: `tl_sac_login_session` entfällt
+
+Der `id_token`, der beim Logout als `id_token_hint` an den Identity Provider
+geht, liegt neu direkt in der Session statt in einer eigenen Tabelle. Damit
+entfallen die Tabelle `tl_sac_login_session`, ihr DCA und der tägliche
+Cron-Job, der abgelaufene Datensätze aufgeräumt hat.
+
+Beim nächsten Datenbank-Update bietet Contao die verwaiste Tabelle zum
+Löschen an. Wer zum Zeitpunkt des Updates eingeloggt ist, wird beim Logout
+lokal abgemeldet, aber nicht mehr beim Identity Provider – ein einmaliger
+Effekt, der sich mit dem nächsten Login erledigt.
 
 ### Hinweis zu `oidc.oauth_scopes`
 
