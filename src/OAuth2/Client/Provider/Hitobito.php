@@ -100,7 +100,7 @@ class Hitobito extends AbstractProvider
         $response = $this->getParsedResponse($request);
 
         if (false === \is_array($response)) {
-            throw new UnexpectedValueException('Invalid response received from Authorization Server. Expected JSON.');
+            throw new \UnexpectedValueException('Invalid response received from Authorization Server. Expected JSON.');
         }
 
         $event = new ParseAccessTokenEvent($request, $response);

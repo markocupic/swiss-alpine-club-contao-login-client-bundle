@@ -84,7 +84,7 @@ readonly class ContaoUser
             /** @var MemberModel $memberModelAdapter */
             $memberModelAdapter = $this->framework->getAdapter(MemberModel::class);
 
-            return $memberModelAdapter->findOneByUsername($this->getResourceOwner()->getSacMemberId());
+            return $memberModelAdapter->findOneBySacMemberId($this->getResourceOwner()->getSacMemberId());
         }
 
         if ('tl_user' === $strTable) {

@@ -28,6 +28,12 @@ class ArrayAttributeBag extends AttributeBag implements \ArrayAccess
 
     public function &offsetGet($offset): mixed
     {
+        // Initialize the attribute, otherwise returning it by reference would trigger a
+        // warning for undefined array keys.
+        if (!\array_key_exists($offset, $this->attributes)) {
+            $this->attributes[$offset] = null;
+        }
+
         return $this->attributes[$offset];
     }
 

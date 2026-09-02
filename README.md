@@ -34,7 +34,7 @@ Vor der Inbetriebnahme muss die App konfiguriert werden. Erstellen Sie dazu eine
 ```
 sac_oauth2_client:
   backend:
-    disable_contao_login: true ### Default to false
+    disable_contao_login: true ### Default to false. See the note below.
   oidc:
     # required
     client_id: '### Get your client id form SAC Schweiz ###'
@@ -46,7 +46,7 @@ sac_oauth2_client:
     client_auth_endpoint_frontend_route: 'sac_login_redirect_frontend'
     client_auth_endpoint_backend_route: 'sac_login_redirect_backend'
     debug_mode: false # Log resource owners details (Contao backend log)
-    auth_provider_endpoint_authorize: 'https://sac-cas.puzzle.ch/oauth/authorizee'
+    auth_provider_endpoint_authorize: 'https://sac-cas.puzzle.ch/oauth/authorize'
     auth_provider_endpoint_token: 'https://sac-cas.puzzle.ch/oauth/token'
     auth_provider_endpoint_userinfo: 'https://sac-cas.puzzle.ch/de/oauth/profile'
     auth_provider_endpoint_discovery: 'https://sac-cas.puzzle.ch/.well-known/openid-configuration'
@@ -62,7 +62,7 @@ sac_oauth2_client:
     allowed_frontend_roles:
         - 'Group::SektionsMitglieder::Ehrenmitglied'
         - 'Group::SektionsMitglieder::MitgliedZusatzsektion'
-        - 'Group::SektionsMitglieder::Mitglied
+        - 'Group::SektionsMitglieder::Mitglied'
     allowed_frontend_sac_section_ids:
       - 4250 # Stammsektion
       - 4251 # OG Surental
@@ -78,7 +78,7 @@ sac_oauth2_client:
     allowed_backend_roles:
         - 'Group::SektionsMitglieder::Ehrenmitglied'
         - 'Group::SektionsMitglieder::MitgliedZusatzsektion'
-        - 'Group::SektionsMitglieder::Mitglied
+        - 'Group::SektionsMitglieder::Mitglied'
     allowed_backend_sac_section_ids:
       - 4250 # Stammsektion
       - 4251 # OG Surental
@@ -87,3 +87,15 @@ sac_oauth2_client:
       - 4254 # OG Rigi
 
 ```
+
+### Hinweis zu `backend.disable_contao_login`
+
+Ist die Option aktiviert, wird das Contao-Login-Formular nicht nur ausgeblendet,
+sondern serverseitig abgewiesen: POST-Requests mit `FORM_SUBMIT=tl_login` im
+Backend-Scope beantwortet die Erweiterung mit `403 Forbidden`
+(`DisableContaoBackendLoginListener`).
+
+Damit ist eine Anmeldung im Backend **ausschliesslich** über den SAC-SSO-Login
+möglich. Fällt der Identity Provider aus, kommt niemand mehr ins Backend – der
+Ausweg ist, die Option in `config/config.yaml` wieder auf `false` zu setzen und
+den Cache zu leeren.

@@ -16,6 +16,7 @@ namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller;
 
 use Contao\CoreBundle\Routing\ScopeMatcher;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\OAuth2\Client\OAuth2ClientFactory;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\RedirectPathValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -40,6 +41,7 @@ class StartController extends AbstractController
         private readonly AuthenticatorInterface $authenticator,
         #[Autowire(service: 'markocupic.sac_oauth2_client.oauth2.client.oauth2_client_factory')]
         private readonly OAuth2ClientFactory $oAuth2ClientFactory,
+        private readonly RedirectPathValidator $redirectPathValidator,
         private readonly RouterInterface $router,
         private readonly ScopeMatcher $scopeMatcher,
         private readonly UriSigner $uriSigner,
@@ -62,12 +64,15 @@ class StartController extends AbstractController
             $targetPath = $request->get('_target_path', base64_encode($request->getSchemeAndHttpHost()));
         }
 
-        if (!$targetPath) {
-            return new Response('Invalid request. Target path not found.', Response::HTTP_BAD_REQUEST);
+        // Both paths are base64 encoded and user supplied, therefore we have to make
+        // sure they point to the current host. Otherwise, we would allow an attacker to
+        // use the login flow as an open redirect.
+        if (!\is_string($targetPath) || null === $this->redirectPathValidator->getSafePath($targetPath, $request)) {
+            return new Response('Invalid request. Target path is missing or not allowed.', Response::HTTP_BAD_REQUEST);
         }
 
-        if (!$failurePath) {
-            return new Response('Invalid request. Failure path not found.', Response::HTTP_BAD_REQUEST);
+        if (!\is_string($failurePath) || null === $this->redirectPathValidator->getSafePath($failurePath, $request)) {
+            return new Response('Invalid request. Failure path is missing or not allowed.', Response::HTTP_BAD_REQUEST);
         }
 
         $oAuthClient = $this->oAuth2ClientFactory->createOAuth2Client($request);

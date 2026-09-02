@@ -64,18 +64,10 @@ class Plugin implements ConfigPluginInterface, BundlePluginInterface, RoutingPlu
         foreach ($extensionConfigs as &$extensionConfig) {
             if (isset($extensionConfig['firewalls'], $extensionConfig['firewalls']['contao_frontend'])) {
                 $extensionConfig['firewalls']['contao_frontend']['custom_authenticators'][] = 'markocupic.sac_oauth2_client.oauth2.security.authenticator.hitobito_authenticator';
-
-                if (!isset($extensionConfig['firewalls']['contao_frontend']['entry_point'])) {
-                    $extensionConfig['firewalls']['contao_frontend']['entry_point'] = 'contao_login';
-                }
             }
 
             if (isset($extensionConfig['firewalls'], $extensionConfig['firewalls']['contao_backend'])) {
                 $extensionConfig['firewalls']['contao_backend']['custom_authenticators'][] = 'markocupic.sac_oauth2_client.oauth2.security.authenticator.hitobito_authenticator';
-
-                if (!isset($extensionConfig['firewalls']['contao_frontend']['entry_point'])) {
-                    $extensionConfig['firewalls']['contao_frontend']['entry_point'] = 'contao_login';
-                }
             }
         }
 

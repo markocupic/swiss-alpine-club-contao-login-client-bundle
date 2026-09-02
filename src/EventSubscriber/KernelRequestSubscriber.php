@@ -37,6 +37,10 @@ readonly class KernelRequestSubscriber implements EventSubscriberInterface
 
     public function loadAssets(RequestEvent $e): void
     {
+        if (!$e->isMainRequest()) {
+            return;
+        }
+
         $request = $e->getRequest();
 
         $GLOBALS['TL_JAVASCRIPT'][] = $this->packages->getUrl('js/ids-kill-session.js', 'markocupic_swiss_alpine_club_contao_login_client');

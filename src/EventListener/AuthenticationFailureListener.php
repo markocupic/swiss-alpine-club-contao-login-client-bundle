@@ -71,7 +71,8 @@ readonly class AuthenticationFailureListener
         if (false !== $ssoLoginAttempts) {
             $this->connection->update(
                 $userTable,
-                ['ssoLoginAttempts' => $ssoLoginAttempts + 1],
+                // Cap the counter, the column is a smallint(5) unsigned.
+                ['ssoLoginAttempts' => min((int) $ssoLoginAttempts + 1, 65535)],
                 ['sacMemberId' => $sacMemberId],
             );
         }

@@ -61,7 +61,7 @@ class Configuration implements ConfigurationInterface
                         ->arrayNode('oauth_scopes')
                             ->scalarPrototype()->end()
                             ->info('Array of allowed scopes: ["email", "name", "with_roles", "openid", "api", "events", "groups", "people", "invoices", "mailing_lists", "user_groups"].')
-                            ->defaultValue(['openid', 'with_roles', 'user_group'])
+                            ->defaultValue(['openid', 'with_roles', 'user_groups'])
                         ->end()
                         ->scalarNode('section_id_map')
                             ->cannotBeEmpty()

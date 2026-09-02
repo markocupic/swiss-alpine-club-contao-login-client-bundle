@@ -46,6 +46,7 @@ use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator\Exc
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator\Exception\UnexpectedAuthenticationException;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\OAuth\OAuthUser;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\OAuth\OAuthUserChecker;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\RedirectPathValidator;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\User\ContaoUserFactory;
 use Psr\Log\LoggerInterface;
 use Scheb\TwoFactorBundle\Security\Http\Authenticator\TwoFactorAuthenticator;
@@ -86,6 +87,7 @@ class HitobitoAuthenticator extends AbstractAuthenticator
         private readonly OAuth2ClientFactory $oAuth2ClientFactory,
         #[Autowire('@markocupic.sac_oauth2_client.oauth2.security.oauth.oauth_user_checker')]
         private readonly OAuthUserChecker $oauthUserChecker,
+        private readonly RedirectPathValidator $redirectPathValidator,
         private readonly RouterInterface $router,
         private readonly ScopeMatcher $scopeMatcher,
         private readonly TranslatorInterface $translator,
@@ -199,7 +201,7 @@ class HitobitoAuthenticator extends AbstractAuthenticator
                     json_encode($resourceOwner->toArray(), JSON_UNESCAPED_SLASHES), // Do not escape slashes in links: https://portal.sac-cas.ch/verify_membership/kfDSFsdf...
                 );
 
-                $this->contaoAccessLogger->info(
+                $this->contaoAccessLogger?->info(
                     $logText,
                     ['contao' => new ContaoContext(__METHOD__, ContaoLogConfig::SAC_OAUTH2_DEBUG_LOG)],
                 );
@@ -327,7 +329,7 @@ class HitobitoAuthenticator extends AbstractAuthenticator
         } catch (IdentityProviderException|AuthenticationException $e) {
             throw new AuthenticationException($e->getMessage());
         } catch (\Exception $e) {
-            $this->contaoAccessLogger->info($e->getMessage());
+            $this->contaoAccessLogger?->info($e->getMessage());
 
             $this->throwWithMessage(
                 $request,
@@ -366,8 +368,20 @@ class HitobitoAuthenticator extends AbstractAuthenticator
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): Response|null
     {
         $oAuth2Client = $this->oAuth2ClientFactory->createOAuth2Client($request);
-        $request->request->set('_target_path', $oAuth2Client->getTargetPath());
-        $request->request->set('_always_use_target_path', $oAuth2Client->getTargetPath());
+
+        // The target path has already been validated in the StartController, but we
+        // check it again, because Contao's authentication success handler redirects to
+        // it without any further validation.
+        $targetPath = $this->redirectPathValidator->getSafePath($oAuth2Client->getTargetPath(), $request);
+
+        if (null === $targetPath) {
+            $targetPath = $this->scopeMatcher->isBackendRequest($request)
+                ? $this->router->generate('contao_backend', [], UrlGeneratorInterface::ABSOLUTE_URL)
+                : $request->getSchemeAndHttpHost();
+        }
+
+        $request->request->set('_target_path', base64_encode($targetPath));
+        $request->request->set('_always_use_target_path', $oAuth2Client->getAlwaysUseTargetPath());
 
         // Clear the session
         $this->getSessionBag($request)->clear();
@@ -408,7 +422,7 @@ class HitobitoAuthenticator extends AbstractAuthenticator
             $userIdentifier,
         );
 
-        $this->contaoAccessLogger->info($logSuccess);
+        $this->contaoAccessLogger?->info($logSuccess);
 
         // Trigger the on authentication success handler from the Contao Core.
         return $this->authenticationSuccessHandler->onAuthenticationSuccess($request, $token);
@@ -424,12 +438,14 @@ class HitobitoAuthenticator extends AbstractAuthenticator
 
         $request->getSession()->set(SecurityRequestAttributes::AUTHENTICATION_ERROR, $exception);
 
-        // Get the failure path
+        // Get the failure path. Even though the path has already been validated in the
+        // StartController, we check it again because an unvalidated redirect target
+        // would turn the login flow into an open redirect.
         $oAuth2Client = $this->oAuth2ClientFactory->createOAuth2Client($request);
-        $failurePath = base64_decode($oAuth2Client->getFailurePath(), true);
+        $failurePath = $this->redirectPathValidator->getSafePath($oAuth2Client->getFailurePath(), $request);
 
-        // Let's play it safe and make sure we always have a redirect URL.
-        if (!$failurePath) {
+        // Let's play it safe and make sure we always have a valid redirect URL.
+        if (null === $failurePath) {
             if ($isFrontend) {
                 $failurePath = $request->getSchemeAndHttpHost();
                 $failurePath = $this->urlParser->addQueryString('sac-oidc-error=true', $failurePath);
@@ -473,7 +489,7 @@ class HitobitoAuthenticator extends AbstractAuthenticator
         if (null !== $this->contaoAccessLogger && null !== $resourceOwner) {
             $oAuthUser = new OAuthUser($resourceOwner->toArray(), Hitobito::ACCESS_TOKEN_RESOURCE_OWNER_ID);
 
-            // Log user claims, if login fails.
+            // Log user claims if login fails.
             $logText = \sprintf(
                 'SAC %s Login has failed for: %s - SAC MEMBER ID: %s - REASON: %s - EMAIL: %s - ROLES: %s - DATA ALL: %s',
                 $this->scopeMatcher->isFrontendRequest($request) ? 'Frontend' : 'Backend',

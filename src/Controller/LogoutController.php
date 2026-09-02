@@ -19,6 +19,7 @@ use Contao\CoreBundle\ContaoCoreBundle;
 use Contao\FrontendUser;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Types\Types;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\RedirectPathValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -32,6 +33,7 @@ class LogoutController extends AbstractController
 {
     public function __construct(
         private readonly Connection $connection,
+        private readonly RedirectPathValidator $redirectPathValidator,
         private readonly Security $security,
         private readonly RouterInterface $router,
         #[Autowire('%sac_oauth2_client.oidc.auth_provider_endpoint_logout%')]
@@ -123,12 +125,14 @@ class LogoutController extends AbstractController
 
     private function getPostLoginUri(string $scope, Request $request): string
     {
-        if ($request->query->get('post_logout_redirect_uri')) {
-            $decoded = base64_decode($request->query->get('post_logout_redirect_uri'), true);
-            $decodedHost = $decoded ? parse_url($decoded, PHP_URL_HOST) : null;
+        $postLogoutRedirectUri = $request->query->get('post_logout_redirect_uri');
 
-            if ($decodedHost && $decodedHost === $request->getHost()) {
-                return $decoded;
+        if (\is_string($postLogoutRedirectUri)) {
+            $decoded = $this->redirectPathValidator->getSafePath($postLogoutRedirectUri, $request);
+
+            if (null !== $decoded) {
+                // The identity provider needs an absolute url.
+                return str_starts_with($decoded, '/') ? $request->getSchemeAndHttpHost().$decoded : $decoded;
             }
         }
 

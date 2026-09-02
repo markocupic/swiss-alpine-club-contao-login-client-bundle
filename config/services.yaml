@@ -6,14 +6,14 @@ services:
     Markocupic\SwissAlpineClubContaoLoginClientBundle\:
         resource: ../src/
         exclude:
-            - ../src/{DependencyInjection,Session,Exception}
-            - ../src/Config/ContaoLogConfig.php
-            - ../src/ErrorMessage/ErrorMessage.php
-            - ../src/OAuth2/Client/OAuth2Client.php
-            - ../src/OAuth2/Client/Provider/SwissAlpineClub.php
-            - ../src/Security/Authenticator/Exception/
-            - ../src/Security/OAuth/OAuthUser.php
-            - ../src/Security/User/ContaoUser.php
+            - '../src/{DependencyInjection,Session,Exception}'
+            - '../src/Config/ContaoLogConfig.php'
+            - '../src/ErrorMessage/ErrorMessage.php'
+            - '../src/OAuth2/Client/OAuth2Client.php'
+            - '../src/OAuth2/Client/Provider/SwissAlpineClub.php'
+            - '../src/Security/Authenticator/Exception/'
+            - '../src/Security/OAuth/OAuthUser.php'
+            - '../src/Security/User/ContaoUser.php'
 
     _instanceof:
         Symfony\Bundle\FrameworkBundle\Controller\AbstractController:
