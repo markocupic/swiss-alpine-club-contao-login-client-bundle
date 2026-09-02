@@ -48,6 +48,11 @@ readonly class ProviderFactory
             'scopes',
         ]);
 
+        $resolver->setAllowedTypes('scopes', OAuthScope::class.'[]');
+
+        $resolver->setDefined('pkceMethod');
+        $resolver->setAllowedTypes('pkceMethod', PkceMethod::class);
+
         $urlKeys = ['urlAuthorize', 'urlAccessToken', 'urlResourceOwnerDetails', 'redirectUri'];
 
         foreach ($urlKeys as $key) {

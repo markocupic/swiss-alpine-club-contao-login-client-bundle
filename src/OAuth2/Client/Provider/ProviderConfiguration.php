@@ -22,6 +22,16 @@ use Symfony\Component\Routing\RouterInterface;
 
 readonly class ProviderConfiguration
 {
+    /**
+     * @var list<OAuthScope>
+     */
+    private array $oauthScopes;
+
+    private PkceMethod $pkceMethod;
+
+    /**
+     * @param list<string> $oauthScopes
+     */
     public function __construct(
         private RequestStack $requestStack,
         private RouterInterface $router,
@@ -41,8 +51,13 @@ readonly class ProviderConfiguration
         #[Autowire('%sac_oauth2_client.oidc.client_auth_endpoint_frontend_route%')]
         private string $frontendRedirectRoute,
         #[Autowire('%sac_oauth2_client.oidc.oauth_scopes%')]
-        private array $oauthScopes,
+        array $oauthScopes,
+        #[Autowire('%sac_oauth2_client.oidc.pkce_method%')]
+        string $pkceMethod,
     ) {
+        // The container parameters are plain strings, this is where they become enums.
+        $this->oauthScopes = array_map(OAuthScope::from(...), array_values($oauthScopes));
+        $this->pkceMethod = PkceMethod::from($pkceMethod);
     }
 
     public function getClientId(): string
@@ -93,9 +108,17 @@ readonly class ProviderConfiguration
         return $this->router->generate($route, [], UrlGeneratorInterface::ABSOLUTE_URL);
     }
 
+    /**
+     * @return list<OAuthScope>
+     */
     public function getScopes(): array
     {
         return $this->oauthScopes;
+    }
+
+    public function getPkceMethod(): PkceMethod
+    {
+        return $this->pkceMethod;
     }
 
     public function all(): array
@@ -114,6 +137,8 @@ readonly class ProviderConfiguration
             // service provider.)
             'redirectUri' => $this->getRedirectUrl(),
             'scopes' => $this->getScopes(),
+            // Proof Key for Code Exchange (RFC 7636)
+            'pkceMethod' => $this->getPkceMethod(),
         ];
     }
 }

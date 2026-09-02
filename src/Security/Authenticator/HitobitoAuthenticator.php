@@ -149,6 +149,9 @@ class HitobitoAuthenticator extends AbstractAuthenticator
         $sessionBag = $this->getSessionBag($request);
         $sessionBag->set('oauth2state', $oAuth2Client->getOAuth2Provider()->getState());
 
+        // Keep the PKCE code verifier for the token request.
+        $oAuth2Client->storePkceCode();
+
         return new RedirectResponse($authorizationUrl);
     }
 
@@ -177,6 +180,9 @@ class HitobitoAuthenticator extends AbstractAuthenticator
             }
 
             $oAuth2Provider = $oAuth2Client->getOAuth2Provider();
+
+            // Send the PKCE code verifier along with the token request.
+            $oAuth2Client->restorePkceCode();
 
             // Try to get an access token using the authorization code grant.
             $accessToken = $oAuth2Provider->getAccessToken('authorization_code', [

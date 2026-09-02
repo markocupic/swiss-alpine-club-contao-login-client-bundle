@@ -31,6 +31,8 @@ class OAuth2Client
 {
     public const string OAUTH2_SESSION_STATE_KEY = 'oauth2state';
 
+    public const string OAUTH2_SESSION_PKCE_CODE_KEY = 'oauth2pkceCode';
+
     private AbstractProvider|null $oAuthProvider = null;
 
     public function __construct(
@@ -62,6 +64,8 @@ class OAuth2Client
             self::OAUTH2_SESSION_STATE_KEY,
             $this->getOAuth2Provider()->getState(),
         );
+
+        $this->storePkceCode();
 
         return new RedirectResponse($url);
     }
@@ -144,6 +148,31 @@ class OAuth2Client
         $this->oAuthProvider = $this->providerFactory->createProvider();
 
         return $this->oAuthProvider;
+    }
+
+    /**
+     * Store the PKCE code verifier, which has been generated while building the
+     * authorization url. The provider is recreated on every request, therefore the
+     * verifier has to survive the redirect to the authorization server.
+     */
+    public function storePkceCode(): void
+    {
+        $this->getSession()->set(
+            self::OAUTH2_SESSION_PKCE_CODE_KEY,
+            $this->getOAuth2Provider()->getPkceCode(),
+        );
+    }
+
+    /**
+     * Restore the PKCE code verifier, so it can be sent to the token endpoint.
+     */
+    public function restorePkceCode(): void
+    {
+        $pkceCode = $this->getSession()->get(self::OAUTH2_SESSION_PKCE_CODE_KEY);
+
+        if (\is_string($pkceCode) && '' !== $pkceCode) {
+            $this->getOAuth2Provider()->setPkceCode($pkceCode);
+        }
     }
 
     public function hasValidOAuth2State(): bool

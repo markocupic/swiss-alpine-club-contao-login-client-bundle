@@ -50,6 +50,8 @@ sac_oauth2_client:
     auth_provider_endpoint_token: 'https://sac-cas.puzzle.ch/oauth/token'
     auth_provider_endpoint_userinfo: 'https://sac-cas.puzzle.ch/de/oauth/profile'
     auth_provider_endpoint_discovery: 'https://sac-cas.puzzle.ch/.well-known/openid-configuration'
+    pkce_method: 'S256' # Proof Key for Code Exchange (RFC 7636). 'S256' (default), 'plain' oder 'none'
+    oauth_scopes: [ 'openid', 'with_roles', 'user_groups' ] # Default. Siehe Hinweis unten.
     auth_provider_endpoint_logout: 'https://ids01.sac-cas.ch/oidc/logout'
 
     # optional frontend user settings
@@ -87,6 +89,26 @@ sac_oauth2_client:
       - 4254 # OG Rigi
 
 ```
+
+### Hinweis zu `oidc.oauth_scopes`
+
+Erlaubte Werte sind die Scopes des Hitobito-Providers und werden gegen das Enum
+`OAuthScope` validiert:
+`email`, `name`, `with_roles`, `openid`, `api`, `events`, `groups`, `people`,
+`invoices`, `mailing_lists`, `user_groups`.
+
+Ein Tippfehler führt bereits beim Cache-Aufbau zu einem Fehler, der die
+zulässigen Werte auflistet.
+
+### Hinweis zu `oidc.pkce_method`
+
+Der Client sendet standardmässig einen PKCE-Code-Challenge nach RFC 7636
+(`S256`). Der zugehörige Code-Verifier wird in der Session abgelegt und beim
+Abholen des Access Tokens als `code_verifier` mitgeschickt.
+
+Ob der Identity Provider PKCE unterstützt, steht im Discovery-Dokument unter
+`code_challenge_methods_supported`. Sollte der Provider mit einem Fehler
+antworten, kann PKCE mit `pkce_method: 'none'` abgeschaltet werden.
 
 ### Hinweis zu `backend.disable_contao_login`
 

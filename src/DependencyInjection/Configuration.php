@@ -14,6 +14,8 @@ declare(strict_types=1);
 
 namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\DependencyInjection;
 
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\OAuth2\Client\Provider\OAuthScope;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\OAuth2\Client\Provider\PkceMethod;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 
@@ -59,9 +61,16 @@ class Configuration implements ConfigurationInterface
                             ->defaultValue('https://sac-cas.puzzle.ch/.well-known/openid-configuration')
                         ->end()
                         ->arrayNode('oauth_scopes')
-                            ->scalarPrototype()->end()
-                            ->info('Array of allowed scopes: ["email", "name", "with_roles", "openid", "api", "events", "groups", "people", "invoices", "mailing_lists", "user_groups"].')
-                            ->defaultValue(['openid', 'with_roles', 'user_groups'])
+                            ->enumPrototype()
+                                ->values(OAuthScope::values())
+                            ->end()
+                            ->info(\sprintf('Array of allowed scopes: ["%s"].', implode('", "', OAuthScope::values())))
+                            ->defaultValue(OAuthScope::toStrings(OAuthScope::defaults()))
+                        ->end()
+                        ->enumNode('pkce_method')
+                            ->values(PkceMethod::values())
+                            ->defaultValue(PkceMethod::S256->value)
+                            ->info(\sprintf('Proof Key for Code Exchange (RFC 7636). Use "%s" to disable PKCE, "%s" is not recommended.', PkceMethod::None->value, PkceMethod::Plain->value))
                         ->end()
                         ->scalarNode('section_id_map')
                             ->cannotBeEmpty()

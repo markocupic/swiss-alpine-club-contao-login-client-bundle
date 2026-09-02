@@ -39,7 +39,12 @@ class Hitobito extends AbstractProvider
 
     protected string $urlResourceOwnerDetails;
 
+    /**
+     * @var list<OAuthScope>
+     */
     protected array $scopes = [];
+
+    protected PkceMethod $pkceMethod = PkceMethod::None;
 
     protected string $responseError = 'error';
 
@@ -48,7 +53,9 @@ class Hitobito extends AbstractProvider
     public function __construct(array $providerConfiguration, array $collaborators, EventDispatcherInterface $eventDispatcher)
     {
         foreach ($providerConfiguration as $key => $value) {
-            $this->$key = $value;
+            if (property_exists($this, $key)) {
+                $this->$key = $value;
+            }
         }
 
         $this->eventDispatcher = $eventDispatcher;
@@ -59,6 +66,16 @@ class Hitobito extends AbstractProvider
     public function getScopeSeparator(): string
     {
         return $this->scopeSeparator;
+    }
+
+    /**
+     * AbstractProvider::getPkceMethod() returns null and thus disables PKCE, so we
+     * have to make the configured method known to the parent class. The parent
+     * expects a plain string, therefore this is where the enum ends.
+     */
+    public function getPkceMethod(): string|null
+    {
+        return $this->pkceMethod->toProviderOption();
     }
 
     public function getBaseAuthorizationUrl(): string
@@ -121,9 +138,15 @@ class Hitobito extends AbstractProvider
         return new OAuthUser($response, self::ACCESS_TOKEN_RESOURCE_OWNER_ID);
     }
 
+    /**
+     * The parent implodes the scopes into a query string parameter, therefore this is
+     * where the enum ends.
+     *
+     * @return list<string>
+     */
     protected function getDefaultScopes(): array
     {
-        return $this->scopes;
+        return OAuthScope::toStrings($this->scopes);
     }
 
     protected function checkResponse(ResponseInterface $response, $data): void

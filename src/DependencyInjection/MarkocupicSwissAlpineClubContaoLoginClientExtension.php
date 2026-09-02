@@ -55,6 +55,7 @@ class MarkocupicSwissAlpineClubContaoLoginClientExtension extends Extension
         $container->setParameter($rootKey.'.oidc.add_to_frontend_user_groups', $config['oidc']['add_to_frontend_user_groups']);
         $container->setParameter($rootKey.'.oidc.auth_provider_endpoint_logout', $config['oidc']['auth_provider_endpoint_logout']);
         $container->setParameter($rootKey.'.oidc.oauth_scopes', $config['oidc']['oauth_scopes']);
+        $container->setParameter($rootKey.'.oidc.pkce_method', $config['oidc']['pkce_method']);
         $container->setParameter($rootKey.'.oidc.section_id_map', $config['oidc']['section_id_map']);
         $container->setParameter($rootKey.'.oidc.auto_create_frontend_user', $config['oidc']['auto_create_frontend_user']);
         $container->setParameter($rootKey.'.oidc.allow_frontend_login_to_sac_members_only', $config['oidc']['allow_frontend_login_to_sac_members_only']);
