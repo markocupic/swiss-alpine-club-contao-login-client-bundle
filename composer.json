@@ -52,6 +52,9 @@
         "allow-plugins": {
             "contao-components/installer": false,
             "contao/manager-plugin": false,
+            "contao-community-alliance/composer-plugin": true,
+            "markocupic/composer-file-copier-plugin": true,
+            "php-http/discovery": true,
             "dealerdirect/phpcodesniffer-composer-installer": true
         }
     },
