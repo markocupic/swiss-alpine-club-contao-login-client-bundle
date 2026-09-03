@@ -1,6 +1,18 @@
 {
-    "description": "Isolated PHPUnit installation. Keep the version in sync with the require-dev section of the bundle.",
+    "description": "Isolated PHPUnit installation. contao/test-case 5.3 pins phpunit to ^9.5, keep the ranges in sync with the require-dev section of the bundle.",
     "require": {
-        "phpunit/phpunit": "^12.4"
+        "contao/core-bundle": "^5.3",
+        "contao/test-case": "^5.3",
+        "phpunit/phpunit": "^9.5"
+    },
+    "config": {
+        "allow-plugins": {
+            "contao-components/installer": false,
+            "contao/manager-plugin": false,
+            "contao-community-alliance/composer-plugin": true,
+            "markocupic/composer-file-copier-plugin": true,
+            "php-http/discovery": true,
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        }
     }
 }

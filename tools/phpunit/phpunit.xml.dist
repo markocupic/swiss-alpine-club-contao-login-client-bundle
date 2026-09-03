@@ -9,6 +9,7 @@
          backupGlobals="false"
          bootstrap="../../tests/bootstrap.php"
          colors="true"
+         convertDeprecationsToExceptions="false"
          failOnRisky="true"
 >
     <php>

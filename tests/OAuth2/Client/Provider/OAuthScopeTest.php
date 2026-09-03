@@ -15,10 +15,11 @@ declare(strict_types=1);
 namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Tests\OAuth2\Client\Provider;
 
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\OAuth2\Client\Provider\OAuthScope;
-use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
-#[CoversClass(OAuthScope::class)]
+/**
+ * @covers \Markocupic\SwissAlpineClubContaoLoginClientBundle\OAuth2\Client\Provider\OAuthScope
+ */
 final class OAuthScopeTest extends TestCase
 {
     public function testTheDefaultsAreTheScopesNeededToIdentifyASacMember(): void

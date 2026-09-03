@@ -17,10 +17,11 @@ namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Tests\Security\OAuth
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\OAuth2\Client\Provider\Hitobito;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\OAuth\OAuthUser;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Tests\Fixtures\ResourceOwnerFixtures;
-use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
-#[CoversClass(OAuthUser::class)]
+/**
+ * @covers \Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\OAuth\OAuthUser
+ */
 final class OAuthUserTest extends TestCase
 {
     private const array ALLOWED_ROLES = [

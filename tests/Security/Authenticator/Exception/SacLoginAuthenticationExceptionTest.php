@@ -16,11 +16,12 @@ namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Tests\Security\Authe
 
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator\Exception\SacLoginAuthenticationException;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator\LoginFailureReason;
-use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
 
-#[CoversClass(SacLoginAuthenticationException::class)]
+/**
+ * @covers \Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator\Exception\SacLoginAuthenticationException
+ */
 final class SacLoginAuthenticationExceptionTest extends TestCase
 {
     public function testItCarriesTheReasonAndItsMessage(): void

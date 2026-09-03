@@ -56,7 +56,8 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                php: [ 8.3, 8.4, 8.5 ]
+                # PHPUnit 9.6 (pinned by contao/test-case 5.3) is not tested against PHP 8.5.
+                php: [ 8.3, 8.4 ]
         steps:
             -   name: Setup PHP
                 uses: shivammathur/setup-php@v2

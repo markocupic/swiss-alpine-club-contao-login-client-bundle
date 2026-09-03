@@ -15,23 +15,27 @@ declare(strict_types=1);
 namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Tests\Security\Authenticator;
 
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator\LoginFailureReason;
-use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
-#[CoversClass(LoginFailureReason::class)]
+/**
+ * @covers \Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator\LoginFailureReason
+ */
 final class LoginFailureReasonTest extends TestCase
 {
     private const string LANGUAGE_DIR = __DIR__.'/../../../contao/languages';
 
-    #[DataProvider('reasons')]
+    /**
+     * @dataProvider reasons
+     */
     public function testEveryReasonHasADeveloperMessage(LoginFailureReason $reason): void
     {
         // A missing match arm would raise an \UnhandledMatchError here.
         $this->assertNotSame('', $reason->getMessage(), $reason->name);
     }
 
-    #[DataProvider('reasons')]
+    /**
+     * @dataProvider reasons
+     */
     public function testTheTranslationKeysFollowTheAgreedShape(LoginFailureReason $reason): void
     {
         $this->assertSame('ERR.sacOidcLoginError_'.$reason->value.'_matter', $reason->getMatterTranslationKey());
@@ -42,8 +46,9 @@ final class LoginFailureReasonTest extends TestCase
     /**
      * The user facing message is looked up by the case value, so a new case without
      * translations would show a raw key to the member.
+     *
+     * @dataProvider languages
      */
-    #[DataProvider('languages')]
     public function testEveryReasonIsTranslated(string $language): void
     {
         $translations = self::loadTranslations($language);

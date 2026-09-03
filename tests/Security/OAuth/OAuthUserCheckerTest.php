@@ -22,10 +22,11 @@ use Markocupic\SwissAlpineClubContaoLoginClientBundle\OAuth2\Client\Provider\Hit
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\OAuth\OAuthUser;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\OAuth\OAuthUserChecker;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Tests\Fixtures\ResourceOwnerFixtures;
-use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
-#[CoversClass(OAuthUserChecker::class)]
+/**
+ * @covers \Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\OAuth\OAuthUserChecker
+ */
 final class OAuthUserCheckerTest extends TestCase
 {
     private const string ROLE_MEMBER = 'Group::SektionsMitglieder::Mitglied';

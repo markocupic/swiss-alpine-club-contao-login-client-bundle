@@ -17,13 +17,13 @@ namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Tests\OAuth2\Client\
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\OAuth2\Client\Provider\OAuthScope;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\OAuth2\Client\Provider\PkceMethod;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\OAuth2\Client\Provider\ProviderFactory;
-use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\OptionsResolver\Exception\InvalidOptionsException;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
-#[CoversClass(ProviderFactory::class)]
+/**
+ * @covers \Markocupic\SwissAlpineClubContaoLoginClientBundle\OAuth2\Client\Provider\ProviderFactory
+ */
 final class ProviderFactoryTest extends TestCase
 {
     public function testItAcceptsAValidConfiguration(): void
@@ -41,7 +41,9 @@ final class ProviderFactoryTest extends TestCase
         $this->assertArrayNotHasKey('pkceMethod', $options);
     }
 
-    #[DataProvider('endpointOptions')]
+    /**
+     * @dataProvider endpointOptions
+     */
     public function testTheEndpointsHaveToUseHttps(string $option): void
     {
         $this->expectException(InvalidOptionsException::class);

@@ -16,10 +16,11 @@ namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Tests\OAuth2\Client\
 
 use League\OAuth2\Client\Provider\AbstractProvider;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\OAuth2\Client\Provider\PkceMethod;
-use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
-#[CoversClass(PkceMethod::class)]
+/**
+ * @covers \Markocupic\SwissAlpineClubContaoLoginClientBundle\OAuth2\Client\Provider\PkceMethod
+ */
 final class PkceMethodTest extends TestCase
 {
     /**

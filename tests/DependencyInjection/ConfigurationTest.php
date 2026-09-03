@@ -17,13 +17,13 @@ namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Tests\DependencyInje
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\DependencyInjection\Configuration;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\OAuth2\Client\Provider\OAuthScope;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\OAuth2\Client\Provider\PkceMethod;
-use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\Definition\Processor;
 
-#[CoversClass(Configuration::class)]
+/**
+ * @covers \Markocupic\SwissAlpineClubContaoLoginClientBundle\DependencyInjection\Configuration
+ */
 final class ConfigurationTest extends TestCase
 {
     public function testTheDefaultsAreSafe(): void
@@ -50,13 +50,17 @@ final class ConfigurationTest extends TestCase
         }
     }
 
-    #[DataProvider('everyPkceMethod')]
+    /**
+     * @dataProvider everyPkceMethod
+     */
     public function testEveryPkceMethodOfTheEnumIsAccepted(string $method): void
     {
         $this->assertSame($method, self::process(['pkce_method' => $method])['oidc']['pkce_method']);
     }
 
-    #[DataProvider('everyScope')]
+    /**
+     * @dataProvider everyScope
+     */
     public function testEveryScopeOfTheEnumIsAccepted(string $scope): void
     {
         $this->assertSame([$scope], self::process(['oauth_scopes' => [$scope]])['oidc']['oauth_scopes']);
