@@ -32,7 +32,7 @@ class OAuthUser implements ResourceOwnerInterface
      */
     public function getId(): string
     {
-        return $this->arrData[$this->resourceOwnerId];
+        return $this->arrData[$this->resourceOwnerId] ?? '';
     }
 
     /**
