@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-    This file only exists so that PHPUnit can be run from within the tools/phpunit
+    This file only exists so that PHPUnit can also be run from within the tools/phpunit
     directory. The authoritative configuration is the phpunit.xml.dist in the bundle
     root; keep both in sync or delete this one.
 -->
@@ -8,7 +8,6 @@
          xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
          backupGlobals="false"
          bootstrap="../../tests/bootstrap.php"
-         cacheDirectory="../../.phpunit.cache"
          colors="true"
          failOnRisky="true"
 >
@@ -23,9 +22,9 @@
         </testsuite>
     </testsuites>
 
-    <source>
+    <coverage>
         <include>
             <directory>../../src</directory>
         </include>
-    </source>
+    </coverage>
 </phpunit>
