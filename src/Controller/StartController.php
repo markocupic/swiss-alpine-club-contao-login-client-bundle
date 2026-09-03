@@ -16,6 +16,7 @@ namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller;
 
 use Contao\CoreBundle\Routing\ScopeMatcher;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\OAuth2\Client\OAuth2ClientFactory;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator\HitobitoAuthenticator;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\RedirectPathValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -26,7 +27,6 @@ use Symfony\Component\HttpFoundation\UriSigner;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
-use Symfony\Component\Security\Http\Authenticator\AuthenticatorInterface;
 
 #[Route('/ssoauth/start/backend', name: self::LOGIN_ROUTE_BACKEND, defaults: ['_scope' => 'backend', '_token_check' => false])]
 #[Route('/ssoauth/start/frontend', name: self::LOGIN_ROUTE_FRONTEND, defaults: ['_scope' => 'frontend', '_token_check' => false])]
@@ -38,7 +38,7 @@ class StartController extends AbstractController
 
     public function __construct(
         #[Autowire(service: 'markocupic.sac_oauth2_client.oauth2.security.authenticator.hitobito_authenticator')]
-        private readonly AuthenticatorInterface $authenticator,
+        private readonly HitobitoAuthenticator $authenticator,
         #[Autowire(service: 'markocupic.sac_oauth2_client.oauth2.client.oauth2_client_factory')]
         private readonly OAuth2ClientFactory $oAuth2ClientFactory,
         private readonly RedirectPathValidator $redirectPathValidator,

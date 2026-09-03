@@ -17,6 +17,7 @@ namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface;
+use Symfony\Component\HttpFoundation\Session\FlashBagAwareSessionInterface;
 
 readonly class ErrorMessageManager
 {
@@ -45,6 +46,12 @@ readonly class ErrorMessageManager
 
     private function getFlashBag(): FlashBagInterface
     {
-        return $this->requestStack->getCurrentRequest()->getSession()->getFlashBag();
+        $session = $this->requestStack->getCurrentRequest()?->getSession();
+
+        if (!$session instanceof FlashBagAwareSessionInterface) {
+            throw new \LogicException('Error messages require a session with a flash bag.');
+        }
+
+        return $session->getFlashBag();
     }
 }

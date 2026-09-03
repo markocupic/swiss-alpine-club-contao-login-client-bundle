@@ -61,7 +61,7 @@
     "scripts": {
         "cs-fixer": "@php tools/ecs/vendor/bin/ecs check src tests --config tools/ecs/config/default.php --ansi",
         "cs-fixer-fix": "@php tools/ecs/vendor/bin/ecs check src tests --fix --config tools/ecs/config/default.php --ansi",
-        "phpstan": "@php tools/phpstan/vendor/bin/phpstan analyse --configuration=tools/phpstan/phpstan.neon.dist --memory-limit=-1 --ansi --level 0",
+        "phpstan": "@php tools/phpstan/vendor/bin/phpstan analyse --configuration=tools/phpstan/phpstan.neon.dist --memory-limit=-1 --ansi",
         "unit-tests": "@php tools/phpunit/vendor/bin/phpunit --colors=always"
     },
     "extra": {

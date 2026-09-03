@@ -19,6 +19,7 @@ use Contao\CoreBundle\InsertTag\InsertTagParser;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\StartController;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpFoundation\Session\FlashBagAwareSessionInterface;
 use Symfony\Component\HttpFoundation\UriSigner;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
@@ -123,12 +124,13 @@ readonly class ParseBackendTemplateListener
      */
     private function getErrorMessage(): array|null
     {
-        $flashBag = $this->requestStack
-            ->getCurrentRequest()
-            ->getSession()
-            ->getFlashBag()
-            ->get($this->sessionFlashBagKey)
-        ;
+        $session = $this->requestStack->getCurrentRequest()?->getSession();
+
+        if (!$session instanceof FlashBagAwareSessionInterface) {
+            return null;
+        }
+
+        $flashBag = $session->getFlashBag()->get($this->sessionFlashBagKey);
 
         if (!empty($flashBag)) {
             $arrError = [];

@@ -16,12 +16,12 @@ namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\User;
 
 use Contao\BackendUser;
 use Contao\CoreBundle\ContaoCoreBundle;
+use Contao\CoreBundle\Framework\Adapter;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\FrontendUser;
 use Contao\MemberModel;
 use Contao\StringUtil;
 use Contao\UserModel;
-use League\OAuth2\Client\Provider\ResourceOwnerInterface;
 use Markocupic\SacEventToolBundle\DataContainer\Util;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\OAuth\OAuthUser;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\OAuth\OAuthUserChecker;
@@ -34,7 +34,7 @@ readonly class ContaoUser
         private ContaoFramework $framework,
         private PasswordHasherFactoryInterface $hasherFactory,
         private OAuthUserChecker $oauthUserChecker,
-        private ResourceOwnerInterface $resourceOwner,
+        private OAuthUser $resourceOwner,
         private Util $util,
         private string $contaoScope,
         private bool $allowFrontendLoginToPredefinedSectionMembersOnly,
@@ -42,10 +42,7 @@ readonly class ContaoUser
     ) {
     }
 
-    /**
-     * @return OAuthUser
-     */
-    public function getResourceOwner(): ResourceOwnerInterface
+    public function getResourceOwner(): OAuthUser
     {
         return $this->resourceOwner;
     }
@@ -79,17 +76,17 @@ readonly class ContaoUser
         }
 
         if ('tl_member' === $strTable) {
-            /** @var MemberModel $memberModelAdapter */
+            /** @var Adapter<MemberModel> $memberModelAdapter */
             $memberModelAdapter = $this->framework->getAdapter(MemberModel::class);
 
-            return $memberModelAdapter->findOneBySacMemberId($this->getResourceOwner()->getSacMemberId());
+            return $memberModelAdapter->findOneBy('sacMemberId', $this->getResourceOwner()->getSacMemberId());
         }
 
         if ('tl_user' === $strTable) {
-            /** @var UserModel $userModelAdapter */
+            /** @var Adapter<UserModel> $userModelAdapter */
             $userModelAdapter = $this->framework->getAdapter(UserModel::class);
 
-            return $userModelAdapter->findOneBySacMemberId($this->getResourceOwner()->getSacMemberId());
+            return $userModelAdapter->findOneBy('sacMemberId', $this->getResourceOwner()->getSacMemberId());
         }
 
         return null;
@@ -192,7 +189,7 @@ readonly class ContaoUser
      */
     public function updateFrontendUser(): void
     {
-        /** @var StringUtil $stringUtilAdapter */
+        /** @var Adapter<StringUtil> $stringUtilAdapter */
         $stringUtilAdapter = $this->framework->getAdapter(StringUtil::class);
 
         $objMember = $this->getModel('tl_member');
@@ -231,7 +228,7 @@ readonly class ContaoUser
         $arrGroups = $stringUtilAdapter->deserialize($objMember->groups, true);
         $arrAutoGroups = $this->addToFrontendUserGroups;
 
-        if (!empty($arrAutoGroups) && \is_array($arrAutoGroups)) {
+        if (!empty($arrAutoGroups)) {
             foreach ($arrAutoGroups as $groupId) {
                 if (!\in_array($groupId, $arrGroups, false)) {
                     $arrGroups[] = $groupId;
@@ -357,6 +354,7 @@ readonly class ContaoUser
             /** @var MemberModel $objMember */
             $objMember = $this->framework->createInstance(MemberModel::class);
             $objMember->username = $sacMemberId;
+            // @phpstan-ignore property.notFound (tl_member.sacMemberId is added by the SAC event tool bundle)
             $objMember->sacMemberId = (int) $sacMemberId;
             // $objMember->uuid = $this->getResourceOwner()->getId();
             $objMember->dateAdded = time();

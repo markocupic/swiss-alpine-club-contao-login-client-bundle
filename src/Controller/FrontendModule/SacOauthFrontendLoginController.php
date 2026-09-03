@@ -28,6 +28,7 @@ use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Session\FlashBagAwareSessionInterface;
 use Symfony\Component\HttpFoundation\UriSigner;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
@@ -98,11 +99,13 @@ class SacOauthFrontendLoginController extends AbstractFrontendModuleController
      */
     private function getErrorMessage(Request $request): array|null
     {
-        $flashBag = $request
-            ->getSession()
-            ->getFlashBag()
-            ->get($this->sessionFlashBagKey)
-        ;
+        $session = $request->getSession();
+
+        if (!$session instanceof FlashBagAwareSessionInterface) {
+            return null;
+        }
+
+        $flashBag = $session->getFlashBag()->get($this->sessionFlashBagKey);
 
         if (!empty($flashBag)) {
             $arrError = [];

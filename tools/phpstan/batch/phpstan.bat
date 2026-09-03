@@ -6,4 +6,4 @@ cd..
 cd..
 cd..
 cd..
-php -d memory_limit=-1 vendor/bin/phpstan analyse vendor/markocupic/swiss-alpine-club-contao-login-client-bundle/src vendor/markocupic/swiss-alpine-club-contao-login-client-bundle/tests
+php -d memory_limit=-1 vendor/bin/phpstan analyse vendor/markocupic/swiss-alpine-club-contao-login-client-bundle/src vendor/markocupic/swiss-alpine-club-contao-login-client-bundle/tests --level 5 --configuration "%~dp0../phpstan.neon.dist"

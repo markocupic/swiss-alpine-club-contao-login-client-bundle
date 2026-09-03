@@ -126,13 +126,13 @@ readonly class ProviderConfiguration
         return [
             'clientId' => $this->getClientId(),
             // The client password assigned to you by the provider
-            'clientSecret' => $this->getClientSecret() ?? '',
+            'clientSecret' => $this->getClientSecret(),
             // Absolute url to the "authorize" endpoint
-            'urlAuthorize' => $this->getAuthorizeEndpoint() ?? '',
+            'urlAuthorize' => $this->getAuthorizeEndpoint(),
             // Absolute url to the 'get access token" endpoint
-            'urlAccessToken' => $this->getTokenEndpoint() ?? '',
+            'urlAccessToken' => $this->getTokenEndpoint(),
             // Absolute url to the "get resource owner details endpoint"
-            'urlResourceOwnerDetails' => $this->getUserinfoEndpoint() ?? '',
+            'urlResourceOwnerDetails' => $this->getUserinfoEndpoint(),
             // Absolute callback url to your login route (must be registered by the
             // service provider.)
             'redirectUri' => $this->getRedirectUrl(),

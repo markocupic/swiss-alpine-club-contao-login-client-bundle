@@ -15,8 +15,8 @@ declare(strict_types=1);
 namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\OAuth;
 
 use Contao\CoreBundle\ContaoCoreBundle;
+use Contao\CoreBundle\Framework\Adapter;
 use Contao\CoreBundle\Framework\ContaoFramework;
-use Contao\System;
 use Contao\Validator;
 use League\OAuth2\Client\Provider\ResourceOwnerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -55,7 +55,6 @@ readonly class OAuthUserChecker
      */
     public function checkHasSacMemberId(ResourceOwnerInterface $oAuthUser): bool
     {
-        /** @var System $systemAdapter */
         if (empty($oAuthUser->getId())) {
             return false;
         }
@@ -100,7 +99,7 @@ readonly class OAuthUserChecker
      */
     public function checkHasValidEmailAddress(ResourceOwnerInterface $oAuthUser): bool
     {
-        /** @var Validator $validatorAdapter */
+        /** @var Adapter<Validator> $validatorAdapter */
         $validatorAdapter = $this->framework->getAdapter(Validator::class);
 
         if (empty($oAuthUser->getEmail()) || !$validatorAdapter->isEmail($oAuthUser->getEmail())) {

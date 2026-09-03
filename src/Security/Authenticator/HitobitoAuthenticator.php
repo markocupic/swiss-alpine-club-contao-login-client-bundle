@@ -26,12 +26,12 @@ use Doctrine\DBAL\Exception;
 use Doctrine\DBAL\Types\Types;
 use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use League\OAuth2\Client\Provider\ResourceOwnerInterface;
+use League\OAuth2\Client\Token\AccessToken;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Config\ContaoLogConfig;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\RedirectController;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessage;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessageManager;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Event\AuthenticationFailureEvent;
-use Markocupic\SwissAlpineClubContaoLoginClientBundle\OAuth2\Client\OAuth2Client;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\OAuth2\Client\OAuth2ClientFactory;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\OAuth2\Client\Provider\Hitobito;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator\Exception\SacLoginAuthenticationException;
@@ -47,7 +47,7 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\Session\SessionBagInterface;
+use Symfony\Component\HttpFoundation\Session\Attribute\AttributeBagInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
@@ -159,7 +159,6 @@ class HitobitoAuthenticator extends AbstractAuthenticator
         $blnAllowLoginIfAccountIsDisabled = ContaoCoreBundle::SCOPE_FRONTEND === $contaoScope ? $this->reactivateDisabledFrontendUserOnLogin : $this->allowBackendLoginIfContaoAccountIsDisabled;
 
         try {
-            /** @var OAuth2Client $client */
             $oAuth2Client = $this->oAuth2ClientFactory->createOAuth2Client($request);
 
             if (!$oAuth2Client->hasValidOAuth2State()) {
@@ -181,10 +180,16 @@ class HitobitoAuthenticator extends AbstractAuthenticator
                 'code' => $request->query->get('code'),
             ]);
 
+            // The league provider always returns a concrete AccessToken here.
+            \assert($accessToken instanceof AccessToken);
+
             // Get the resource owner. This is an HTTP request to the userinfo endpoint,
             // so we fetch it once and reuse the result.
-            /** @var OAuthUser $oAuthUser */
             $oAuthUser = $oAuth2Provider->getResourceOwner($accessToken);
+
+            if (!$oAuthUser instanceof OAuthUser) {
+                $this->throwWithMessage($request, ErrorMessage::LEVEL_ERROR, LoginFailureReason::Unexpected);
+            }
 
             if ($this->isDebugMode) {
                 // Store OAuth claims to Contao system log.
@@ -405,8 +410,12 @@ class HitobitoAuthenticator extends AbstractAuthenticator
 
         // Reset login attempts
         $user = $token->getUser();
-        $user->ssoLoginAttempts = 0;
-        $user->save();
+
+        if ($user instanceof User) {
+            // @phpstan-ignore property.notFound (ssoLoginAttempts is added to tl_member and tl_user by this bundle)
+            $user->ssoLoginAttempts = 0;
+            $user->save();
+        }
 
         // Get the user identifier aka sac member id
         $userIdentifier = $token->getUser()->getUserIdentifier();
@@ -470,13 +479,19 @@ class HitobitoAuthenticator extends AbstractAuthenticator
         return new RedirectResponse($failurePath);
     }
 
-    protected function getSessionBag(Request $request): SessionBagInterface
+    protected function getSessionBag(Request $request): AttributeBagInterface
     {
-        if ($this->scopeMatcher->isBackendRequest($request)) {
-            return $request->getSession()->getBag('sac_oauth2_client_attr_backend');
+        $name = $this->scopeMatcher->isBackendRequest($request)
+            ? 'sac_oauth2_client_attr_backend'
+            : 'sac_oauth2_client_attr_frontend';
+
+        $bag = $request->getSession()->getBag($name);
+
+        if (!$bag instanceof AttributeBagInterface) {
+            throw new \LogicException(\sprintf('Expected the session bag "%s" to be an instance of "%s", got "%s".', $name, AttributeBagInterface::class, get_debug_type($bag)));
         }
 
-        return $request->getSession()->getBag('sac_oauth2_client_attr_frontend');
+        return $bag;
     }
 
     protected function throwWithMessage(Request $request, string $errLevel, LoginFailureReason $reason, ResourceOwnerInterface|null $resourceOwner = null, array $argsA = [], array $argsB = [], array $argsC = [], \Throwable|null $previous = null): never

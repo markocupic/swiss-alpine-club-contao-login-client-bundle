@@ -18,7 +18,7 @@ use Contao\CoreBundle\ContaoCoreBundle;
 use League\OAuth2\Client\Provider\AbstractProvider;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\OAuth2\Client\Provider\ProviderFactory;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Session\SessionBagInterface;
+use Symfony\Component\HttpFoundation\Session\Attribute\AttributeBagInterface;
 
 class OAuth2Client
 {
@@ -99,12 +99,12 @@ class OAuth2Client
 
     public function getTargetPath(): string
     {
-        return $this->getSession()->get('_target_path', '');
+        return (string) $this->getSession()->get('_target_path', '');
     }
 
     public function getFailurePath(): string
     {
-        return $this->getSession()->get('_failure_path', '');
+        return (string) $this->getSession()->get('_failure_path', '');
     }
 
     public function setAlwaysUseTargetPath(bool $blnAlwaysUseTargetPath): void
@@ -122,7 +122,7 @@ class OAuth2Client
         $this->getSession()->set('_failure_path', $failurePath);
     }
 
-    public function getSession(): SessionBagInterface
+    public function getSession(): AttributeBagInterface
     {
         $session = $this->request->getSession();
 
@@ -134,6 +134,10 @@ class OAuth2Client
 
         if (null === $bag) {
             throw new \Exception('Scope must be "backend" or "frontend".');
+        }
+
+        if (!$bag instanceof AttributeBagInterface) {
+            throw new \Exception(\sprintf('Expected the session bag to be an instance of "%s", got "%s".', AttributeBagInterface::class, get_debug_type($bag)));
         }
 
         return $bag;

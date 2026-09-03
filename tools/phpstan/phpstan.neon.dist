@@ -11,3 +11,24 @@ parameters:
         - %currentWorkingDirectory%/vendor/autoload.php
 
     treatPhpDocTypesAsCertain: false
+
+    # The paths below are relative to this file, so they match no matter whether
+    # PHPStan runs from the bundle root or from a project that has the bundle
+    # installed in its vendor directory.
+    ignoreErrors:
+        # The Symfony config tree builder is a fluent interface. Every ->end()
+        # returns a NodeParentInterface, and from there PHPStan can no longer
+        # follow the chain back to the node builder it actually is.
+        -
+            identifier: method.notFound
+            message: '#^Call to an undefined method Symfony\\Component\\Config\\Definition\\Builder\\NodeParentInterface::#'
+            path: ../../src/DependencyInjection/Configuration.php
+
+        # The assertion holds the contract "the container parameters are strings,
+        # not enum instances". That PHPStan can prove it today is the result being
+        # asserted. Should Configuration ever emit an enum again, this ignore stops
+        # matching and the build fails - which is exactly the wanted alarm.
+        -
+            identifier: method.alreadyNarrowedType
+            message: '#assertIsString\(\) with string will always evaluate to true#'
+            path: ../../tests/DependencyInjection/ConfigurationTest.php
