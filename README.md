@@ -34,7 +34,7 @@ Vor der Inbetriebnahme muss die App konfiguriert werden. Erstellen Sie dazu eine
 ```
 sac_oauth2_client:
   backend:
-    disable_contao_login: true ### Default to false. See the note below.
+    disable_contao_login: true ### Standardmässig false. Siehe Hinweise unten.
   oidc:
     # required
     client_id: '### Get your client id form SAC Schweiz ###'
@@ -76,7 +76,7 @@ sac_oauth2_client:
     auto_create_backend_user: false
     allow_backend_login_to_sac_members_only: true
     allow_backend_login_to_predefined_section_members_only: true
-    allow_backend_login_if_contao_account_is_disabled: false # Do not allow login if contao user account is disabled
+    allow_backend_login_if_contao_account_is_disabled: false # Verhindere das Login bei daktiviertem Nutzerkonto.
     allowed_backend_roles:
         - 'Group::SektionsMitglieder::Ehrenmitglied'
         - 'Group::SektionsMitglieder::MitgliedZusatzsektion'
