@@ -17,6 +17,7 @@ namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\EventListener;
 use Contao\CoreBundle\Routing\ScopeMatcher;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\KernelEvents;
@@ -61,6 +62,32 @@ readonly class DisableContaoBackendLoginListener
             return;
         }
 
+        if ($this->isTwoFactorCodeSubmission($request)) {
+            return;
+        }
+
         throw new AccessDeniedHttpException('The Contao backend login is disabled. Please use the SAC SSO login instead.');
+    }
+
+    /**
+     * Contao's two factor form posts the same FORM_SUBMIT value as the login form
+     * (see be_login_two_factor.html5) and is handled by the same authenticator, so
+     * blocking every "tl_login" would make the second factor unsubmittable.
+     *
+     * The obvious condition - "is a TwoFactorToken in the token storage" - cannot be
+     * used here. This listener runs before the firewall, where the token storage is
+     * still empty; Contao's own ContaoLoginAuthenticator notes the same and defers
+     * that check from supports() to authenticate().
+     *
+     * What is available is the request itself. The two factor form carries the auth
+     * code and, unlike the login form, no password field at all. Letting such a
+     * request through does not weaken this listener: without a password there is
+     * nothing to authenticate a password with, and Contao only reaches its two factor
+     * branch when a TwoFactorToken really is pending. Everything else still ends in a
+     * 403 below.
+     */
+    private function isTwoFactorCodeSubmission(Request $request): bool
+    {
+        return !$request->request->has('password') && $request->request->has('verify');
     }
 }

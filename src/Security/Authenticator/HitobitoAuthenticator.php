@@ -15,11 +15,15 @@ declare(strict_types=1);
 namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator;
 
 use Codefog\HasteBundle\UrlParser;
+use Contao\BackendUser;
 use Contao\CoreBundle\ContaoCoreBundle;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\CoreBundle\Monolog\ContaoContext;
+use Contao\CoreBundle\Routing\ContentUrlGenerator;
+use Contao\CoreBundle\Routing\PageFinder;
 use Contao\CoreBundle\Routing\ScopeMatcher;
 use Contao\CoreBundle\Security\Authentication\AuthenticationSuccessHandler;
+use Contao\PageModel;
 use Contao\User;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception;
@@ -40,6 +44,7 @@ use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\OAuth\OAuthUserCh
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\RedirectPathValidator;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\User\ContaoUserFactory;
 use Psr\Log\LoggerInterface;
+use Scheb\TwoFactorBundle\Security\Authentication\Token\TwoFactorTokenInterface;
 use Scheb\TwoFactorBundle\Security\Http\Authenticator\TwoFactorAuthenticator;
 use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -57,12 +62,22 @@ use Symfony\Component\Security\Http\Authenticator\Passport\Badge\UserBadge;
 use Symfony\Component\Security\Http\Authenticator\Passport\Passport;
 use Symfony\Component\Security\Http\Authenticator\Passport\SelfValidatingPassport;
 use Symfony\Component\Security\Http\SecurityRequestAttributes;
+use Symfony\Component\Security\Http\Util\TargetPathTrait;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 #[Autoconfigure(public: true)]
 class HitobitoAuthenticator extends AbstractAuthenticator
 {
+    use TargetPathTrait;
+
     public const string NAME = 'SAC_OAUTH2_AUTHENTICATOR';
+
+    /**
+     * Where the member wanted to go, kept across the second factor. Not the target
+     * path of the firewall - that one has to point at the page the member is parked
+     * on while the code is entered.
+     */
+    public const string SESSION_KEY_TWO_FACTOR_TARGET_PATH = 'sac_oauth2_client.two_factor.target_path';
 
     public function __construct(
         #[Autowire('@contao.security.authentication_success_handler')]
@@ -70,6 +85,8 @@ class HitobitoAuthenticator extends AbstractAuthenticator
         private readonly EventDispatcherInterface $eventDispatcher,
         private readonly Connection $connection,
         private readonly ContaoFramework $framework,
+        private readonly ContentUrlGenerator $contentUrlGenerator,
+        private readonly PageFinder $pageFinder,
         #[Autowire('@markocupic.sac_oauth2_client.security.user.contao_user_factory')]
         private readonly ContaoUserFactory $contaoUserFactory,
         #[Autowire('@markocupic.sac_oauth2_client.error_message.error_message_manager')]
@@ -101,6 +118,10 @@ class HitobitoAuthenticator extends AbstractAuthenticator
         private readonly bool $allowBackendLoginIfContaoAccountIsDisabled,
         #[Autowire('%sac_oauth2_client.oidc.reactivate_disabled_frontend_user_on_login%')]
         private readonly bool $reactivateDisabledFrontendUserOnLogin,
+        #[Autowire('%sac_oauth2_client.oidc.enforce_frontend_two_factor%')]
+        private readonly bool $enforceFrontendTwoFactor,
+        #[Autowire('%sac_oauth2_client.oidc.enforce_backend_two_factor%')]
+        private readonly bool $enforceBackendTwoFactor,
         private readonly LoggerInterface|null $contaoAccessLogger = null,
     ) {
     }
@@ -359,7 +380,11 @@ class HitobitoAuthenticator extends AbstractAuthenticator
     }
 
     /**
-     * Bypass 2FA for this authenticator.
+     * Decide whether Contao asks for a second factor after an SSO login.
+     *
+     * The identity provider is the strong factor here. Whether Contao adds its own
+     * second factor on top is a per scope decision, hence the two switches. Both are
+     * off by default, which keeps the behaviour this authenticator has always had.
      */
     public function createToken(Passport $passport, string $firewallName): TokenInterface
     {
@@ -369,13 +394,39 @@ class HitobitoAuthenticator extends AbstractAuthenticator
 
         $user = $token->getUser();
 
-        if (!$user instanceof User) {
+        if (!$user instanceof User || !$user->useTwoFactor) {
             return $token;
         }
 
-        if ($user->useTwoFactor) {
-            $token->setAttribute(TwoFactorAuthenticator::FLAG_2FA_COMPLETE, true);
+        $enforceTwoFactor = $user instanceof BackendUser
+            ? $this->enforceBackendTwoFactor
+            : $this->enforceFrontendTwoFactor;
+
+        // An account can carry useTwoFactor without ever having been enrolled: the flag
+        // is editable in the back end, the TOTP secret is not. Contao does not guard
+        // against that combination - Authenticator::getUpperUnpaddedSecretForUser()
+        // hands a null secret to Base32 and the request dies with a TypeError. There is
+        // nothing to verify against here, so let the login through and make the
+        // inconsistency visible instead of locking the account out of a portal it
+        // cannot reach to fix it.
+        if ($enforceTwoFactor && empty($user->secret)) {
+            $this->contaoAccessLogger?->warning(\sprintf(
+                'User "%s" has two factor authentication enabled, but no TOTP secret. The second factor was skipped.',
+                $user->getUserIdentifier(),
+            ));
+
+            $enforceTwoFactor = false;
         }
+
+        if ($enforceTwoFactor) {
+            // Leaving the flag unset hands the flow to the two factor bundle: its
+            // AuthenticationTokenListener swaps the token for a TwoFactorToken, and
+            // Contao's authentication success handler redirects to the second factor.
+            return $token;
+        }
+
+        // Tell the two factor bundle that the second factor has already been provided.
+        $token->setAttribute(TwoFactorAuthenticator::FLAG_2FA_COMPLETE, true);
 
         return $token;
     }
@@ -434,6 +485,36 @@ class HitobitoAuthenticator extends AbstractAuthenticator
                 ['username' => $userIdentifier],
                 ['username' => Types::STRING],
             );
+        }
+
+        if ($token instanceof TwoFactorTokenInterface) {
+            // The first factor is done, the second one is not. Contao's success handler
+            // would redirect back to the callback url, whose authorization code the
+            // identity provider has already consumed - the second run fails with
+            // "invalid state". Send the user to the target path instead. The request
+            // carries no authorization code, so this authenticator stays out of it and
+            // the two factor access listener asks for the code.
+            // Keep where the member actually wanted to go. The frontend module puts it
+            // into the "_target_path" field of the second factor form, so Contao goes
+            // there once the code has been accepted.
+            $request->getSession()->set(self::SESSION_KEY_TWO_FACTOR_TARGET_PATH, $targetPath);
+
+            $parkingUrl = $this->scopeMatcher->isFrontendRequest($request)
+                ? $this->getTwoFactorParkingUrl($request)
+                : null;
+
+            $parkingUrl ??= $targetPath;
+
+            $this->saveTargetPath($request->getSession(), $firewallName, $parkingUrl);
+
+            $this->contaoAccessLogger?->info(\sprintf(
+                '%s User "%s" [%s] has passed the SAC OPENID CONNECT APP login. Waiting for the second factor.',
+                strtoupper($contaoScope),
+                $fullName,
+                $userIdentifier,
+            ));
+
+            return new RedirectResponse($parkingUrl);
         }
 
         // Contao system log
@@ -546,6 +627,46 @@ class HitobitoAuthenticator extends AbstractAuthenticator
      * Log a technical failure with its stack trace, so it does not hide behind the
      * friendly "unexpected error" message the user gets to see.
      */
+    /**
+     * Find a page the member can wait on while the second factor is pending.
+     *
+     * Contao's TwoFactorFrontendListener redirects the member back to the firewall's
+     * target path on every single request until the code has been entered. If that path
+     * points at a page which rewrites its own query string - a checkout stepping from
+     * "?action=login" to "?action=register", for instance - the two redirect at each
+     * other forever: the page moves the member on, the listener pulls them back.
+     *
+     * So the member is parked on a page that stays put. The login module sits in the
+     * page header, hence any regular page will render the form. The root page's
+     * "twoFactorJumpTo" wins if it is set, otherwise the root page itself is used.
+     */
+    private function getTwoFactorParkingUrl(Request $request): string|null
+    {
+        $rootPage = $this->pageFinder->findRootPageForRequest($request);
+
+        if (!$rootPage instanceof PageModel) {
+            return null;
+        }
+
+        $pageModelAdapter = $this->framework->getAdapter(PageModel::class);
+
+        $parkingPage = $rootPage->twoFactorJumpTo
+            ? $pageModelAdapter->findPublishedById($rootPage->twoFactorJumpTo)
+            : null;
+
+        try {
+            return $this->contentUrlGenerator->generate(
+                $parkingPage instanceof PageModel ? $parkingPage : $rootPage,
+                [],
+                UrlGeneratorInterface::ABSOLUTE_URL,
+            );
+        } catch (\Throwable $e) {
+            $this->logUnexpectedError($request, 'could not generate the two factor parking url', $e);
+
+            return null;
+        }
+    }
+
     private function logUnexpectedError(Request $request, string $what, \Throwable $e): void
     {
         $this->contaoAccessLogger?->error(

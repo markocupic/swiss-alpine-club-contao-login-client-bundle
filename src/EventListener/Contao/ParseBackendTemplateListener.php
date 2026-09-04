@@ -17,12 +17,14 @@ namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\EventListener\Contao
 use Contao\CoreBundle\DependencyInjection\Attribute\AsHook;
 use Contao\CoreBundle\InsertTag\InsertTagParser;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\StartController;
+use Scheb\TwoFactorBundle\Security\Authentication\Token\TwoFactorTokenInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Session\FlashBagAwareSessionInterface;
 use Symfony\Component\HttpFoundation\UriSigner;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Twig\Environment;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
@@ -36,6 +38,7 @@ readonly class ParseBackendTemplateListener
         private InsertTagParser $insertTagParser,
         private RequestStack $requestStack,
         private RouterInterface $router,
+        private TokenStorageInterface $tokenStorage,
         private UriSigner $uriSigner,
         #[Autowire('%sac_oauth2_client.oidc.enable_backend_sso%')]
         private bool $enableBackendSso,
@@ -51,9 +54,21 @@ readonly class ParseBackendTemplateListener
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function __invoke(string $strContent, string $strTemplate): string
+    public function __invoke(string $strContent, string $templateName): string
     {
-        if (str_starts_with($strTemplate, 'be_login')) {
+        // Contao renders the second factor challenge with "be_login_two_factor", which
+        // starts with "be_login" as well. That page must be left alone: its form is the
+        // code input, not the password form, so removing it would lock out everyone who
+        // has two factor authentication enabled. And offering the SSO button again to
+        // someone who is halfway through a login would only restart the flow.
+        //
+        // Unlike in the DisableContaoBackendLoginListener, the token storage is filled
+        // at this point, so the state can be read straight from the token.
+        if ($this->tokenStorage->getToken() instanceof TwoFactorTokenInterface) {
+            return $strContent;
+        }
+
+        if (str_starts_with($templateName, 'be_login')) {
             if (!$this->enableBackendSso) {
                 return $strContent;
             }

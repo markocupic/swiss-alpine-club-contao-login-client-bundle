@@ -34,6 +34,8 @@ final class ConfigurationTest extends TestCase
         $this->assertFalse($config['oidc']['debug_mode'], 'Debug mode logs personal data and must be off by default.');
         $this->assertFalse($config['oidc']['auto_create_backend_user']);
         $this->assertFalse($config['oidc']['reactivate_disabled_frontend_user_on_login']);
+        $this->assertFalse($config['oidc']['enforce_frontend_two_factor'], 'Enabling two factor authentication has to be a deliberate decision.');
+        $this->assertFalse($config['oidc']['enforce_backend_two_factor'], 'Enabling two factor authentication has to be a deliberate decision.');
         $this->assertTrue($config['oidc']['allow_frontend_login_to_sac_members_only']);
         $this->assertTrue($config['oidc']['allow_backend_login_to_predefined_section_members_only']);
     }

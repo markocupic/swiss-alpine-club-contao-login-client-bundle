@@ -65,6 +65,8 @@ class MarkocupicSwissAlpineClubContaoLoginClientExtension extends Extension
         $container->setParameter($rootKey.'.oidc.allow_backend_login_to_sac_members_only', $config['oidc']['allow_backend_login_to_sac_members_only']);
         $container->setParameter($rootKey.'.oidc.allow_backend_login_to_predefined_section_members_only', $config['oidc']['allow_backend_login_to_predefined_section_members_only']);
         $container->setParameter($rootKey.'.oidc.allow_backend_login_if_contao_account_is_disabled', $config['oidc']['allow_backend_login_if_contao_account_is_disabled']);
+        $container->setParameter($rootKey.'.oidc.enforce_frontend_two_factor', $config['oidc']['enforce_frontend_two_factor']);
+        $container->setParameter($rootKey.'.oidc.enforce_backend_two_factor', $config['oidc']['enforce_backend_two_factor']);
         $container->setParameter($rootKey.'.oidc.allowed_frontend_roles', $config['oidc']['allowed_frontend_roles']);
         $container->setParameter($rootKey.'.oidc.allowed_frontend_sac_section_ids', $config['oidc']['allowed_frontend_sac_section_ids']);
         $container->setParameter($rootKey.'.oidc.allowed_backend_roles', $config['oidc']['allowed_backend_roles']);

@@ -4,8 +4,39 @@
 {% extends "@Contao/frontend_module/_base.html.twig" %}
 
 {% block content %}
+    {# One stable hook for the theme's javascript. "two-factor" means Contao is waiting
+       for the verification code, "error" means a login attempt failed and the message
+       below wants to be read - both are reasons to open the login modal by itself. #}
+    {% set sac_login_state = two_factor_in_progress|default ? 'two-factor' : (error|default ? 'error' : 'idle') %}
+    <div class="sac-oidc-login" data-sac-login-state="{{ sac_login_state }}">
     <!-- indexer::stop -->
-    {% if not has_logged_in_user %}
+    {% if two_factor_in_progress|default %}
+        {# The SSO login succeeded, Contao still wants the second factor. The form has
+           to post to the current page with FORM_SUBMIT=tl_login, that is what Contao's
+           ContaoLoginAuthenticator listens for. #}
+        <form action="{{ action }}" id="sacOidcLoginFe2fa_{{ data.id }}" class="sac-oidc-login-fe sac-oidc-login-fe--two-factor" method="post">
+            <div class="formbody">
+                <input type="hidden" name="FORM_SUBMIT" value="tl_login">
+                <input type="hidden" name="REQUEST_TOKEN" value="{{ request_token }}">
+                <input type="hidden" name="_target_path" value="{{ target_path }}">
+                <input type="hidden" name="_always_use_target_path" value="1">
+                <h2 class="two-factor-title">{{ 'MSC.twoFactorAuthentication'|trans }}</h2>
+                <p class="two-factor-explain">{{ 'MSC.twoFactorVerificationHelp'|trans }}</p>
+                <div class="widget widget-text">
+                    <label for="verify_{{ data.id }}">{{ 'MSC.twoFactorVerification'|trans }}</label>
+                    <input type="text" name="verify" id="verify_{{ data.id }}" class="text" value="" required autocomplete="one-time-code" inputmode="numeric" autocapitalize="off" autocorrect="off" spellcheck="false">
+                </div>
+                <div class="widget widget-checkbox">
+                    <input type="checkbox" name="trusted" id="trusted_{{ data.id }}" value="1">
+                    <label for="trusted_{{ data.id }}">{{ 'MSC.twoFactorTrustDevice'|trans }}</label>
+                </div>
+                <div class="submit_container">
+                    <button type="submit" class="submit">{{ 'MSC.continue'|trans }}</button>
+                    <a href="{{ cancel_url }}" class="two-factor-cancel">{{ 'MSC.cancelBT'|trans }}</a>
+                </div>
+            </div>
+        </form>
+    {% elseif not has_logged_in_user %}
         <form action="{{ action }}" id="sacOidcLoginFe_{{ data.id }}" class="sac-oidc-login-fe" method="post">
             <div class="formbody">
                 <input type="hidden" name="FORM_SUBMIT" value="sac-oidc-login-fe">
@@ -47,4 +78,5 @@
         </div>
     {% endif %}
     <!-- indexer::continue -->
+    </div>
 {% endblock %}
