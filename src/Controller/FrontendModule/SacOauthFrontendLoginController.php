@@ -14,7 +14,6 @@ declare(strict_types=1);
 
 namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\FrontendModule;
 
-use Codefog\HasteBundle\UrlParser;
 use Contao\CoreBundle\Controller\FrontendModule\AbstractFrontendModuleController;
 use Contao\CoreBundle\Csrf\ContaoCsrfTokenManager;
 use Contao\CoreBundle\DependencyInjection\Attribute\AsFrontendModule;
@@ -26,6 +25,7 @@ use Contao\PageModel;
 use Contao\StringUtil;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller\StartController;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator\HitobitoAuthenticator;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Util\QueryStringUtil;
 use Scheb\TwoFactorBundle\Security\TwoFactor\Event\TwoFactorAuthenticationEvent;
 use Scheb\TwoFactorBundle\Security\TwoFactor\Event\TwoFactorAuthenticationEvents;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -55,7 +55,6 @@ class SacOauthFrontendLoginController extends AbstractFrontendModuleController
         private readonly Security $security,
         private readonly TranslatorInterface $translator,
         private readonly UriSigner $uriSigner,
-        private readonly UrlParser $urlParser,
         #[Autowire('%sac_oauth2_client.session.flash_bag_key%')]
         private readonly string $sessionFlashBagKey,
     ) {
@@ -95,7 +94,7 @@ class SacOauthFrontendLoginController extends AbstractFrontendModuleController
             $template->set('target_path', $stringUtilAdapter->specialchars(base64_encode($strRedirect)));
 
             // Set the failure path
-            $uri = $this->urlParser->addQueryString('sac-oidc-error=true', $request->getUri());
+            $uri = QueryStringUtil::addParameter($request->getUri(), 'sac-oidc-error', 'true');
             $template->set('failure_path', $stringUtilAdapter->specialchars(base64_encode($uri)));
 
             // Do not show the login form if there is a logged in frontend user.

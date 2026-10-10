@@ -23,6 +23,8 @@ parameters:
             identifier: method.notFound
             message: '#^Call to an undefined method Symfony\\Component\\Config\\Definition\\Builder\\NodeParentInterface::#'
             path: ../../src/DependencyInjection/Configuration.php
+            # Newer Symfony versions describe the fluent interface precisely enough.
+            reportUnmatched: false
 
         # The assertion holds the contract "the container parameters are strings,
         # not enum instances". That PHPStan can prove it today is the result being

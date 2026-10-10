@@ -14,7 +14,6 @@ declare(strict_types=1);
 
 namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator;
 
-use Codefog\HasteBundle\UrlParser;
 use Contao\BackendUser;
 use Contao\CoreBundle\ContaoCoreBundle;
 use Contao\CoreBundle\Framework\ContaoFramework;
@@ -43,6 +42,7 @@ use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\OAuth\OAuthUser;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\OAuth\OAuthUserChecker;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\RedirectPathValidator;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\User\ContaoUserFactory;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Util\QueryStringUtil;
 use Psr\Log\LoggerInterface;
 use Scheb\TwoFactorBundle\Security\Authentication\Token\TwoFactorTokenInterface;
 use Scheb\TwoFactorBundle\Security\Http\Authenticator\TwoFactorAuthenticator;
@@ -99,7 +99,6 @@ class HitobitoAuthenticator extends AbstractAuthenticator
         private readonly RouterInterface $router,
         private readonly ScopeMatcher $scopeMatcher,
         private readonly TranslatorInterface $translator,
-        private readonly UrlParser $urlParser,
         #[Autowire('%sac_oauth2_client.oidc.debug_mode%')]
         private readonly bool $isDebugMode,
         #[Autowire('%sac_oauth2_client.oidc.auto_create_backend_user%')]
@@ -551,7 +550,7 @@ class HitobitoAuthenticator extends AbstractAuthenticator
         if (null === $failurePath) {
             if ($isFrontend) {
                 $failurePath = $request->getSchemeAndHttpHost();
-                $failurePath = $this->urlParser->addQueryString('sac-oidc-error=true', $failurePath);
+                $failurePath = QueryStringUtil::addParameter($failurePath, 'sac-oidc-error', 'true');
             } else {
                 $failurePath = $this->router->generate('contao_backend', [], UrlGeneratorInterface::ABSOLUTE_URL);
             }

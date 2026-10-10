@@ -15,6 +15,7 @@ declare(strict_types=1);
 namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Tests\Security\Authenticator;
 
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator\LoginFailureReason;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -27,6 +28,7 @@ final class LoginFailureReasonTest extends TestCase
     /**
      * @dataProvider reasons
      */
+    #[DataProvider('reasons')]
     public function testEveryReasonHasADeveloperMessage(LoginFailureReason $reason): void
     {
         // A missing match arm would raise an \UnhandledMatchError here.
@@ -36,6 +38,7 @@ final class LoginFailureReasonTest extends TestCase
     /**
      * @dataProvider reasons
      */
+    #[DataProvider('reasons')]
     public function testTheTranslationKeysFollowTheAgreedShape(LoginFailureReason $reason): void
     {
         $this->assertSame('ERR.sacOidcLoginError_'.$reason->value.'_matter', $reason->getMatterTranslationKey());
@@ -49,6 +52,7 @@ final class LoginFailureReasonTest extends TestCase
      *
      * @dataProvider languages
      */
+    #[DataProvider('languages')]
     public function testEveryReasonIsTranslated(string $language): void
     {
         $translations = self::loadTranslations($language);

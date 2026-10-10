@@ -14,19 +14,19 @@ declare(strict_types=1);
 
 namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Controller;
 
-use Codefog\HasteBundle\UrlParser;
 use Contao\CoreBundle\Routing\ScopeMatcher;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessage;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\ErrorMessage\ErrorMessageManager;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\OAuth2\Client\OAuth2ClientFactory;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\Authenticator\LoginFailureReason;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\RedirectPathValidator;
+use Markocupic\SwissAlpineClubContaoLoginClientBundle\Util\QueryStringUtil;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -48,7 +48,6 @@ class RedirectController extends AbstractController
         private readonly RouterInterface $router,
         private readonly ScopeMatcher $scopeMatcher,
         private readonly TranslatorInterface $translator,
-        private readonly UrlParser $urlParser,
     ) {
     }
 
@@ -77,7 +76,7 @@ class RedirectController extends AbstractController
             if ($this->scopeMatcher->isBackendRequest($request)) {
                 $failurePath = $this->router->generate('contao_backend', [], UrlGeneratorInterface::ABSOLUTE_URL);
             } else {
-                $failurePath = $this->urlParser->addQueryString('sac-oidc-error=true', $request->getSchemeAndHttpHost());
+                $failurePath = QueryStringUtil::addParameter($request->getSchemeAndHttpHost(), 'sac-oidc-error', 'true');
             }
         }
 

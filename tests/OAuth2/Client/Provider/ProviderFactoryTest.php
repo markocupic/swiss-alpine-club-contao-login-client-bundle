@@ -17,6 +17,7 @@ namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Tests\OAuth2\Client\
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\OAuth2\Client\Provider\OAuthScope;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\OAuth2\Client\Provider\PkceMethod;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\OAuth2\Client\Provider\ProviderFactory;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\OptionsResolver\Exception\InvalidOptionsException;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -44,6 +45,7 @@ final class ProviderFactoryTest extends TestCase
     /**
      * @dataProvider endpointOptions
      */
+    #[DataProvider('endpointOptions')]
     public function testTheEndpointsHaveToUseHttps(string $option): void
     {
         $this->expectException(InvalidOptionsException::class);

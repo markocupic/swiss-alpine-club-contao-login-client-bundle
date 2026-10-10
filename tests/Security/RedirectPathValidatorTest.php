@@ -15,6 +15,7 @@ declare(strict_types=1);
 namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Tests\Security;
 
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\Security\RedirectPathValidator;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -28,6 +29,7 @@ final class RedirectPathValidatorTest extends TestCase
     /**
      * @dataProvider safeTargets
      */
+    #[DataProvider('safeTargets')]
     public function testAcceptsATargetOnTheCurrentHost(string $path): void
     {
         $this->assertSame($path, self::validator()->getSafePath(base64_encode($path), self::request()));
@@ -36,6 +38,7 @@ final class RedirectPathValidatorTest extends TestCase
     /**
      * @dataProvider unsafeTargets
      */
+    #[DataProvider('unsafeTargets')]
     public function testRejectsATargetPointingSomewhereElse(string $path): void
     {
         $this->assertNull(self::validator()->getSafePath(base64_encode($path), self::request()));
@@ -44,6 +47,7 @@ final class RedirectPathValidatorTest extends TestCase
     /**
      * @dataProvider malformedInput
      */
+    #[DataProvider('malformedInput')]
     public function testRejectsMalformedInput(string|null $encodedPath): void
     {
         $this->assertNull(self::validator()->getSafePath($encodedPath, self::request()));

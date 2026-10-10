@@ -23,7 +23,7 @@ $GLOBALS['TL_DCA']['tl_module']['palettes'][SacOauthFrontendLoginController::TYP
 {account_legend},swiss_alpine_club_oidc_add_to_fe_groups;
 {template_legend:hide},customTpl;
 {protected_legend:hide},protected;
-{expert_legend:hide},guests,cssID
+{expert_legend:hide},cssID
 ';
 
 // Selectors

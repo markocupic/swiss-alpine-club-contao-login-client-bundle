@@ -22,21 +22,20 @@
         "source": "https://github.com/markocupic/swiss-alpine-club-contao-login-client-bundle"
     },
     "require": {
-        "php": "^8.3",
-        "codefog/contao-haste": "^5.1",
-        "contao/core-bundle": "^5.3",
+        "php": "^8.4",
+        "contao/core-bundle": "^5.3 || ^6.0",
         "league/oauth2-client": "^2.6",
         "markocupic/contao-twig-assets": "^1.0",
         "markocupic/sac-event-tool-bundle": "*",
-        "symfony/asset": "^6.0 || ^7.0",
+        "symfony/asset": "^6.4 || ^7.0 || ^8.0",
         "symfony/webpack-encore-bundle": "^v2.0"
     },
     "require-dev": {
         "contao/manager-plugin": "^2.3.1",
-        "contao/test-case": "^5.3",
+        "contao/test-case": "^5.3 || ^6.0",
         "markocupic/easy-coding-standard": "^13.0",
         "phpstan/phpstan": "^2.0",
-        "phpunit/phpunit": "^9.5"
+        "phpunit/phpunit": "^9.5 || ^12.4"
     },
     "autoload": {
         "psr-4": {

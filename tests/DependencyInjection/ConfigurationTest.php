@@ -17,6 +17,7 @@ namespace Markocupic\SwissAlpineClubContaoLoginClientBundle\Tests\DependencyInje
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\DependencyInjection\Configuration;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\OAuth2\Client\Provider\OAuthScope;
 use Markocupic\SwissAlpineClubContaoLoginClientBundle\OAuth2\Client\Provider\PkceMethod;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\Definition\Processor;
@@ -55,6 +56,7 @@ final class ConfigurationTest extends TestCase
     /**
      * @dataProvider everyPkceMethod
      */
+    #[DataProvider('everyPkceMethod')]
     public function testEveryPkceMethodOfTheEnumIsAccepted(string $method): void
     {
         $this->assertSame($method, self::process(['pkce_method' => $method])['oidc']['pkce_method']);
@@ -63,6 +65,7 @@ final class ConfigurationTest extends TestCase
     /**
      * @dataProvider everyScope
      */
+    #[DataProvider('everyScope')]
     public function testEveryScopeOfTheEnumIsAccepted(string $scope): void
     {
         $this->assertSame([$scope], self::process(['oauth_scopes' => [$scope]])['oidc']['oauth_scopes']);

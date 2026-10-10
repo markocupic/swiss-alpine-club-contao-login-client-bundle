@@ -16,7 +16,7 @@ jobs:
             -   name: Setup PHP
                 uses: shivammathur/setup-php@v2
                 with:
-                    php-version: 8.3
+                    php-version: 8.4
                     coverage: none
 
             -   name: Checkout
@@ -35,7 +35,7 @@ jobs:
             -   name: Setup PHP
                 uses: shivammathur/setup-php@v2
                 with:
-                    php-version: 8.3
+                    php-version: 8.4
                     extensions: dom, fileinfo, filter, hash, intl, json, mbstring, pcre, pdo_mysql, zlib
                     coverage: none
 
@@ -56,8 +56,7 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                # PHPUnit 9.6 (pinned by contao/test-case 5.3) is not tested against PHP 8.5.
-                php: [ 8.3, 8.4 ]
+                php: [ 8.4, 8.5 ]
         steps:
             -   name: Setup PHP
                 uses: shivammathur/setup-php@v2
@@ -72,8 +71,12 @@ jobs:
             -   name: Install phpunit
                 run: cd tools/phpunit && composer update --no-interaction --no-progress
 
+            # tools/phpunit uses PHPUnit 9.6 (contao/test-case 5.3). Install Contao 5.3 in the root
+            # package as well, so that both use the same PHPUnit version.
             -   name: Install the dependencies
-                run: composer update --no-interaction --no-progress
+                run: |
+                    composer require contao/core-bundle:5.3.* --no-update --no-interaction
+                    composer update --no-interaction --no-progress
 
             -   name: Run the unit tests
                 run: composer unit-tests

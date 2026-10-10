@@ -10,36 +10,43 @@
 
 "use strict";
 
-window.addEventListener('DOMContentLoaded', () => {
+// The click handlers are delegated to the document, so that they keep working
+// in the Contao 6 back end, where Turbo Drive replaces the page body without
+// firing DOMContentLoaded again.
+(() => {
 
-    // Handle Contao frontend logout
-    const feLogoutLinks: NodeListOf<HTMLElement> = document.querySelectorAll('.trigger-ids-kill-session[data-href]');
+    document.addEventListener('click', (e: MouseEvent) => {
+        if (!(e.target instanceof Element)) {
+            return;
+        }
 
-    for (const link of feLogoutLinks) {
-        link.addEventListener('click', (e: MouseEvent) => {
+        // Handle Contao frontend logout
+        const feLink = e.target.closest<HTMLElement>('.trigger-ids-kill-session');
+
+        if (feLink) {
             e.preventDefault();
             e.stopPropagation();
             e.stopImmediatePropagation();
 
-            if (link.hasAttribute('data-href')) {
-                link.textContent = link.dataset.logoutLabel ?? 'du wirst abgemeldet …';
-                link.removeAttribute('data-href');
-                logout('frontend', link.getAttribute('href'), link.dataset.targetpath || null);
+            if (feLink.hasAttribute('data-href')) {
+                feLink.textContent = feLink.dataset.logoutLabel ?? 'du wirst abgemeldet …';
+                feLink.removeAttribute('data-href');
+                logout('frontend', feLink.getAttribute('href'), feLink.dataset.targetpath || null);
             }
-        });
-    }
 
-    // Handle Contao backend logout
-    const beLogoutLinks: NodeListOf<HTMLLinkElement> = document.querySelectorAll('#tmenu a[href$="contao/logout"]');
+            return;
+        }
 
-    for (const link of beLogoutLinks) {
-        link.addEventListener("click", (e: MouseEvent) => {
+        // Handle Contao backend logout
+        const beLink = e.target.closest<HTMLAnchorElement>('#tmenu a[href$="contao/logout"]');
+
+        if (beLink) {
             e.preventDefault();
             e.stopPropagation();
             e.stopImmediatePropagation();
-            logout('backend', link.getAttribute('href'), null);
-        });
-    }
+            logout('backend', beLink.getAttribute('href'), null);
+        }
+    }, true);
 
     /**
      * 1. Retrieve the Hitobito logout URI
@@ -107,4 +114,4 @@ window.addEventListener('DOMContentLoaded', () => {
             window.location.href = '/contao/logout';
         }
     }
-});
+})();
